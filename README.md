@@ -45,6 +45,26 @@ Live browser captures from the local synthetic demo. Click a thumbnail to open t
   </tr>
 </table>
 
+### Select a doctor, step by step
+
+Follow one synthetic referral from setup to consent. Click any thumbnail to see the full screen.
+The final image shows the request ready to send after explicit consent.
+
+<table>
+  <tr>
+    <td align="center"><strong>1. Create a referral</strong><br /><a href="docs/media/referral-create.jpg"><img src="docs/media/referral-create-thumb.jpg" width="260" alt="Choose a sample patient and click Create referral." /></a><br /><sub>Choose a sample patient and click Create referral.</sub></td>
+    <td align="center"><strong>2. Choose a hospital</strong><br /><a href="docs/media/referral-step-02-hospital.jpg"><img src="docs/media/referral-step-02-hospital-thumb.jpg" width="260" alt="Select Lakeview Regional Medical Center to see its doctors." /></a><br /><sub>Select Lakeview Regional Medical Center to see its doctors.</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>3. Choose your doctor</strong><br /><a href="docs/media/referral-step-03-doctor.jpg"><img src="docs/media/referral-step-03-doctor-thumb.jpg" width="260" alt="Select Elena Marquez from the available doctors." /></a><br /><sub>Select Elena Marquez from the available doctors.</sub></td>
+    <td align="center"><strong>4. Choose an appointment</strong><br /><a href="docs/media/referral-step-04-time.jpg"><img src="docs/media/referral-step-04-time-thumb.jpg" width="260" alt="Pick an available time for the selected doctor." /></a><br /><sub>Pick an available time for the selected doctor.</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>5. Review the request</strong><br /><a href="docs/media/referral-step-05-review.jpg"><img src="docs/media/referral-step-05-review-thumb.jpg" width="260" alt="Check the exact referral request before giving consent." /></a><br /><sub>Check the exact referral request before giving consent.</sub></td>
+    <td align="center"><strong>6. Give explicit consent</strong><br /><a href="docs/media/referral-step-06-consent.jpg"><img src="docs/media/referral-step-06-consent-thumb.jpg" width="260" alt="Tick the agreement to enable Send referral request." /></a><br /><sub>Tick the agreement to enable Send referral request.</sub></td>
+  </tr>
+</table>
+
 ## What this project demonstrates
 
 | Engineering area          | Design demonstrated here                                                                                                                                      |

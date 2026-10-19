@@ -51,3 +51,20 @@ Captured October 19, 2026. All displayed records and traffic are synthetic. Thes
 captures of the implemented UI, not design mockups. Counts reflect the local stack at capture time.
 Each `*-thumb.jpg` is resized to 520 pixels wide and displayed at 260 pixels in the README;
 clicking it opens its full-size counterpart.
+
+
+### Step-by-step referral walkthrough
+
+The README walkthrough follows one fresh synthetic workflow in the running patient app:
+
+1. `referral-create.jpg` — choose a sample patient and start a referral (the existing creation capture).
+2. `referral-step-02-hospital.jpg` — choose Lakeview Regional Medical Center.
+3. `referral-step-03-doctor.jpg` — choose Elena Marquez from the hospital’s doctors.
+4. `referral-step-04-time.jpg` — select an available appointment.
+5. `referral-step-05-review.jpg` — review the exact request with the send button awaiting consent.
+6. `referral-step-06-consent.jpg` — explicit agreement enables the send button, before submission.
+
+The five new captures were taken October 19, 2026. Each has a 520-pixel-wide `-thumb.jpg`
+companion, displayed at 260 pixels and linked to the full-size image. The overview’s
+`referral-journey.jpg` also uses the clearer doctor-selection capture. The walkthrough records
+actual app states; it ends before sending the request or receiving an appointment outcome.

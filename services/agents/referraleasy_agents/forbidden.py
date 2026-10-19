@@ -1,11 +1,10 @@
-# ruff: noqa: RUF002  # Turkish quoted from §3 of ReferralEasy_Architecture_v3.md is kept verbatim
-"""§3's third column — *Yasaklanan yetki* — as refusals you can call.
+"""§3's third column — *Forbidden authority* — as refusals you can call.
 
 §3 gives every specialist a forbidden authority. Part of that column is already a
 tool, and the runtime enforces it: a tool outside the role's allowlist raises
 `ToolNotAllowed`, a tool the policy table denies in this state raises
 `PolicyRefused`, a delegation past the cap raises `BudgetExhausted`. The rest has no
-tool to withhold — *"tanı koyamaz"* (may not diagnose) is not a function anyone can
+tool to withhold — *"may not diagnose"* (may not diagnose) is not a function anyone can
 delete, and "no model call purely to reword a failure message" is a property of a
 design rather than of a call site. Those live here.
 
@@ -387,8 +386,8 @@ def _refuse_scored_over_missing_data() -> None:
 def _refuse_model_judged_ranking() -> None:
     """A model's ranking is refused by the shape it would have to travel in.
 
-    §3: *"Mesafe hesabı, filtreleme ve uniqueness kodla uygulanır… Basit sıralama
-    doğrudan kodla yapılır"* — distance, filtering and uniqueness are implemented in
+    §3: *"Distance calculation, filtering, and uniqueness are implemented in code… Simple ranking is
+    performed directly in code"* — distance, filtering and uniqueness are implemented in
     code, and simple ranking is done in code. Two refusals, in the order they happen:
     the analysis schema is walked and a numeric field anywhere in it fails the check
     (so a score cannot be added later without this test noticing), and then the act
@@ -511,7 +510,7 @@ def _refuse_closed_one_way_door() -> None:
 def _refuse_rewording_a_failure() -> None:
     """No model call happens on a failure path, so none can be made to reword one.
 
-    §3: *"sadece hata mesajını yeniden yazmak için model çağrısı yapılmaz"* — no model
+    §3: *"no model call is made solely to rewrite an error message"* — no model
     call is made purely to reword a failure message. Two refusals: the failure
     sentence table must cover every failure class (checked here, because a class
     without a sentence is the only situation that would leave a model something to

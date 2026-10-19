@@ -1,7 +1,8 @@
 """Layer 2 — the OpenRouter decision model, on a masked message (§9).
 
-§9: *"OpenRouter decision model: maskelenmiş mesaj ve gerekli bağlamdan allow/block/clarify +
-category/reason üretir"*. Three things in that sentence are load-bearing, and this module is built
+§9: *"OpenRouter decision model: produces allow/block/clarify + category/reason from the masked
+message and necessary context"*. Three things in that sentence are load-bearing, and this module is
+built
 around them.
 
 **Masked.** The layer is handed the masked message and uses nothing else — it never reads
@@ -20,7 +21,7 @@ does not parse is *not a decision* (§9's closed-dependency rule) rather than an
 message was refused; it is not evidence and it is not a source.
 
 The model is selected explicitly in the environment and validated at startup
-(:mod:`referraleasy_guardrails.config`), because §9's *"«CEV» çözülmüş model ID değildir"* is about
+(:mod:`referraleasy_guardrails.config`), because §9's *"«CEV» is not a resolved model ID"* is about
 exactly this: a token that looks like a model id but resolves to nothing. The client is injected, so
 the layer's own logic — masking, prompt construction, parsing, the refusal rules — is exercised
 without a provider, and the provider path itself is exercised over ``httpx.MockTransport`` and, once,

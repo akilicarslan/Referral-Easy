@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of Referraleasy_Architecture_v3.md is kept verbatim
 """The query layer, run against the live index rather than against canned responses (§15).
 
 **This is the stronger of the two verifications of :class:`TelemetryQuery`.** ``test_query.py``
@@ -170,7 +169,7 @@ class TestTheOutcomeBreakdown:
     def test_all_six_classes_are_present_and_empty_is_not_an_error(
         self, live_pipeline, live_query
     ) -> None:
-        """§15: "Empty geçerli sonuç error değildir".
+        """§15: "A valid empty result is not an error".
 
         Two attempts of one invocation are emitted — the first came back empty, the retry succeeded —
         and each carries its own attempt *number*. That detail is load-bearing: ``event.id`` is
@@ -258,7 +257,8 @@ class TestTheLatencyDistribution:
     def test_a_timeout_is_in_the_distribution_and_excluding_it_is_visible(
         self, live_pipeline, live_query, scoped
     ) -> None:
-        """§15: "Özellikle timeout'lar latency dağılımından silinmez", asserted as a difference.
+        """§15: "In particular, timeouts are not removed from the latency distribution", asserted as
+        a difference.
 
         The same aggregation is run twice over the same three attempts, once with the failures
         included and once without. ``include_errors=True`` is the default and the honest reading; the
@@ -327,7 +327,7 @@ class TestTheTimeSeries:
     def test_the_buckets_are_in_the_requested_timezone_and_each_carries_its_sample(
         self, live_pipeline, live_query
     ) -> None:
-        """§12: "gün, ay, özel aralık, timezone ... ve sample count".
+        """§12: "day, month, custom range, timezone ... and sample count".
 
         The window is "today in Chicago", which is the range a dashboard's day view asks for and is
         *not* a UTC day. The documents were written now, so they are inside it; the assertions are
@@ -452,7 +452,8 @@ class TestTheIndexHealthAndTheSeparation:
         assert all(row["index"].startswith("otel-events-") for row in health["indices"])
 
     def test_the_directory_index_cannot_be_read_through_this_class(self) -> None:
-        """§15: "Rehber ve telemetri indeksleri ayrılır". Retrieved directory text is untrusted
+        """§15: "Directory and telemetry indices are separate". Retrieved directory text is
+        untrusted
         content, and a query object that could be pointed at it would let a *retrieved* document be
         read as a *recorded* one."""
         with pytest.raises(UnindexablePatternError, match="directory"):

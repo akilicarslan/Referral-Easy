@@ -84,8 +84,8 @@ one result that should stop everything: it is not a low score, it is a forbidden
 ## 5. A metric's mean looks wrong, or its `n/a` column is large
 
 That is the design, not a bug. `scored`, `not_applicable` and `errors` are reported beside every
-mean, and the mean covers **only the scored cases** (§14: *"N/A ve eval_error sıfır olarak
-skorlanmaz"*). A metric with two measurements and eight gaps is a thin measurement, not a bad score,
+mean, and the mean covers **only the scored cases** (§14: *"N/A and eval_error are not scored as
+zero"*). A metric with two measurements and eight gaps is a thin measurement, not a bad score,
 and the columns are how a reader tells them apart.
 
 To find out *why* something was not measured, read the case in the report: every unscored verdict

@@ -1,6 +1,6 @@
 """PII and secret masking, applied to a record on its way out of the process (§15).
 
-§15: "Trace/log metinlerinde PII/secret exporter öncesi maskelenir." The requirement has two
+§15: "PII/secrets in trace/log text are masked before export." The requirement has two
 clauses and both matter.
 
 **Before export.** Masking happens in the exporter, at the last possible moment, over the exact

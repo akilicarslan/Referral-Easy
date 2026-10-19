@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # §14's Turkish sentences are quoted verbatim, as in every other package here
 """ReferralEasy evaluation — §14's offline harness, as a package.
 
 §14 asks for an evaluation that is *auditable* rather than merely present, and four of its sentences
@@ -6,8 +5,8 @@ shape everything here:
 
     Offline replay on a separate fixture DB; **never recreate live bookings.**
     Offline dataset of ~40-60 cases covering all scenarios.
-    **Deterministic kurallar önce, judge ikinci.**
-    N/A ve eval_error **sıfır olarak skorlanmaz.**
+    **Deterministic rules first, judge second.**
+    N/A and eval_error **are not scored as zero.**
 
 Its parts, and what each refuses to do:
 

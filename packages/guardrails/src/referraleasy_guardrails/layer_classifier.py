@@ -1,9 +1,10 @@
-# ruff: noqa: RUF001, RUF002  # the §9 sentence about calibrated probability is quoted in Turkish
+# ruff: noqa: RUF001, RUF002  # Intentional Unicode patterns and examples.
 """Layer 3 — the local small semantic classifier, with its method, artifact hash and thresholds (§9).
 
-§9: *"Lokal küçük semantik model: CPU/ONNX classifier veya değerlendirilmiş encoder tabanlı
-yaklaşım. Eğitim/yöntem, artifact hash ve eşikler kayıtlıdır. Belirsizlik veya çelişki clarify/HITL
-üretir; model confidence kalibre olasılık sayılmaz."* Four requirements, and this module is built so
+§9: *"Small local semantic model: a CPU/ONNX classifier or an evaluated encoder-based approach.
+Training/method, artifact hash, and thresholds are recorded. Uncertainty or contradiction produces
+clarify/HITL; model confidence is not treated as a calibrated probability."* Four requirements, and
+this module is built so
 that each one is checkable rather than asserted:
 
 **The method is recorded.** :class:`ThresholdRecord` carries the method id, the encoder identity, the

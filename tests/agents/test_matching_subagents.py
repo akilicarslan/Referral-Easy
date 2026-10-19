@@ -7,8 +7,8 @@ claims this file holds the implementation to, each with a way to fail loudly:
 
 * **there is no numeric score anywhere in the analyst's schema.** Not "the prompt
   says not to score": the field does not exist, so a score would have to be invented,
-  and inventing it is a validation error (`extra="forbid"`). §3: *"bulunmayan veriyi
-  puanla örtemez."*
+  and inventing it is a validation error (`extra="forbid"`). §3: *"may not conceal missing data with
+  a score."*
 * **a non-null verdict without evidence is refused** — `satisfied: true` with nothing
   behind it is a claim about a hospital, and the analyst may emit `null` instead.
 * **distance, filtering, uniqueness and ranking are code** — measured from

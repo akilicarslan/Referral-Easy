@@ -1,4 +1,3 @@
-# ruff: noqa: RUF003  # Keep the quoted source text in comments.
 """Define the card catalog, stable IDs and complete agent decisions.
 
 The catalog contains the eight contract components. WorkflowSurfaceProjection
@@ -117,7 +116,8 @@ CATALOG: Final[Mapping[WorkflowState, CardPlan]] = {
 }
 
 #: The static card §9 keeps available when the guardrail dependency is off
-#: ("statik rehber/yardım kartı kullanılabilir"). It is not in the catalog because it is not a state
+#: ("the static guide/help card remains available"). It is not in the catalog because it is not a
+#: state
 #: — it is what the patient can always reach, including when nothing else works.
 HELP_CARD_COMPONENT: Final = RenderableComponent.HumanHandoffCard
 

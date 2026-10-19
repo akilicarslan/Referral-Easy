@@ -1,13 +1,12 @@
-# ruff: noqa: RUF001, RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Structured operation events — §15's measurements, as queryable documents.
 
 §15 settles an architecture question that is easy to get wrong by assuming:
 
-    OTLP structured operation event'leri Collector → Data Prepper → OpenSearch'e gider; custom
-    admin histogram/aggregation sorgularıyla sayım ve percentile üretir. Native OTel metrics'in
-    OpenSearch ingestion desteği seçilen sürümde doğrulanmadıkça otomatik var kabul edilmez;
-    gerekirse aynı ölçümler sayısal log event olarak gönderilir. ... authoritative analytics
-    ``event_id`` ile dedup edilir; aynı span/log iki kez sayılmaz.
+    OTLP structured operation events flow through Collector → Data Prepper → OpenSearch;
+    custom admin histogram/aggregation queries produce counts and percentiles. Native OTel
+    metric ingestion into OpenSearch is not assumed unless support is verified in the selected
+    version; if needed, the same measurements are sent as numeric log events. ... Authoritative
+    analytics are deduplicated by ``event_id``; the same span/log is not counted twice.
 
 The spike (ADR-0008) verified the conditional: OpenSearch 3.9.0 does **not** ingest native OTLP
 metrics, and the only OTLP code in the distribution is an exporter for OpenSearch's own internal
@@ -324,7 +323,7 @@ def validate_dimensions(dimensions: Mapping[str, Any]) -> None:
     for key, value in dimensions.items():
         if key == "trace_id":
             raise UnknownDimensionError(
-                "'trace_id' is not a dimension (§15: trace ID metric label yapılmaz). A terms "
+                "'trace_id' is not a dimension (§15: trace IDs are not used as metric labels). A terms "
                 "aggregation on it produces one bucket per request and answers nothing. Attach it "
                 "with `trace_id=` — a field on the record — instead."
             )
@@ -710,7 +709,7 @@ class TelemetryEmitter:
         correlation: CorrelationIds | None = None,
         extra_fields: Mapping[str, Any] | None = None,
     ) -> EventRecord:
-        """Time a workflow spent waiting for a human (§15: "HITL bekleme/çözüm").
+        """Time a workflow spent waiting for a human (§15: "HITL wait/resolution").
 
         Deliberately a separate measurement from latency: a human's response time is not the
         platform's, and mixing the two would put human thinking time into the p95 that the alert
@@ -774,7 +773,7 @@ class TelemetryEmitter:
         correlation: CorrelationIds | None = None,
         extra_fields: Mapping[str, Any] | None = None,
     ) -> EventRecord:
-        """One guardrail decision (§15: "guardrail kararları").
+        """One guardrail decision (§15: "guardrail decisions").
 
         A ``block`` is recorded as ``OutcomeClass.BLOCKED``, which is neither a success nor an
         error. §15 lists ``blocked`` as its own class, and a guardrail doing its job is not a
@@ -817,7 +816,7 @@ class TelemetryEmitter:
         correlation: CorrelationIds | None = None,
         extra_fields: Mapping[str, Any] | None = None,
     ) -> EventRecord:
-        """One evaluation score (§15: "değerlendirme skorları").
+        """One evaluation score (§15: "evaluation scores").
 
         ``score`` may be ``None`` and ``status`` is required, because §14 is explicit that ``N/A``
         and ``eval_error`` are **not** zero. A ``None`` score is emitted with

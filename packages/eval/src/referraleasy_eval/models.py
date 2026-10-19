@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # §14's Turkish sentences are quoted verbatim, as in every other package here
 """What a case expects, what a run did, and what a rule concluded (§14).
 
 Three shapes, and the boundary between them is the point of the module.
@@ -206,7 +205,7 @@ def scored(rule: str, score: float, reason: str) -> Verdict:
 def not_applicable(rule: str, reason: str) -> Verdict:
     """The rule could not decide **and no number would be honest**.
 
-    This is not a failure and not a zero. §14: "N/A ve eval_error sıfır olarak skorlanmaz" — an
+    This is not a failure and not a zero. §14: "N/A and eval_error are not scored as zero" — an
     average that counted them as zero would report a system as worse the more of it could not be
     measured, which is the opposite of what a reader would conclude.
     """

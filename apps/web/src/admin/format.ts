@@ -1,7 +1,8 @@
 /**
  * Turning the admin payloads into text, with one rule: **`null` is "no data", never zero**.
  *
- * §14 says it for scores (*"N/A ve eval_error sıfır olarak skorlanmaz"*) and §15 says it for latency
+ * §14 says it for scores (*"N/A and eval_error are not scored as zero"*) and §15 says it for
+ * latency
  * percentiles (a zero would plot an impossibly fast system). Both arrive here as `null`, and every
  * function below has a branch for it rather than a `?? 0`, because `?? 0` is exactly the mistake
  * that turns a gap into a measurement and it is invisible at the call site.

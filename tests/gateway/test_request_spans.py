@@ -13,8 +13,9 @@ The four claims, and why each is worth a test rather than a comment:
   a service that never extracts produces a new root trace per request, and a new root trace is
   indistinguishable from a correct one when you look at it. The trace looks healthy and is two traces.
   It is also the whole point of the gateway-to-agent hop.
-* **A telemetry failure cannot fail the request.** §15 states it outright — *"telemetry kesintisi
-  booking'i düşürmez"* — and this is where that promise is either kept or broken, because this is the
+* **A telemetry failure cannot fail the request.** §15 states it outright — *"a telemetry outage
+* does not cause booking to fail"* — and this is where that promise is either kept or broken,
+* because this is the
   middleware every request passes through.
 * **An app built without telemetry installs nothing.** The default has to be inert, or every test in
   this suite would be exporting to a collector that is not there.
@@ -152,7 +153,8 @@ def test_an_inbound_traceparent_is_continued_rather_than_starting_a_new_trace(
 def test_a_telemetry_failure_cannot_fail_the_request(
     settings: GatewaySettings, clock: Any, control: Any
 ) -> None:
-    """§15: *"telemetry kesintisi booking'i düşürmez"* — and this middleware is on every request.
+    """§15: *"a telemetry outage does not cause booking to fail"* — and this middleware is on every
+    request.
 
     The tracer is made to raise, which is the failure mode `IsolatedTracer` exists for: the SDK's
     own exporters cannot reach the caller (they batch on another thread), but a span processor or a

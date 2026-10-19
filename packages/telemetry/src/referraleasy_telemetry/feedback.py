@@ -1,10 +1,9 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Feedback: the last active thumbs per response, and the three numbers (§15, §12).
 
 §15 spends a sentence on this and every clause of it is load-bearing:
 
-    Feedback ``response_id`` başına son aktif thumbs up/down ile sayılır; ham sayı, beğeni oranı ve
-    katılım oranı ayrıdır.
+    Feedback is counted using the latest active thumbs up/down per ``response_id``; raw counts,
+    approval rate, and participation rate are separate.
 
 Three decisions are encoded here.
 

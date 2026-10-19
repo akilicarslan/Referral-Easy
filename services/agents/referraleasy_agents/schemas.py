@@ -1,7 +1,6 @@
-# ruff: noqa: RUF002  # Turkish quoted from §3 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Each specialist's versioned input and output schema (§5).
 
-§5 requires every agent service to publish "sürümlü structured input/output
+§5 requires every agent service to publish "versioned structured input/output
 schema" — a versioned structured input and output schema — and §2.1 requires that
 "partial agent output is not final state". This module is both requirements in
 one place:
@@ -333,8 +332,8 @@ class RecoveryActionPlan(_Strict):
     """Recovery's bounded options (§3), as data.
 
     `permitted_actions` is what the state machine allows, not what Recovery would
-    like: §3 says Recovery's actions are "durum makinesinin izin verdiği sınırlı
-    seçenekler" — the state machine's permitted bounded options.
+    like: §3 says Recovery's actions are "bounded options permitted by the state machine" — the
+    state machine's permitted bounded options.
     """
 
     failure_class: str
@@ -429,7 +428,7 @@ class CandidatePool(_Strict):
 class CandidateConstraintAnalysis(_Strict):
     """One candidate's fit, per constraint. **There is no score field, on purpose.**
 
-    §3: "Constraint Analyst, bulunmayan veriyi puanla örtemez" — it may not cover
+    §3: "Constraint Analyst, may not conceal missing data with a score" — it may not cover
     absent data with a score. A numeric field would be exactly the place a model
     could hide a missing fact, so the schema has none: the only thing that can be
     said about a constraint is `satisfied: true | false | null` with a reason code

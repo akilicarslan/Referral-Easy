@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The pipeline, proven end to end: emit through the real collector, read the document back (§15).
 
     Apps (gateway / A2A / mock API / worker) -> OTel Collector -> Data Prepper -> OpenSearch
@@ -125,7 +124,8 @@ class TestTheEventPipeline:
         assert succeeded["severityText"] == "INFO"
 
     def test_an_empty_result_is_a_success_and_is_stored_as_one(self, live_pipeline) -> None:
-        """§15: "Empty geçerli sonuç error değildir". The failure this guards against is not in the
+        """§15: "A valid empty result is not an error". The failure this guards against is not in
+        the
         index — it is in the *reading*, where an empty answer gets counted as a failure and the
         failure rate then disagrees with the number of things that actually failed."""
         live_pipeline.emitter.attempt(
@@ -163,7 +163,7 @@ class TestTheTracePipeline:
     """The trace side, which is a second Data Prepper pipeline writing a second index."""
 
     def test_the_a2a_ids_reach_the_span_when_the_service_passes_them(self, live_pipeline) -> None:
-        """§15: "A2A task_id/context_id/message_id trace'e attribute olarak eklenir".
+        """§15: "A2A task_id/context_id/message_id are added to the trace as attributes".
 
         The service starts its own spans, so the ids ride along as span attributes —
         ``correlation.attributes()`` is what the adopting service passes to
@@ -249,7 +249,7 @@ class TestTheTracePipeline:
     def test_an_async_resume_starts_a_new_trace_linked_to_the_parked_one(
         self, live_pipeline
     ) -> None:
-        """§15: "Async worker/HITL uzun bekleme sonrası yeni trace + span link oluşturur".
+        """§15: "Async workers/HITL create a new trace + span link after a long wait".
 
         Both halves are asserted against the stored documents: the resumed work is in a *different*
         trace (so the waterfall of an hours-long wait does not contain the wait), and its ``links``

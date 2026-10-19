@@ -12,7 +12,7 @@ decision is a `WHERE` clause in SQL and the exception is the translation of its 
 conditions exist in the worker processes:
 
 * :class:`SecondKeyRefusedError` — a booking lookup was about to be issued under a key other than the
-  one the original attempt used (§7, quoted verbatim below). The database cannot
+  one the original attempt used (§7, translated below). The database cannot
   refuse this one: a second key is a *valid* booking request, which is exactly why it is dangerous.
   The tripwire therefore has to be in Python, at the one place that could mint a key.
 * :class:`ConsentRequiredError` — a handoff was about to be queued or read from without the patient's
@@ -43,7 +43,8 @@ from referraleasy_domain.errors import (
     StaleOwnershipError,
 )
 
-#: §7, quoted verbatim: "İkinci bağımsız booking key üretilmez" — a second, independent booking key is never  # noqa: RUF003
+#: §7, translated: "A second independent booking key is never generated" — a second, independent
+#: booking key is never
 #: generated. The one requirement in this package that has to live in Python: a second key is a
 #: valid request, which is exactly what makes it dangerous.
 __all__ = [

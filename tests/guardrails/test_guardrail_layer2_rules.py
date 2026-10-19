@@ -1,7 +1,7 @@
 """§9 layer 2: the decision model, on a masked message, with a closed vocabulary and a reason (§9).
 
-§9's sentence — *"OpenRouter decision model: maskelenmiş mesaj ve gerekli bağlamdan allow/block/clarify
-+ category/reason üretir"* — has three parts that a test can hold separately:
+§9's sentence — *"OpenRouter decision model: produces allow/block/clarify + category/reason from the
+masked message and necessary context"* — has three parts that a test can hold separately:
 
 **masked.** The layer is handed the masked message and uses nothing else. Tested twice: the prompt the
 client receives never contains an identifier, and a masked text that still carries one is refused
@@ -114,7 +114,7 @@ def test_unmasked_identifiers_names_what_is_still_there(
 
 
 def test_the_prompt_hands_the_model_the_context_as_facts() -> None:
-    """§9's *"gerekli bağlam"*: the state, whether a question is open, and what it was.
+    """§9's *"necessary context"*: the state, whether a question is open, and what it was.
 
     Stated as facts in an envelope rather than left to be inferred, because a layer reconstructing
     the workflow from a sentence is guessing at something the caller already knew.

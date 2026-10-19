@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Identity: the seven ids that must stay distinct, and the span link after an async wait.
 
 §15's two identity rules are both the kind that fail silently. Assigning ``workflow_id`` the
@@ -42,7 +41,8 @@ def tracer():
 
 
 class TestDistinctIdentifiers:
-    """§15: the four workflow ids and the three A2A ids are "ayrı amaçlarla" and never equated."""
+    """§15: the four workflow ids and the three A2A ids serve separate purposes and are never
+    equated."""
 
     def test_a_full_set_is_accepted(self) -> None:
         ids = CorrelationIds(
@@ -282,7 +282,7 @@ class TestA2ACarrier:
 
 
 class TestResumeAfterWait:
-    """§15: "Async worker/HITL uzun bekleme sonrası yeni trace + span link oluşturur"."""
+    """§15: "Async workers/HITL create a new trace + span link after a long wait"."""
 
     def test_the_resumed_trace_is_a_new_trace(self, tracer) -> None:
         with tracer.start_as_current_span("park"):

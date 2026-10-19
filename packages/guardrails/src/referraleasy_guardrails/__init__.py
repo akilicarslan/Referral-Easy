@@ -1,12 +1,12 @@
-# ruff: noqa: RUF002  # §9 is quoted in Turkish verbatim
 """ReferralEasy's input and output guardrails, as a package (§9).
 
-§9 gives the system three input layers — *"regex → OpenRouter karar modeli (maskelenmiş) → yerel küçük
-semantik sınıflandırıcı"* — and one output guardrail, and states the rules that make them more than a
+§9 gives the system three input layers — *"regex → OpenRouter decision model (masked) → small local
+semantic classifier"* — and one output guardrail, and states the rules that make them more than a
 filter chain:
 
 * each layer is **closed** rather than permissive when it has nothing behind it, and while any layer is
-  closed a booking write is refused *"Guardrail dependency kapalıyken booking yazılamaz"* while a
+  closed a booking write is refused *"Booking writes are prohibited while a guardrail dependency is
+  unavailable"* while a
   static guide card stays available;
 * the decision model is never called with an unmasked message;
 * layer 3's method, artifact hash and thresholds are **recorded**, and its score is a cosine similarity
@@ -15,8 +15,9 @@ filter chain:
 * per-layer false positives, false negatives, added latency and cost are **measured** on a labelled
   corpus, and the layers that could not be measured say so instead of reporting a number.
 
-The one thing this package is not is the whole defence. §9 again: *"Input screening prompt injection
-için tek savunma değildir"* — the tool allowlist, the minimum context, treating retrieved sources as
+The one thing this package is not is the whole defence. §9 again: *"Input screening is not the only
+defense against prompt injection"* — the tool allowlist, the minimum context, treating retrieved
+sources as
 data rather than instructions, and server-side policy are what carry that, and they live in the
 services. A regex list is a filter, and a filter that is mistaken for a boundary is worse than no
 filter at all.

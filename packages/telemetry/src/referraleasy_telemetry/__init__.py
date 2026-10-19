@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """ReferralEasy telemetry — §15's OTel/OpenSearch analytics, as a package.
 
 The architecture section this implements is §15 of ``ReferralEasy_Architecture_v3.md``. Its shape is
@@ -12,7 +11,8 @@ than accidents.
 **Measurements travel as log events, not as OTel metrics.** The Phase 0 spike (ADR-0008) verified
 against a live OpenSearch 3.9.0 node that native OTLP *metrics* are not ingestible — the only OTLP
 code in the distribution is an exporter for OpenSearch's own telemetry. §15 anticipates exactly this
-and prescribes the fallback ("gerekirse aynı ölçümler sayısal log event olarak gönderilir"), which is
+and prescribes the fallback ("if needed, send the same measurements as numeric log events"), which
+is
 what :mod:`~referraleasy_telemetry.events` implements: every measurement is one numeric event with a
 deterministic ``event.id``, counted with ``cardinality`` and distributed with ``percentiles``.
 

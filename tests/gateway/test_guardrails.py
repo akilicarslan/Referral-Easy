@@ -1,12 +1,13 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The three-layer guardrail seam, and the two halves of §9's rule about it (§9).
 
 §9 states two things about the guardrail dependency being unavailable, and they are one policy, not
 two features:
 
-* *"Guardrail dependency kapalıyken booking yazılamaz"* — a booking write is **refused** (`503`), not
+* *"Booking writes are prohibited while a guardrail dependency is unavailable"* — a booking write is
+* **refused** (`503`), not
   waved through by a layer that could not answer.
-* *"statik rehber/yardım kartı kullanılabilir"* — the static help card keeps working, because it needs
+* *"the static guide/help card remains available"* — the static help card keeps working, because it
+* needs
   no model and no policy row.
 
 The shipped profile is exactly that configuration — layer 1 real, layers 2 and 3 unconfigured — so the
@@ -415,7 +416,8 @@ def test_a_block_cuts_the_remaining_layers_and_the_first_non_allow_verdict_trave
     Two runs, because one run cannot show both rules:
 
     * layer 2 **blocks** — layer 3 is never called, since a message already refused is not worth a
-      provider round trip ("açık block kalan çağrıları keser"), and the verdict that travels is
+      provider round trip ("an explicit block stops the remaining calls"), and the verdict that
+      travels is
       layer 2's, not layer 1's `allow`;
     * layer 2 **clarifies** — layer 3 *is* called (only `block` cuts, and `clarify` is not a block)
       and the first non-allow verdict is still the one that decides.

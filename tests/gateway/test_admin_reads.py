@@ -1,11 +1,11 @@
-# ruff: noqa: RUF002  # the §12 rule is quoted in Turkish, verbatim from the spec
 """The admin read API: §12's nine pages, and the two ways reporting them could lie (ADR-0039).
 
 Two properties carry this file, and every test below is one of them.
 
 **No source is not zero.** A page whose cluster is missing, or whose one query failed, must be
 distinguishable from a page that looked and found nothing. §12 forbids a fabricated chart
-(*"sahte sabit başarı grafikleri kullanılmaz"*) and §14 has the same rule for scores, so the failure
+(*"fabricated static success charts are not used"*) and §14 has the same rule for scores, so the
+failure
 mode is not "the page breaks" — it is "the page draws a flat line at zero and nobody can tell". The
 tests below assert the *shape*: no measurement keys at all on the no-source answer, so a chart cannot
 find a number to plot even by accident.

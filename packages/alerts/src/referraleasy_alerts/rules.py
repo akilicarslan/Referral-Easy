@@ -1,9 +1,8 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """§16's four starting rules, each a pure decision about a measurement.
 
-    Örnek kurallar: 5 dakikada en az 20 invocation varken terminal failure >%20; üç pencerede p95
-    attempt >2.5 saniye; circuit breaker açık; yeterli örnekle kalite düşüşü. Bunlar başlangıç
-    ayarlarıdır.
+    Example rules: terminal failure >20% with at least 20 invocations in 5 minutes; p95 attempt
+    latency >2.5 seconds across three windows; an open circuit breaker; quality degradation with
+    enough samples. These are initial settings.
 
 Three properties hold for all four, and each is a way an alerting system goes wrong:
 
@@ -240,7 +239,7 @@ class CircuitBreakerOpen:
 class QualityDrop:
     """§16's fourth rule: a quality drop, with enough samples to mean it.
 
-    *"yeterli örnekle"* is the whole of this rule. §14 already refuses to score a case it cannot
+    *"with enough samples"* is the whole of this rule. §14 already refuses to score a case it cannot
     measure, so a comparison between two scores is only as good as the smaller of their two samples —
     and this rule requires **both** to clear the minimum, because a confident baseline compared with
     a thin candidate is exactly the comparison that produces a fake regression.

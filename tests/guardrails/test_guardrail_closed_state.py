@@ -1,7 +1,8 @@
-# ruff: noqa: RUF001, RUF002  # §9's Turkish sentences are quoted verbatim
+# ruff: noqa: RUF001  # Intentional Unicode patterns and examples.
 """§9's closed dependency: the write is refused, the help card stays, the emergency still routes (§9).
 
-§9 puts two things in one sentence — *"Guardrail dependency kapalıyken booking yazılamaz"* — and a
+§9 puts two things in one sentence — *"Booking writes are prohibited while a guardrail dependency is
+unavailable"* — and a
 static guide card that stays available. This file is where both halves are asserted as behaviour:
 
 * **The refusal names the layers.** ``LayerSet.closed()`` is the single fact `/healthz`, the refusal

@@ -1,4 +1,3 @@
-# Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Propagation over two real transports, read back out of OpenSearch (§15).
 
 §15 asks for one ``trace_id`` end to end, with ``span_id`` for the sub-step. ``test_identity.py``
@@ -221,8 +220,8 @@ class TestPropagationInsideAnA2AMessage:
         """The receiving agent's span, and the lineage in the index.
 
         Two spans, one trace: the sender's and the receiver's, with the receiver's
-        ``parentSpanId`` equal to the sender's ``spanId``. That is the A2A half of "trace_id uçtan
-        uca", read from OpenSearch rather than from the SDK.
+        ``parentSpanId`` equal to the sender's ``spanId``. That is the A2A half of "end-to-end
+        trace_id", read from OpenSearch rather than from the SDK.
         """
         a2a_types = pytest.importorskip("a2a.types", reason="the a2a package is not installed")
 

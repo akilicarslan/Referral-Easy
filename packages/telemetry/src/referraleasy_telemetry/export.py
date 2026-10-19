@@ -74,7 +74,7 @@ LOGS_PATH: Final[str] = "/v1/logs"
 #: Bounded, and small on purpose. The collector is on the same Docker network, so a healthy round
 #: trip is single-digit milliseconds; anything slower than this is a collector that is down or
 #: wedged, and waiting longer only delays whatever request the exporter was called from. §15's
-#: "telemetry kesintisi booking'i düşürmez" is only true if the failure mode is fast.
+#: "a telemetry outage does not cause booking to fail" is only true if the failure mode is fast.
 DEFAULT_TIMEOUT: Final[httpx.Timeout] = httpx.Timeout(connect=1.0, read=2.0, write=2.0, pool=1.0)
 
 

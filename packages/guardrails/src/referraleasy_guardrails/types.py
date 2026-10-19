@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # §9's Turkish sentences are quoted verbatim
 """The layer contract: what a layer is handed, what it answers, and what "closed" means (§9).
 
 This module exists so that the three layers can be built, tested and measured without a running
@@ -15,8 +14,9 @@ reason / latency_ms / response` off whatever comes back. Everything here is name
 
 Two rules in this module are the reason it is not just a bag of dataclasses:
 
-* **A layer that cannot answer never answers "allow".** §9's *"Guardrail dependency kapalıyken
-  booking yazılamaz"* makes the closed state a refusal. Undecided is not a third kind of allow, so
+* **A layer that cannot answer never answers "allow".** §9's *"Booking writes are prohibited while a
+* guardrail dependency is unavailable"* makes the closed state a refusal. Undecided is not a third
+* kind of allow, so
   a layer with nothing behind it raises rather than returning a verdict, and the orchestrator reports
   it as unavailable rather than as permission.
 * **Uncertainty and disagreement resolve to ``clarify``** — a human's attention, which is a real
@@ -149,8 +149,8 @@ class LayerVerdict:
     """One layer's answer.
 
     The first six fields are the seam: the gateway's pipeline copies exactly these into its own
-    verdict. ``method`` and ``similarity`` are the measurement §9 asks for (*"katman başına
-    false-positive/false-negative ve ek latency/maliyet ölçülür"*), and they are additive — a caller
+    verdict. ``method`` and ``similarity`` are the measurement §9 asks for (*"measure false
+    positives/false negatives and added latency/cost per layer"*), and they are additive — a caller
     that only knows the seam ignores them.
 
     ``similarity`` is a **cosine similarity to the closest reference utterance**. It is not a

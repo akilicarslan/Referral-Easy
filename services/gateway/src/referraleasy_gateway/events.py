@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §12 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The event log behind the stream, and the frames it produces (§12).
 
 Three properties of §12 are decided here, so they are decided once:
@@ -14,7 +13,7 @@ carries the same id, which is what lets §15 deduplicate authoritative events ra
 double-counting them.
 
 **Some events are not state.** `partial_text` and `agent_progress` are explicitly *not* final state
-(§12: "Kısmi agent çıktısı final state olarak commit edilmez"), and `notice` is information about
+(§12: "Partial agent output is not committed as final state"), and `notice` is information about
 the surface rather than a change to it. `AUTHORITATIVE_EVENT_TYPES` names the three that are, and
 `EventLog.committed_events` is the only way to fold the log into state — so a partial cannot be
 committed by forgetting to filter it.

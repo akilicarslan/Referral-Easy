@@ -1,7 +1,6 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """§16's kill switch: an operator stops booking writes, and read-only guidance keeps answering.
 
-    Admin kill switch booking yazmayı durdurabilir; salt okunur rehber devam eder.
+    The admin kill switch can stop booking writes; the read-only directory remains available.
 
 **What it stops, and what it deliberately does not.** §16 says *booking* writes, and the second half
 of the sentence is the constraint: the static guide stays available. So the switch is checked on the

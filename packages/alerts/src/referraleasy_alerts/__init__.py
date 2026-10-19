@@ -1,10 +1,10 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """§16's alerting: rules, dedup/cooldown, and a mock email outbox that sends nothing.
 
-    Örnek kurallar: 5 dakikada en az 20 invocation varken terminal failure >%20; üç pencerede p95
-    attempt >2.5 saniye; circuit breaker açık; yeterli örnekle kalite düşüşü. Bunlar başlangıç
-    ayarlarıdır. Scheduler OpenSearch'ü sorgular; dedup/cooldown ile alert event ve mock email outbox
-    üretir. Resolved olayı da görünür. Bildirim hatası yeni sonsuz mail döngüsü açmaz.
+    Example rules: terminal failure >20% with at least 20 invocations in 5 minutes; p95 attempt
+    latency >2.5 seconds across three windows; an open circuit breaker; quality degradation with
+    enough samples. These are initial settings. The scheduler queries OpenSearch and uses
+    deduplication/cooldown to produce alert events and mock email outbox entries. The resolved event
+    is also visible. A notification failure does not start a new infinite email loop.
 
 Four modules, in the order the sentence above reaches them:
 

@@ -1,4 +1,3 @@
-# ruff: noqa: RUF003  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The HTTP surface: routes, request bodies, and the one error envelope (§9, §12).
 
 Everything in this module is transport. It reads a request, calls one method of
@@ -201,7 +200,8 @@ class BookingBody(BaseModel):
     expected_state_version: int = Field(ge=1)
     booking_payload: dict[str, Any]
     #: The input this booking came from. Required, because a booking whose input nobody screened is a
-    #: booking §9 forbids: "Guardrail dependency kapalıyken booking yazılamaz".
+    #: booking §9 forbids: "Booking writes are prohibited while a guardrail dependency is
+    #: unavailable".
     screening_text: str = Field(min_length=1)
     #: The scheduler's report: `confirmed` or `unverified`. Absent means "not said", and then the
     #: reference below decides it — a hospital's reference is a confirmation, nothing is

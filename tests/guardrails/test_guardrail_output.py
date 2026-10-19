@@ -1,8 +1,9 @@
-# ruff: noqa: RUF001, RUF002  # the Turkish claims and §9's sentence are quoted verbatim
+# ruff: noqa: RUF001  # Intentional Unicode patterns and examples.
 """§9's output guardrail: a card is shown only if every claim on it is tied to a record (§9, §2.5).
 
-§9 lists it as six things — *"schema, mevcut entity ID, doğrulanmış saat, kaynaklı telefon/adres ve
-gerçek booking state"* — with two prohibitions attached: no coverage or payment guarantee, and no
+§9 lists it as six things — *"schema, existing entity IDs, verified times, sourced phone
+numbers/addresses, and actual booking state"* — with two prohibitions attached: no coverage or
+payment guarantee, and no
 clinical language. This file gives each one a failing example of its own, because a check whose
 failure mode is never constructed is a check nobody has seen work. The passing card is here too, and
 so is the number of checks that ran: an ``ok`` from a guardrail that looked at nothing is the

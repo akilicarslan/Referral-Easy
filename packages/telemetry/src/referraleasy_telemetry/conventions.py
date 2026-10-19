@@ -1,4 +1,3 @@
-# ruff: noqa: RUF003  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The telemetry vocabulary, taken verbatim from §15 of `ReferralEasy_Architecture_v3.md`.
 
 Everything in this module is a *name*. It exists so that a service emitting telemetry and an admin
@@ -97,8 +96,8 @@ ACTORS: tuple[str, ...] = AGENT_ROLES + PRINCIPALS
 class OutcomeClass(StrEnum):
     """The six outcome classes of §15.
 
-    ``success_empty`` is a *success*. §15 says so in as many words ("Empty geçerli sonuç error
-    değildir"), and the reason it has to be said is that the natural shape of error handling —
+    ``success_empty`` is a *success*. §15 says so in as many words ("A valid empty result is not an
+    error"), and the reason it has to be said is that the natural shape of error handling —
     raise on anything unusual, catch, record a failure — turns "the payer network has no
     in-network specialist for this ZIP" into a false alarm. A genuinely empty result is the
     correct answer to a question that had a correct answer.
@@ -309,7 +308,8 @@ ATTR_TURN_ID = "turn.id"
 #:
 #: Every entry is bounded by construction: a closed enum, a version string from a manifest, or an
 #: endpoint ref. ``trace_id``, ``span_id``, ``event.id``, ``turn.id`` and the four workflow
-#: correlation ids are absent, and their absence is the §15 rule "trace ID metric label yapılmaz"
+#: correlation ids are absent, and their absence is the §15 rule "trace IDs are not used as metric
+#: labels"
 #: expressed as data rather than as a comment. A terms aggregation on a per-trace identifier is
 #: how a demo OpenSearch node runs out of heap, and it answers nothing: every bucket has one
 #: document.
@@ -411,7 +411,8 @@ TRACE_INDEX_PATTERN = "otel-traces-*"
 EVENT_INDEX_PATTERN = "otel-events-*"
 #: Evaluation indices. 30 day retention — §15 keeps evaluation longer than telemetry.
 EVALUATION_INDEX_PATTERN = "referraleasy-evaluation-*"
-#: The directory/vector index family. §15: "Rehber ve telemetri indeksleri ayrılır". This family is
+#: The directory/vector index family. §15: "Directory and telemetry indices are separate". This
+#: family is
 #: named here only so the query layer can *refuse* it; telemetry queries never touch it, because
 #: retrieved directory text is untrusted input and must not be able to masquerade as a structured
 #: telemetry record.

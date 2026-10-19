@@ -1,8 +1,7 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Failure isolation: a telemetry outage must not take a booking down (§15).
 
-    Collector bounded buffer/drop metriği gösterir; **telemetry kesintisi booking'i düşürmez.**
-    Gerekli kritik iş audit'i PostgreSQL'de kalır.
+    The collector exposes bounded buffer/drop metrics; **a telemetry outage does not cause booking
+    to fail.** Required critical business audit records remain in PostgreSQL.
 
 The tests here are the ones that decide whether that sentence is true, and the two that matter most
 are the ones that assert a *counter* rather than an absence of exceptions:
@@ -286,7 +285,7 @@ class TestTheGapAboveTheIsolatedLogger:
 
 
 class TestTheAuditStaysInPostgres:
-    """§15: "Gerekli kritik iş audit'i PostgreSQL'de kalır.\""""
+    """§15: "Required critical business audit records remain in PostgreSQL.\""""
 
     @pytest.mark.parametrize("name", sorted(AUDIT_TABLES))
     def test_an_audit_table_is_refused(self, name: str) -> None:

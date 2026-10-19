@@ -7,8 +7,8 @@
 # Dockerfile`) and it is the right one: this is a uv *workspace* member, so the
 # install is driven by the root lockfile and the root pyproject's member list.
 #
-# ONE IMAGE, SEVEN SERVICES — §18: "Tek agent image AGENT_ROLE ile coordinator/
-# intake/coverage/matching/readiness/scheduling/recovery servisleri açar." The role
+# ONE IMAGE, SEVEN SERVICES — §18: "One agent image uses AGENT_ROLE to start the
+# coordinator/intake/coverage/matching/readiness/scheduling/recovery services." The role
 # is chosen at RUN time by AGENT_ROLE, which is why there is no per-role Dockerfile
 # and no per-role image: seven images would be seven places for the tool allowlist
 # (§3), the budget caps (§8) and the pinned model (§8) to drift apart, and the

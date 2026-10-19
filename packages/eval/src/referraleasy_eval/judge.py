@@ -43,7 +43,7 @@ JUDGE_METRIC_PREFIX = "judge:"
 
 #: What a verdict's judge column carries when a **deterministic rule** produced it.
 #:
-#: §14 names two evaluators — *"deterministik kurallar önce, judge ikinci"* — and requires every
+#: §14 names two evaluators — *"deterministic rules first, judge second"* — and requires every
 #: result to carry the dataset/rubric/evaluator/judge versions it was scored under. A rule verdict is
 #: therefore not judge-less: it was evaluated, by the rules tier, and the column has to name which
 #: evaluator it was. Blanking it is the state this module's contract already rules out — a run whose

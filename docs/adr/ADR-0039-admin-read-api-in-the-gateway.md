@@ -14,7 +14,7 @@
 §12 lists nine admin pages and §15's diagram draws the data path as
 
 ```
-OS["OpenSearch: trace ve event indeksleri"] --> Admin["Admin API / grafik / trace waterfall"]
+OS["OpenSearch: trace and event indices"] --> Admin["Admin API / charts / trace waterfall"]
 ```
 
 — a node labelled **Admin API** that does not exist in this repository. `services/` holds agents,
@@ -37,8 +37,9 @@ says so explicitly and explains why the URL is not an environment variable. A se
 would need a second proxy location, its own CORS story, and a second base URL in the bundle — for
 reads that are already authenticated by the same admin token the page holds.
 
-**§15's actual requirement is about indices, not about processes.** *"Rehber ve telemetri indeksleri
-ayrılır"* separates the directory from telemetry, and `TelemetryQuery` enforces it at construction:
+**§15's actual requirement is about indices, not about processes.** *"Directory and telemetry
+indices are separate"* separates the directory from telemetry, and `TelemetryQuery` enforces it at
+construction:
 an index outside `ALLOWED_QUERY_PATTERNS` raises rather than querying. Retrieved directory text is
 untrusted content, and a query that joined the two families would let a document that was *retrieved*
 be read as a document that was *recorded*. That property is a constructor argument, so where the
@@ -64,8 +65,8 @@ dependency and a sample count.
 2. **Optional, because the gateway must boot without it.** A stack without OpenSearch is a stack whose
    admin charts have no data — not one that fails to start. The dependency is `None` when the setting
    is unset, and every admin route that needs it answers with the "no source" shape below.
-3. **A page with no source says so; it does not render a zero.** §12's *"sahte sabit başarı
-   grafikleri kullanılmaz"* and the `[!]` invariant behind it mean an empty chart must be
+3. **A page with no source says so; it does not render a zero.** §12's *"fabricated static success
+   charts are not used"* and the `[!]` invariant behind it mean an empty chart must be
    distinguishable from a measured zero, and `Sample` already carries `count`, `duplicated` and the
    eligible total for exactly that. A route whose source is missing returns an explicit
    `{"available": false, "reason": …}` rather than an empty series that a chart would draw as flat.

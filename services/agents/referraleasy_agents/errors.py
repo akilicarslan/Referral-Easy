@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §3 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The specialists' own refusals — the ones the runtime cannot make for them.
 
 `referraleasy_agent_runtime` refuses anything the *runtime* owns: a tool outside a
@@ -46,8 +45,8 @@ __all__ = [
 class MissingDataError(AgentRuntimeError):
     """A decision rested on a fact nobody retrieved.
 
-    §3, second sub-agent rule: *"Constraint Analyst, bulunmayan veriyi puanla
-    örtemez"* — the analyst may not cover missing data with a score. The same
+    §3, second sub-agent rule: *"Constraint Analyst, may not conceal missing data with a score"* —
+    the analyst may not cover missing data with a score. The same
     refusal is needed everywhere a "fit" could be asserted over an absent fact,
     so it lives here rather than in the matching module alone.
 
@@ -76,7 +75,7 @@ class UnknownDataError(MissingDataError):
 
 
 class InventedSpecialtyRefused(AgentRuntimeError):
-    """§3, Referral Intake: *"sevkte olmayan uzmanlık belirleyemez"*.
+    """§3, Referral Intake: *"may not select a specialty absent from the referral"*.
 
     A specialty the referral does not state is not inferred, not guessed from the
     chief complaint, and not derived from the specialty of a document. The
@@ -85,7 +84,7 @@ class InventedSpecialtyRefused(AgentRuntimeError):
 
 
 class CoverageGuaranteeRefused(AgentRuntimeError):
-    """§3, Coverage & Network: *"sigorta/ödeme garantisi veremez"*.
+    """§3, Coverage & Network: *"may not guarantee insurance coverage or payment"*.
 
     A network status is a statement about a record with a freshness date. A
     guarantee is a promise the platform is not entitled to make, so a
@@ -112,7 +111,7 @@ class UnreadableDocumentRefused(AgentRuntimeError):
 
 
 class NoApprovalRefused(ToolRefused):
-    """§3, Scheduling: *"geçerli onaysız yazamaz"*.
+    """§3, Scheduling: *"may not write without valid approval"*.
 
     Booking write authority is not the same as permission to use it. The write
     also needs a live approval bound to the exact payload (007's consent guard,
@@ -124,7 +123,7 @@ class NoApprovalRefused(ToolRefused):
 
 
 class DuplicateBookingKeyRefused(ToolRefused):
-    """§3/§7, Scheduling: *"timeout'ta yeni key ile kopya oluşturamaz"*.
+    """§3/§7, Scheduling: *"may not create a duplicate with a new key after a timeout"*.
 
     After an unresolved write the next call is `lookup_request` **with the same
     idempotency key**. A second key is a second appointment. Refused as a policy

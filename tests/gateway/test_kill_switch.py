@@ -1,7 +1,6 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """§16's kill switch, on the one route it governs and on the ones it must not.
 
-    Admin kill switch booking yazmayı durdurabilir; salt okunur rehber devam eder.
+    The admin kill switch can stop booking writes; the read-only directory remains available.
 
 The sentence has two halves and both are tested. The first is that a booking write is refused while
 the switch is engaged. The second is the one that is easy to get wrong by being *too* thorough: the
@@ -103,7 +102,7 @@ def test_engaging_twice_keeps_the_first_reason(configured_client: TestClient) ->
 def test_the_help_card_keeps_answering_while_the_switch_is_engaged(
     configured_client: TestClient,
 ) -> None:
-    """§16's *"salt okunur rehber devam eder"*, tested because the tempting implementation is to
+    """§16's *"the read-only directory remains available"*, tested because the tempting implementation is to
     refuse the whole workflow while a switch is on."""
     demo, workflow_id, _ = _booking_ready(configured_client)
     configured_client.post("/v1/admin/control/booking-writes", json=ENGAGE, headers=demo.admin)

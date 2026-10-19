@@ -419,7 +419,8 @@ class TestTheTransport:
     def test_the_default_timeout_is_bounded_and_small(self) -> None:
         """The collector is on the same Docker network. Anything slower than this is a collector
         that is down, and waiting longer only delays the request the exporter was called from —
-        §15's "telemetry kesintisi booking'i düşürmez" is only true if the failure is fast."""
+        §15's "a telemetry outage does not cause booking to fail" is only true if the failure is
+        fast."""
         from referraleasy_telemetry.export import DEFAULT_TIMEOUT
 
         assert DEFAULT_TIMEOUT.connect is not None and DEFAULT_TIMEOUT.connect <= 1.0

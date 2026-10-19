@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # §9's Turkish sentences are quoted verbatim
 """Assembling §9's three layers from the environment — the one function the wiring calls (§9).
 
 Everything in this package can be built by hand, and the tests mostly do. This module is the other
@@ -75,7 +74,8 @@ _CARD_NAMESPACE: Final = uuid.UUID("6f3d1a9c-2e5b-4f7a-8c1d-0b2a3c4d5e6f")
 def closed_state_card(closed: Mapping[str, str]) -> Mapping[str, object]:
     """The static card §9 keeps available when the guardrail dependency is closed.
 
-    §9 puts two things in one sentence: *"Guardrail dependency kapalıyken booking yazılamaz"* and a
+    §9 puts two things in one sentence: *"Booking writes are prohibited while a guardrail dependency
+    is unavailable"* and a
     static guide card that stays available. The write refusal is
     :meth:`referraleasy_guardrails.pipeline.GuardrailPipeline.require_complete`; this is the other
     half, and it has to be *well defined* rather than an intention — so it is a concrete §12 payload,

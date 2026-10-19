@@ -241,8 +241,8 @@ def configure_telemetry(
         trace.set_tracer_provider(tracer_provider)
 
     tracer = tracer_provider.get_tracer(SCOPE_NAME, cfg.service_version)
-    # The SDK logger is wrapped, not used directly: this is the line that makes "telemetry
-    # kesintisi booking'i düşürmez" true for every emitter created from this bundle.
+    # The SDK logger is wrapped, not used directly: this is the line that makes "a telemetry outage
+    # does not cause booking to fail" true for every emitter created from this bundle.
     logger = IsolatedLogger(logger_provider.get_logger(SCOPE_NAME, cfg.service_version), drops)
 
     return Telemetry(

@@ -1,9 +1,9 @@
-# ruff: noqa: RUF001, RUF002  # §9's Turkish sentences and the Turkish warm-up message are verbatim
+# ruff: noqa: RUF001  # Intentional Unicode patterns and examples.
 """The measurement §9 asks for, as a CLI over the labelled corpus (§9).
 
-§9 requires four numbers per layer — *"Katman başına false-positive/false-negative ve ek
-latency/maliyet ölçülür"* — on a labelled corpus, and it requires the fast profile to be **compared**
-rather than assumed better: *"Daha hızlı conditional profil ayrıca karşılaştırılır"*. This module is
+§9 requires four numbers per layer — *"Measure false positives/false negatives and added
+latency/cost per layer"* — on a labelled corpus, and it requires the fast profile to be **compared**
+rather than assumed better: *"The faster conditional profile is also compared"*. This module is
 where those numbers are produced, and its most important output is the list of numbers it could *not*
 produce.
 
@@ -32,8 +32,9 @@ point produced on the ``held_out`` partition, together with the corpus and refer
 measured against (ADR-0005's intake rule). It **never** makes a live model call unless ``--live`` is
 passed, and it never edits the repository's ``.env``.
 
-Finally, the honest caveat §9 states and this module repeats in its output: *"Input screening prompt
-injection için tek savunma değildir"*. The document-channel case in the corpus is screened by nothing
+Finally, the honest caveat §9 states and this module repeats in its output: *"Input screening is not
+the only defense against prompt injection"*. The document-channel case in the corpus is screened by
+nothing
 here, on purpose — the tool allowlist, the minimum context, treating sources as data and server-side
 policy are what carry that, and they are not measurable from this package.
 """

@@ -17,23 +17,23 @@ its model, its guardrails, its knowledge index — plus a rule that no artifact 
 declared version rising, plus the machinery to pin work to a release and to stop or move it
 deliberately.
 
-The quoted requirements, verbatim, which is why this section is here rather than paraphrased
-everywhere else (`ruff`'s `RUF002` rejects the dotless `ı` in docstrings, so Python code refers to
-this section as the canonical copy):
+The requirements below are translated into English. Python code refers to this section as the
+canonical reference:
 
-> §13: *"CI, etkilenmiş agent version artmamışsa başarısızdır. PATCH bile davranış değişikliği
-> sayılır ve evaluation çalıştırır."*
+> §13: *"CI fails if the affected agent version has not been incremented. Even PATCH counts as a
+> behavior change and triggers evaluation."*
 
-> §13: *"alt agent değişirse ebeveyn dependency hash'i ve version yükselir"*
+> §13: *"if a sub-agent changes, the parent dependency hash and version are updated"*
 
-> §13: *"Runtime task'ları effective sürümleri taşır; `latest` etiketi rapor için yeterli
-> değildir."*
+> §13: *"Runtime tasks carry their effective versions; the `latest` label is insufficient for
+> reporting."*
 
-> §13: *"Conversation release'e sabitlenir"* · *"Güvenlik kill switch eski sürüme sabitlenmiş
-> conversation'ı da durdurabilir"* · *"yeni sürüme migration açık onay/checkpoint gerektirir"*
+> §13: *"A conversation is pinned to a release"* · *"The safety kill switch can also stop a
+> conversation pinned to an older version"* · *"migration to a new version requires explicit
+> approval/a checkpoint"*
 
-> §13: *"Canary cohort ve rollback routing'i basit registry tablosundan yapılabilir; ayrı platform
-> şart değil."*
+> §13: *"Canary cohorts and rollback routing can use a simple registry table; a separate platform is
+> not required."*
 
 What existed before this phase, and what did not: `migrations/012_release_registry.sql` already
 defined `release_registry`, `release_event` and the `release_status` view, with append-only triggers

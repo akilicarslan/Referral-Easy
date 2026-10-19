@@ -1,10 +1,9 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Failure isolation: a telemetry outage must not take a booking down (§15).
 
 §15 states the requirement in one line:
 
-    Collector bounded buffer/drop metriği gösterir; **telemetry kesintisi booking'i düşürmez.**
-    Gerekli kritik iş audit'i PostgreSQL'de kalır.
+    The collector exposes bounded buffer/drop metrics; **a telemetry outage does not cause booking
+    to fail.** Required critical business audit records remain in PostgreSQL.
 
 Three separate mechanisms are needed to make that true, because there are three ways telemetry
 reaches back into the application it is supposed to be observing:

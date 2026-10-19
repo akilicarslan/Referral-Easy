@@ -1,8 +1,9 @@
 /**
  * Fault Scenarios — §20's eight, what each one injects, and what it is expected to prove (§12).
  *
- * This page is the one §12 singles out: *"Bu sayfa teknolojilerin çalıştığına dair portföy
- * kanıtıdır; sahte sabit başarı grafikleri kullanılmaz."* It is portfolio evidence, and canned
+ * This page is the one §12 singles out: *"This page provides portfolio evidence that the
+ * technologies work; fabricated static success charts are not used."* It is portfolio evidence, and
+ * canned
  * success charts are explicitly forbidden.
  *
  * So it renders the **definitions**: the fault step, the outcome classes that count as correct, and

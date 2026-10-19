@@ -1,8 +1,7 @@
-# ruff: noqa: RUF002  # §11 is quoted in Turkish, verbatim from the spec
 """The operator queue, as §12's Human Queue page reads it (§11).
 
-    Ticket admin Human Queue'ya düşer. Operatör claim eder, kaynakları görür, alternatif veya eksik
-    belge açıklaması ekler. Çakışan claim engellenir.
+    The ticket appears in the admin Human Queue. An operator claims it, reviews the sources, and
+    adds alternatives or a description of missing documents. Conflicting claims are prevented.
 
 **The read is the domain's, the wording here is the page's.** `HandoffStore.open_tickets` is the one
 statement for "what is in the queue", and it has two callers — this and the workers'

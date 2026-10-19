@@ -1,7 +1,6 @@
-# ruff: noqa: RUF002  # Turkish quoted from §12 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Partial agent output is never final state (§12).
 
-§12: *"Kısmi agent çıktısı asla final state olarak commit edilmez."* The sentence is a prohibition, and
+§12: *"Partial agent output is never committed as final state."* The sentence is a prohibition, and
 the only way to keep a prohibition is to make the illegal thing unrepresentable rather than
 discouraged. So the rule lives in two values, and this module tests both doors:
 

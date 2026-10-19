@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """§16's alerting: the rules, the transitions, and an outbox that cannot loop.
 
 The file is organised around the four ways this design could be wrong, because each of them is a way
@@ -345,7 +344,8 @@ class TestOutbox:
         assert sender.sent == [delivered.id]
 
     def test_a_failed_delivery_is_retried_and_then_dies(self) -> None:
-        """§16: "Bildirim hatası yeni sonsuz mail döngüsü açmaz". A retry that never terminates is
+        """§16: "A notification failure does not start a new infinite email loop". A retry that
+        never terminates is
         that loop one layer down, so the policy is bounded and terminal."""
         sender = RecordingSender(fail_next=5)
         outbox = Outbox(sender, max_attempts=3)

@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002, RUF003  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The §15 vocabulary, and the rules that are properties of the vocabulary itself.
 
 These are the cheapest tests in the suite and they hold the most valuable line: each one asserts a
@@ -81,7 +80,7 @@ class TestClosedSets:
 
 
 class TestEmptyIsNotAnError:
-    """§15: "Empty geçerli sonuç error değildir". Stated, so it gets a test of its own."""
+    """§15: "A valid empty result is not an error". Stated, so it gets a test of its own."""
 
     def test_success_empty_is_a_success(self) -> None:
         assert OutcomeClass.SUCCESS_EMPTY.is_success
@@ -110,7 +109,7 @@ def _neither(outcome: OutcomeClass) -> bool:
 
 
 class TestTraceIdIsNeverALabel:
-    """§15: "Trace ID metric label yapılmaz" — expressed as data, so it can be asserted."""
+    """§15: "Trace IDs are not used as metric labels" — expressed as data, so it can be asserted."""
 
     def test_trace_id_is_not_a_dimension(self) -> None:
         assert "trace_id" not in DIMENSION_ATTRIBUTES
@@ -219,10 +218,10 @@ class TestEventVocabulary:
             "api_failure",  # API fail endpoint/status
             "latency",  # p50/p95/p99
             "model_usage",  # model token/maliyet
-            "hitl_wait",  # HITL bekleme
-            "hitl_resolve",  # HITL çözüm
-            "guardrail_decision",  # guardrail kararları
-            "eval_score",  # değerlendirme skorları
+            "hitl_wait",  # HITL wait
+            "hitl_resolve",  # HITL resolution
+            "guardrail_decision",  # guardrail decisions
+            "eval_score",  # evaluation scores
             "feedback",
         }
         assert required <= {str(name) for name in EventName}

@@ -225,7 +225,7 @@ the shape of indices that already exist:
 * **Retention is per index**: 7 days for telemetry, 30 for evaluation, via the index lifecycle on the
   daily indices. A document in an index nobody rotates is a document nobody expires, which is why the
   live tests assert the daily index name.
-* **No chain-of-thought is captured.** §15: "gizli düşünce zinciri toplamak hedef değildir". The
+* **No chain-of-thought is captured.** §15: "collecting hidden chain-of-thought is not a goal". The
   package has no API for it — there is no field for a prompt, an output or a deliberation, only
   typed measurements and dimensions — and `model.usage` records tokens and cost, which is what a cost
   chart needs. It is a non-goal rather than a filter: `extra_fields` accepts arbitrary attributes, so
@@ -238,7 +238,8 @@ the shape of indices that already exist:
   been the smaller implementation and would have produced empty dashboards.
 * **Writing documents straight to OpenSearch from the services.** Rejected: it makes every service
   depend on the search cluster's availability inside the request path, which is the shape §15 forbids
-  ("telemetry kesintisi booking'i düşürmez"). The collector's bounded buffer and the SDK's batch
+  ("a telemetry outage does not cause booking to fail"). The collector's bounded buffer and the
+  SDK's batch
   processor keep the outage on the telemetry side of the line.
 * **Collapsing feedback to the last vote at emission time.** Rejected: the emitter is stateless and in
   a process that may not have seen the earlier vote. "Last active" is a query property, and

@@ -1,8 +1,8 @@
-# ruff: noqa: RUF002  # §9's Turkish sentence and the vocabulary it names are quoted verbatim
 """The guardrail environment contract and the startup refusals it carries (§9).
 
-§9 is explicit that the decision model is chosen rather than assumed — *"«CEV» çözülmüş model ID
-değildir; uygun küçük model env'de açıkça seçilir"* — and this file is where that sentence is enforced:
+§9 is explicit that the decision model is chosen rather than assumed — *"«CEV» is not a resolved
+model ID; a suitable small model is explicitly selected in the environment"* — and this file is
+where that sentence is enforced:
 the placeholder that §9 names, the vendor-less model id, the ``live`` backend with no model or no key,
 the threshold that is not a number, and the timeout that is. Each one is a refusal at **startup**
 rather than a surprise at the first patient message, and every problem in one configuration is

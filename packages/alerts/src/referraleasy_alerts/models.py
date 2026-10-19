@@ -9,7 +9,8 @@ The whole module turns on one distinction. An alerting system has three answers,
 
 Collapsing the third into the second is how an alerting system goes quiet at exactly the moment it
 matters: a service that stopped emitting has no failures *and no evidence*, and §16 asks for its
-thresholds to apply *"yeterli örnekle"* — with enough samples. So `unmeasured` is a first-class state
+thresholds to apply *"with enough samples"* — with enough samples. So `unmeasured` is a first-class
+state
 here, it carries the reason, and nothing in this package can produce `ok` from a sample below the
 rule's own minimum.
 
@@ -39,7 +40,7 @@ __all__ = [
 
 
 class RuleName(StrEnum):
-    """§16's starting set. The spec calls them "örnek kurallar" — examples, and the settings."""
+    """§16's starting set. The spec calls them "example rules" — examples, and the settings."""
 
     TERMINAL_FAILURE_RATE = "terminal_failure_rate"
     SUSTAINED_LATENCY = "sustained_attempt_latency"

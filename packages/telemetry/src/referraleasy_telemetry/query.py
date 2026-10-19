@@ -1,4 +1,3 @@
-# ruff: noqa: RUF001, RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The typed query layer the admin app reads §15 through.
 
 Not a UI, and deliberately not an HTTP service either: this module turns the questions §12's pages
@@ -576,7 +575,7 @@ class TelemetryQuery:
 
     The index is a constructor argument and is validated against
     :data:`conventions.ALLOWED_QUERY_PATTERNS` — a telemetry query cannot be pointed at the
-    directory/vector family (§15: "Rehber ve telemetri indeksleri ayrılır"). That is not a
+    directory/vector family (§15: "Directory and telemetry indices are separate"). That is not a
     formality: retrieved directory text is untrusted content, and a query that joined the two would
     let a document that was *retrieved* be read as a document that was *recorded*.
     """
@@ -878,7 +877,7 @@ class TelemetryQuery:
     def hitl(
         self, *, time_range: TimeRange, filters: Filters | None = None
     ) -> dict[str, Percentiles]:
-        """§15 "HITL bekleme/çözüm" — waiting and resolution as two separate distributions."""
+        """§15 "HITL wait/resolution" — waiting and resolution as two separate distributions."""
         out: dict[str, Percentiles] = {}
         for metric in (MetricName.HITL_WAIT_MS, MetricName.HITL_RESOLVE_MS):
             effective = _with_dimension(filters or Filters(), ATTR_METRIC_NAME, str(metric))
@@ -904,7 +903,7 @@ class TelemetryQuery:
     def guardrail_decisions(
         self, *, time_range: TimeRange, filters: Filters | None = None
     ) -> list[Bucket]:
-        """§15 "guardrail kararları", broken down by decision and stage."""
+        """§15 "guardrail decisions", broken down by decision and stage."""
         body = self.body(
             time_range=time_range,
             filters=_with_dimension(filters or Filters(), ATTR_EVENT_NAME, "guardrail_decision"),
@@ -1127,7 +1126,7 @@ class TelemetryQuery:
         # written first, and `agent.role="probe"` is exactly that mistake.
         if dimension == TRACE_ID_AS_DIMENSION:
             raise UnknownDimensionError(
-                "'trace_id' is not a dimension (§15: trace ID metric label yapılmaz). A terms "
+                "'trace_id' is not a dimension (§15: trace IDs are not used as metric labels). A terms "
                 "aggregation on it produces one bucket per request and answers nothing."
             )
         if dimension not in event_dimensions():

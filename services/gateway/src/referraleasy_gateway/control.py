@@ -233,7 +233,8 @@ class BookingAttempt:
     `workflow` is `None` when the caller asked for the row on its own — a caller that has an outcome
     to record and no transition to make. When it is not `None`, the row and the transition were
     written by the same operation, so a transition that is refused leaves no booking row behind:
-    that is §7's "durum geçişleri atomik" applied to the pair, and in the PostgreSQL profile it is
+    that is §7's "state transitions are atomic" applied to the pair, and in the PostgreSQL profile
+    it is
     one transaction rather than two writes that happen to follow each other.
     """
 

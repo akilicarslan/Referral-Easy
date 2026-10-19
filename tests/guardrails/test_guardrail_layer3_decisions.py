@@ -1,8 +1,9 @@
-# ruff: noqa: RUF001, RUF002, RUF003  # §9's sentence and the Turkish vectors, quoted verbatim
+# ruff: noqa: RUF001, RUF002, RUF003  # Intentional Unicode patterns and examples.
 """§9 layer 3's decision rule: the band, the two edges, and a score that is not a probability (§9).
 
-§9's sentence about this layer — *"Eğitim/yöntem, artifact hash ve eşikler kayıtlıdır. Belirsizlik veya
-çelişki clarify/HITL üretir; model confidence kalibre olasılık sayılmaz"* — is three testable claims,
+§9's sentence about this layer — *"Training/method, artifact hash, and thresholds are recorded.
+Uncertainty or contradiction produces clarify/HITL; model confidence is not treated as a calibrated
+probability"* — is three testable claims,
 and this file holds all three:
 
 **The band decides.** Above the band the layer blocks with the category of the reference it matched;
@@ -21,7 +22,7 @@ asked a question" are different products.
 where the claim is enforced rather than repeated: an AST walk over every module refuses any
 *identifier* named after a probability or a confidence, the score's own dictionary carries
 ``score_is_calibrated_probability: False`` explicitly, and every reason string that reaches a log
-says what the number is. (The identifier rule is what the walk checks. §9's Turkish sentence itself
+says what the number is. (The identifier rule is what the walk checks. §9's requirement itself
 contains the word "confidence", and that is a string constant — the walk is about the shape of the
 code, not about the vocabulary of a quoted requirement.)
 
@@ -331,7 +332,8 @@ def _identifiers(source: ast.AST) -> list[tuple[int, str]]:
 
     Identifiers only, and deliberately: the claim being tested is that no field, variable or argument
     is named after a probability or a confidence. String constants are excluded because §9's own
-    Turkish sentence ("model confidence kalibre olasılık sayılmaz") is quoted in a docstring here —
+    requirement ("model confidence is not treated as a calibrated probability") is quoted in a
+    docstring here —
     a walk that flagged the requirement would be a walk nobody could keep.
     """
     found: list[tuple[int, str]] = []

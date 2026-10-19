@@ -1,8 +1,9 @@
-# ruff: noqa: RUF001, RUF002, RUF003  # Turkish phrases and the §9 rule are quoted verbatim
+# ruff: noqa: RUF001, RUF003  # Intentional Unicode patterns and examples.
 """Emergency handling: the one input class that must never be answered with a block (§9).
 
-§9's sentence is short and unusually absolute: *"Acil durum ifadesi sessizce off-topic bloklanmaz;
-onaylanmış sabit güvenlik yanıtına yönlenir"* — an emergency phrase is not silently blocked as
+§9's sentence is short and unusually absolute: *"Emergency language is not silently blocked as
+off-topic; it is routed to an approved fixed safety response"* — an emergency phrase is not silently
+blocked as
 off-topic, it is routed to an approved fixed safety response. Of every failure this system can
 produce, silently refusing someone describing a heart attack is the worst, so it is a rule with its
 own module rather than one branch among several in layer 1.

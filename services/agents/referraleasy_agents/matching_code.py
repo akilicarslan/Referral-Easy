@@ -1,10 +1,9 @@
-# ruff: noqa: RUF002  # Turkish quoted from §3 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The parts of Provider Matching that are code, not model judgement (§3).
 
 §3 is unusually specific about this, and it is worth quoting because it is the
-difference between a demo and a system: *"Mesafe hesabı, filtreleme ve uniqueness
-kodla uygulanır… Basit sıralama doğrudan kodla yapılır; alt ajan belirsiz/çelişkili
-metinsel koşulları ve kullanıcıya sorulacak alternatifleri yorumlar."* — distance,
+difference between a demo and a system: *"Distance calculation, filtering, and uniqueness are
+implemented in code… Simple ranking is performed directly in code; the sub-agent interprets
+ambiguous/contradictory textual conditions and alternatives to present to the user."* — distance,
 filtering and uniqueness are implemented in code; simple ranking is done directly
 in code; the sub-agent interprets ambiguous or contradictory textual conditions
 and the alternatives to put to the user.

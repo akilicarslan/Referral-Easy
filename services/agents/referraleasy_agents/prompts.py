@@ -1,10 +1,9 @@
-# ruff: noqa: RUF002, RUF003  # Turkish quoted from §3 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Each specialist's brief: its own decision, its tools, and what it may not do.
 
-§3's table has three columns, and the third one — *Yasaklanan yetki*, the
+§3's table has three columns, and the third one — *Forbidden authority*, the
 forbidden authority — is a requirement the runtime cannot express. The runtime
 refuses a tool outside the allowlist and a tool the policy table forbids; it
-cannot know that "tanı koyamaz" (may not diagnose) is a thing Referral Intake
+cannot know that "may not diagnose" is a thing Referral Intake
 must not do, because there is no `diagnose` tool to withhold. So the forbidden
 column is written into the agent's instruction **and** enforced by a check in
 code: `forbidden.py` holds the checks, this module holds the sentence the model
@@ -38,11 +37,11 @@ __all__ = [
 class RoleBriefing:
     """One row of §3, as data: what this agent decides, and what it may not."""
 
-    #: §3 column 2 — *Kendi kararı*: the decisions this agent owns.
+    #: §3 column 2 — *Own decisions*: the decisions this agent owns.
     decides: tuple[str, ...]
-    #: §3 column 4 — *Yasaklanan yetki*: authorities it does not hold.
+    #: §3 column 4 — *Forbidden authority*: authorities it does not hold.
     forbidden: tuple[str, ...]
-    #: §3 column 3 — *Araçlar / veri*, in prose (the machine-readable form is
+    #: §3 column 3 — *Tools / data*, in prose (the machine-readable form is
     #: `roles.ROLE_TOOLS`; this is what the model is told about them).
     data_sources: str
 

@@ -1,8 +1,7 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Feedback: last-active-thumbs, and three numbers that are never merged (§15, §12).
 
-    Feedback ``response_id`` başına son aktif thumbs up/down ile sayılır; ham sayı, beğeni oranı ve
-    katılım oranı ayrıdır.
+    Feedback is counted using the latest active thumbs up/down per ``response_id``; raw counts,
+    approval rate, and participation rate are separate.
 
 The case §12's dashboard most needs to be able to show is the one a single "satisfaction" number
 hides: **a 100% like rate from four responses out of nine hundred**. Several tests below are that

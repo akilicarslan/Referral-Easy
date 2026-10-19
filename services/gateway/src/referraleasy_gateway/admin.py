@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # the §12 rule is quoted in Turkish, verbatim from the spec
 """The admin read API — §12's nine pages, read from the telemetry indices (ADR-0039).
 
 §12 asks for nine pages and §15 draws the data path as OpenSearch → *Admin API*. That node did not
@@ -9,7 +8,8 @@ and what the alternative cost).
 Three rules shape everything below, and each of them is a way this could have been written wrong:
 
 **A page with no source says so; it does not render a zero.** §12 forbids a fabricated chart
-("sahte sabit başarı grafikleri kullanılmaz") and §14 has the same rule for scores. A route whose
+("fabricated static success charts are not used") and §14 has the same rule for scores. A route
+whose
 source is absent, unreachable or not yet built answers :data:`unavailable` — an explicit shape with a
 reason — rather than an empty series that a chart would draw as a flat, successful line. That is the
 difference between "nothing happened" and "we did not look", and only one of them is true.

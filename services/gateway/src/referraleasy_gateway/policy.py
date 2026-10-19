@@ -1,8 +1,7 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The per-action policy check (§4, §9): a table is consulted, no role is branched on.
 
-§9: *"Her tool'da workflow ownership ve scope kontrol edilir; örneğin yalnız Scheduling
-booking:write kullanır."* Every tool call carries a workflow-ownership and scope check — only
+§9: *"Workflow ownership and scope are checked for every tool; for example, only Scheduling uses
+booking:write."* Every tool call carries a workflow-ownership and scope check — only
 Scheduling may use the booking-write action. That sentence describes two different things, and this
 module keeps them apart:
 

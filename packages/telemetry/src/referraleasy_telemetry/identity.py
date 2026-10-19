@@ -1,12 +1,11 @@
-# ruff: noqa: RUF001, RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """End-to-end identity: W3C trace context, the correlation id space, and span links (§15).
 
 §15 draws a line that the rest of the platform can only be correct if it honours:
 
-    Ortak uçtan uca kimlik W3C ``trace_id``; ``span_id`` alt adımı gösterir. A2A
-    ``task_id``/``context_id``/``message_id`` trace'e attribute olarak eklenir; birbirine
-    eşitlenmez. ``conversation_id``, ``workflow_id``, ``command_id`` ve ``booking_request_id``
-    ayrı amaçlarla tutulur.
+    The shared end-to-end identity is the W3C ``trace_id``; ``span_id`` identifies a sub-step.
+    A2A ``task_id``/``context_id``/``message_id`` are added to the trace as attributes;
+    they are not equated. ``conversation_id``, ``workflow_id``, ``command_id``, and
+    ``booking_request_id`` are kept for separate purposes.
 
 Two claims are load-bearing and are enforced here rather than documented:
 
@@ -111,8 +110,8 @@ class CorrelationIds:
                 )
             if value in seen:
                 raise IdentityConflictError(
-                    f"{name} and {seen[value]} both carry {value!r}. §15 keeps these ids 'ayrı "
-                    f"amaçlarla' and states they are never equated ('birbirine eşitlenmez'); "
+                    f"{name} and {seen[value]} both carry {value!r}. §15 keeps these ids for "
+                    f"separate purposes and states they are never equated; "
                     f"sharing a value makes every per-workflow chart silently a per-conversation "
                     f"chart. Pass a distinct value, or None if it is not known yet."
                 )
@@ -297,7 +296,7 @@ def resume_after_wait(
 ) -> AbstractContextManager[Span]:
     """Start a NEW root span that LINKS to ``parked``, for work resuming after an async wait.
 
-    §15: "Async worker/HITL uzun bekleme sonrası yeni trace + span link oluşturur." The returned
+    §15: "Async workers/HITL create a new trace + span link after a long wait." The returned
     context manager yields the new span; the new trace's ``trace_id`` differs from ``parked``'s,
     and ``links`` records the relationship.
 
@@ -346,7 +345,7 @@ def current_trace_id() -> str | None:
 
     Returned for *correlation* only. It must never be handed to
     :func:`referraleasy_telemetry.events.build_event` as a dimension; that function refuses it and
-    §15 requires it ("trace ID metric label yapılmaz").
+    §15 requires it ("trace IDs are not used as metric labels").
     """
     trace_id, _ = current_ids()
     return trace_id or None

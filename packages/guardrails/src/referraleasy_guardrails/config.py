@@ -1,8 +1,8 @@
-# ruff: noqa: RUF002  # Turkish quoted verbatim from §9 of ReferralEasy_Architecture_v3.md
 """The guardrail environment contract, and the startup refusals it carries (§9).
 
-§9 is explicit about the decision model — *"«CEV» çözülmüş model ID değildir; uygun küçük model
-env'de açıkça seçilir"* — and the repository already has the rule this implements: a `live` backend
+§9 is explicit about the decision model — *"«CEV» is not a resolved model ID; a suitable small model
+is explicitly selected in the environment"* — and the repository already has the rule this
+implements: a `live` backend
 may not run with an unresolved pin (`scripts/validate_env.py` refuses anything starting with
 `CHANGEME`). This module is that rule for the guardrail pins, plus the two the script cannot see:
 

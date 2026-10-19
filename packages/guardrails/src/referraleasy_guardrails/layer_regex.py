@@ -1,17 +1,20 @@
-# ruff: noqa: RUF001, RUF002, RUF003  # Turkish quoted from §9, and the Turkish patterns it matches
+# ruff: noqa: RUF001, RUF003  # Intentional Unicode patterns and examples.
 """Layer 1 — regex, and deliberately nothing cleverer (§9).
 
-§9's first layer is *"Unicode normalize, uzunluk limiti, kelime sınırları, açık yasak kalıplar"*:
+§9's first layer is *"Unicode normalization, length limit, word boundaries, explicit prohibited
+patterns"*:
 normalise, cap the length, match explicit patterns on word boundaries. It is the cheapest layer and
 the only one that is always available, and it carries two distinctions §9 spells out because they are
 easy to get backwards:
 
-* **Profanity inside a genuine request is not an attack.** *"Küfür içeren gerçek randevu talebi ile
-  saldırı ayrılır"*. A patient who swears about a lost appointment is a patient, and the layer looks
+* **Profanity inside a genuine request is not an attack.** *"Distinguish genuine appointment
+* requests containing profanity from attacks"*. A patient who swears about a lost appointment is a
+* patient, and the layer looks
   for a request signal (a date, a ZIP, a member id, a request verb) before it reads the register.
   Only abuse with nothing to answer is refused.
-* **A short reply is valid depending on state.** *"'evet', tarih, ZIP code gibi kısa yanıtlar
-  state'e göre geçerlidir"*. ``"evet"`` answers a question; with no question open it is not suspicious
+* **A short reply is valid depending on state.** *"Short replies such as 'yes', dates, and ZIP codes
+* are valid depending on state"*. ``"evet"`` answers a question; with no question open it is not
+* suspicious
   — it is merely unaddressed, which is a ``clarify`` (ask), not a refusal. A length heuristic that
   refused short messages would break the product's most common turn, so there is no length heuristic
   here beyond the upper cap.
@@ -22,8 +25,9 @@ runtime until the wiring lands, this one is the package's own, and
 duplication is guarded rather than merely intended. When the gateway's copy is deleted, that test is
 deleted with it.
 
-Read this layer as a *filter*, not as the defence. §9: *"Input screening prompt injection için tek
-savunma değildir"* — the tool allowlist, minimum context, treating sources as data and server-side
+Read this layer as a *filter*, not as the defence. §9: *"Input screening is not the only defense
+against prompt injection"* — the tool allowlist, minimum context, treating sources as data and
+server-side
 policy are what carry prompt injection, and a regex list is not one of them.
 """
 

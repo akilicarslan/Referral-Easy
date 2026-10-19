@@ -1,9 +1,9 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Sessions: patient and admin, verified for real, separate by construction (§9).
 
-§9's sentence is short and load-bearing: *"Hasta/admin oturumları ve servis kimlikleri ayrıdır"* —
+§9's sentence is short and load-bearing: *"Patient/admin sessions and service identities are
+separate"* —
 patient sessions, admin sessions and service identities are separate. And it adds what that
-separation is worth: *"Lokal servis token/JWT fixture'ı gerçek doğrulama testleriyle çalışır"* — the
+separation is worth: *"Local service token/JWT fixtures run with real validation tests"* — the
 local fixture tokens run through real verification, not a bypass.
 
 So this module does the whole job and nothing else:
@@ -22,7 +22,7 @@ So this module does the whole job and nothing else:
 * **A trace id is not a credential.** `X-Trace-Id` is correlation only. The dependency functions
   below take the `Authorization` header (and, for the stream, an explicit token parameter) and
   nothing else — there is no code path where a trace id can reach the verifier, which is the
-  structural version of "Trace ID yetki vermez". `tests/gateway/test_sessions.py` pins it.
+  structural version of "Trace IDs do not grant authority". `tests/gateway/test_sessions.py` pins it.
 
 **Why not PyJWT.** The shared virtualenv has no JWT library, and adding a dependency is a repository
 decision rather than a service's. Verification here is HMAC-SHA256 through `hmac`/`hashlib` from the

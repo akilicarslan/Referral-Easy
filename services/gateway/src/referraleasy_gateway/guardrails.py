@@ -1,9 +1,9 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md
 """The write path's gate: §9's three layers, composed, with the refusal §9 requires.
 
 §9 names three layers and their order — **regex**, then an **OpenRouter decision model** on a masked
 message, then a **local small semantic model** — and one rule that is a product rule rather than an
-engineering one: *"Guardrail dependency kapalıyken booking yazılamaz"*. A write that needs a screened
+engineering one: *"Booking writes are prohibited while a guardrail dependency is unavailable"*. A
+write that needs a screened
 input is refused with `503 guardrails_not_configured` while any layer has nothing behind it, and a
 static help card that needs no screening is still served. Both halves are asserted in
 `tests/gateway/test_guardrails.py`.
@@ -247,7 +247,8 @@ class LocalClassifierGuardrail:
 class GuardrailPipeline:
     """The three layers in §9's order, with the short-circuit and the completeness rule.
 
-    An explicit `block` stops the remaining calls ("açık block kalan çağrıları keser"), so a message
+    An explicit `block` stops the remaining calls ("an explicit block stops the remaining calls"),
+    so a message
     layer 1 has already refused never reaches a provider. Everything else continues, and the first
     non-allow verdict wins — a later block replaces an earlier clarify, because a block is strictly
     stronger than a question, and the pipeline does not average the layers' opinions into a

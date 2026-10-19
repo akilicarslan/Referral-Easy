@@ -15,10 +15,11 @@
 
 §22 says, in full:
 
-> Cloud Run yaklaşımı: stateless request handler, paylaşımlı session/task, load balancer, graceful
-> shutdown, concurrency/min/max instance tasarımı. İki replica ile aynı command test edilir. A2A tek
-> başına autoscaling sağlamaz; Compose da Cloud Run autoscaler'ı değildir. Request sonrası background
-> process'in çalışacağına güvenilmez; worker ayrı servis olur.
+> Cloud Run approach: stateless request handlers, shared session/task state, a load balancer,
+> graceful shutdown, and concurrency/min/max instance configuration. Test the same command against
+> two replicas. A2A alone does not provide autoscaling; Compose is not the Cloud Run autoscaler
+> either. Background processes cannot be relied on to run after a request completes; workers run as
+> a separate service.
 
 Five requirements, two warnings about things that look like they would work and do not. Each is taken
 in turn below, with what this repository has.
@@ -36,7 +37,7 @@ override for a deployment that wants a name outliving the process — which Clou
 revision's pid is not stable. **The value to set is per-revision, not per-service**, and that is a
 deployment decision rather than a code one.
 
-**Shared session and task state.** §22's `paylaşımlı session/task` is satisfied by PostgreSQL. A
+**Shared session and task state.** §22's `shared session/task state` is satisfied by PostgreSQL. A
 second replica reads the same `workflow`, `session`, `task` and `command_dedup` rows through the same
 SQL functions, and the functions are where the compare-and-set lives. This is tested rather than
 asserted: `tests/workers/test_ownership.py::test_two_replicas_cannot_both_own_one_workflow` claims one
@@ -100,7 +101,8 @@ seam is `auth.build_verifiers`. Until it exists, a deployed gateway can be reach
 used.
 
 **4. Concurrency and instance bounds are undesigned.** §22 asks for
-`concurrency/min/max instance tasarımı` and this file does not supply numbers, because a number here
+`concurrency/min/max instance configuration` and this file does not supply numbers, because a number
+here
 would be a guess: the correct concurrency for the gateway depends on how many SSE connections one
 instance holds at 25 s each, and the correct minimum depends on whether a cold start's ~1 s is
 acceptable for the patient surface. Both are measurable *after* a deployment and not before. What can

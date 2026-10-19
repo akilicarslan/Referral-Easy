@@ -2,7 +2,7 @@
 
 §13, in three sentences, and each one has a test below that fails if it is deleted:
 
-1. *"Conversation release'e sabitlenir"* — a conversation is pinned to a release.
+1. *"A conversation is pinned to a release"* — a conversation is pinned to a release.
 2. *"the safety kill switch can stop a conversation pinned to an older release too"* — the kill
    switch can stop a conversation pinned to an **older** release.
 3. *"migrating to a new version requires explicit approval and a checkpoint"* — migrating it to a new release

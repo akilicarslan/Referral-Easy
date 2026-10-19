@@ -10,7 +10,8 @@ request, and every one of them is a thing that fails *quietly* when it is got wr
   calls out as the one that "cannot fail loudly".
 * **End the span even when the handler raises.** A span left open is a span that never exports, so an
   error path is exactly where tracing silently stops working.
-* **Never let a telemetry failure reach the caller.** §15: *"telemetry kesintisi booking'i düşürmez"*.
+* **Never let a telemetry failure reach the caller.** §15: *"a telemetry outage does not cause
+* booking to fail"*.
   The span comes from :class:`~referraleasy_telemetry.isolation.IsolatedTracer`.
 * **Record the route, not the payload.** The path is an endpoint name; the body, the query string and
   the headers are where a member id ends up, and the masking policy applies to what the *emitter*

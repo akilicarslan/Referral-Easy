@@ -1,15 +1,16 @@
-# ruff: noqa: RUF002  # §9's Turkish sentences are quoted verbatim
 """The three layers in order, under one of §9's two profiles, with the measurement attached (§9).
 
-§9 asks for two profiles and is explicit about the second one: *"Tam showcase profilinde üç katman
-görünür; açık block kalan çağrıları keser. … Daha hızlı conditional profil ayrıca karşılaştırılır"* —
+§9 asks for two profiles and is explicit about the second one: *"All three layers are visible in the
+full showcase profile; an explicit block stops the remaining calls. … The faster conditional profile
+is also compared"* —
 the full profile runs all three and shows them, an explicit block cuts the remaining calls, and the
 faster conditional profile is **compared** against it rather than assumed better.
 
 ``three_stage``
     Layer 1, then 2, then 3. The first non-``allow`` verdict decides — or a later ``block``, because
     a refusal is strictly stronger than a question — and a ``block`` stops the calls after it, which
-    is §9's *"açık block kalan çağrıları keser"*. An ``allow`` never overrides a decision a layer
+    is §9's *"an explicit block stops the remaining calls"*. An ``allow`` never overrides a decision
+    a layer
     already made. This is the same rule the gateway's pipeline implements, and a test runs both
     orchestrators over the same corpus with the same layers and requires identical decisions — the
     comparison is asserted rather than described.

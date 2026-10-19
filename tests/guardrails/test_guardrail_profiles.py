@@ -1,8 +1,8 @@
-# ruff: noqa: RUF002  # §9's Turkish sentence about the short-circuit is quoted verbatim
 """The orchestrator: §9's order, the short-circuit, the two profiles, and what "complete" means (§9).
 
-§9's sentence for this file is *"Tam showcase profilinde üç katman görünür; açık block kalan çağrıları
-keser. … Daha hızlı conditional profil ayrıca karşılaştırılır"* — three layers shown, an explicit
+§9's sentence for this file is *"All three layers are visible in the full showcase profile; an
+explicit block stops the remaining calls. … The faster conditional profile is also compared"* —
+three layers shown, an explicit
 block cutting the remaining calls, and the faster profile **compared** rather than assumed better.
 
 The layers here are :class:`SpyLayer` doubles, deliberately: the rules under test are the
@@ -16,8 +16,9 @@ overrides a decision a layer already made. The outcome's reason is the *deciding
 which is asserted separately because a ``clarify`` that quotes a layer which answered ``allow`` would
 send an operator to look at the wrong layer.
 
-**The short-circuit.** A ``block`` stops the calls after it — §9's *"açık block kalan çağrıları
-keser"* — and the layers that never ran are neither ``available`` nor ``skipped``: they were not
+**The short-circuit.** A ``block`` stops the calls after it — §9's *"an explicit block stops the
+remaining calls"* — and the layers that never ran are neither ``available`` nor ``skipped``: they
+were not
 consulted, and saying either would be a claim nobody can check.
 
 **Two profiles, and the premise the faster one rests on.** ``conditional`` skips exactly the calls a
@@ -120,7 +121,8 @@ def test_a_benign_message_runs_every_layer_and_comes_back_as_an_allow() -> None:
 
 
 def test_a_block_at_layer_one_stops_the_calls_after_it() -> None:
-    """§9's *"açık block kalan çağrıları keser"*: a message already refused costs no model call."""
+    """§9's *"an explicit block stops the remaining calls"*: a message already refused costs no
+    model call."""
     layers = spy_layers(
         regex=verdict(
             REGEX,

@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """What the gateway refuses, and the one place a refusal becomes an HTTP status (§7, §9).
 
 Two families of failure reach a caller, and they are deliberately shaped the same way so the web
@@ -144,8 +143,9 @@ class UnauthenticatedError(GatewayError):
 class AudienceMismatchError(GatewayError):
     """403 — the credential is valid but is not for this surface.
 
-    A patient session presenting itself at an admin route is the case §9 names explicitly ("Hasta/
-    admin oturumları ve servis kimlikleri ayrıdır"). 403 rather than 401: re-authenticating as the
+    A patient session presenting itself at an admin route is the case §9 names explicitly
+    ("Patient/admin sessions and service identities are separate"). 403 rather than 401:
+    re-authenticating as the
     same kind of principal would not help, and a 401 would invite exactly that.
     """
 
@@ -179,7 +179,8 @@ class ContractViolationError(GatewayError):
 class GuardrailUnavailableError(GatewayError):
     """503 — a write needs the guardrail dependency and it is not configured (§9).
 
-    The rule is "Guardrail dependency kapalıyken booking yazılamaz": with the layers unavailable the
+    The rule is "Booking writes are prohibited while a guardrail dependency is unavailable": with
+    the layers unavailable the
     gateway cannot screen the input a write depends on, so the write is refused. Reads that need no
     screening — a static help card — keep working, which is the other half of that rule.
     """

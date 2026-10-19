@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Sessions: two kinds, two secrets, and a trace id that is not one of them (§9).
 
 The claim under test is that the separation is *real* — enforced by a verifier over a signed token
@@ -64,7 +63,7 @@ def test_a_patient_session_reads_its_own_workflow(client: TestClient, demo: Demo
 
 
 def test_a_patient_token_is_refused_at_a_coordinator_route(client: TestClient, demo: Demo) -> None:
-    """The direction §9 spells out ("hasta/admin oturumları ayrıdır"), refused twice over.
+    """The direction §9 spells out ("patient/admin sessions are separate"), refused twice over.
 
     With the two secrets the fixture configures, a patient token does not even *verify* against the
     admin verifier: a 401 whose message names the signature, so a client is not told to re-authenticate

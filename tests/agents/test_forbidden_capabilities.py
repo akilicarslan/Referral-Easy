@@ -1,6 +1,6 @@
 """§3's forbidden authority column: one refusal per row, each by a named layer.
 
-The architecture's §3 table has a third column — *Yasaklanan yetki* — and the requirement attached to
+The architecture's §3 table has a third column — *Forbidden authority* — and the requirement attached to
 it is specific: the boundary must be enforced **by the runtime** (the allowlist, the policy table, the
 turn budget) or by the shape of the code (a contract schema, a function signature, a check that
 raises) — never by asking the model nicely. `referraleasy_agents.forbidden` is that requirement as

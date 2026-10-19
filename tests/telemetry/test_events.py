@@ -1,4 +1,3 @@
-# ruff: noqa: RUF001, RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The §15 measurements, as events: dedup keys, the closed vocabularies, and the three rules that a
 ``try/except`` gets wrong by default.
 
@@ -248,7 +247,7 @@ class TestDimensionsAreChecked:
     def test_trace_id_as_a_dimension_is_refused_with_the_spec_reason(self) -> None:
         with pytest.raises(UnknownDimensionError) as caught:
             validate_dimensions({"trace_id": TRACE_ID})
-        assert "metric label yapılmaz" in str(caught.value)
+        assert "not used as metric labels" in str(caught.value)
         assert "trace_id=" in str(caught.value), "the message must say what to do instead"
 
     def test_the_discriminator_is_the_way_out(self) -> None:
@@ -300,7 +299,7 @@ class TestDimensionsAreChecked:
 
 
 class TestEmptyIsNotAnError:
-    """§15: "Empty geçerli sonuç error değildir" — one more place, because it is the rule most
+    """§15: "A valid empty result is not an error" — one more place, because it is the rule most
     likely to be lost when someone writes a dashboard query in a hurry."""
 
     def test_a_success_empty_record_is_info_severity(self) -> None:
@@ -371,7 +370,8 @@ class TestAttempt:
 
 
 class TestAttemptSpanKeepsTimeoutsInTheDistribution:
-    """§15: "timeout'lar latency dağılımından çıkarılmaz" — the rule this class exists for."""
+    """§15: "timeouts are not excluded from the latency distribution" — the rule this class exists
+    for."""
 
     def test_a_successful_block_is_measured(self, emitter, recorder) -> None:
         with emitter.attempt_span(agent_role="scheduling", number=1) as info:

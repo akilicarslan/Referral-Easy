@@ -1,7 +1,6 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """The mock email outbox: what a notification would say, and what happened to it.
 
-    Demo mail ekranı içerik ve delivery state gösterir, gerçek mail göndermez.
+    The demo email screen displays content and delivery state; it does not send real email.
 
 The last clause is the whole design. Nothing in this module sends anything: a message is *composed*,
 written to the outbox with a delivery state, and delivered by a double that records the attempt. The
@@ -129,8 +128,8 @@ class RecordingSender:
     """A sender that records what it was asked to send and fails when told to.
 
     The double the demo uses, and the one the tests use. It does not touch a network, does not need
-    credentials, and cannot accidentally mail a real address — which is the point of §16's "gerçek
-    mail göndermez".
+    credentials, and cannot accidentally mail a real address — which is the point of §16's "does not
+    send real email".
     """
 
     fail_next: int = 0

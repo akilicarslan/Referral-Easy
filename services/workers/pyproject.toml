@@ -12,7 +12,7 @@ dependencies = [
   # hidden transport retry does.
   "referraleasy-agent-runtime",
   # §15's event vocabulary and the emitter. The workers own the two HITL measurements (§15's
-  # "HITL bekleme/çözüm") because the workers own the human queue (ADR-0035), so the metric has to
+  # "HITL wait/resolution") because the workers own the human queue (ADR-0035), so the metric has to
   # be emitted from here rather than from the gateway, which never sees a ticket resolved.
   "referraleasy-telemetry",
   "psycopg[binary]>=3.2",

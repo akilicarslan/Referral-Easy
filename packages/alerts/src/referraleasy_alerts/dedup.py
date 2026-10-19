@@ -1,8 +1,9 @@
-# ruff: noqa: RUF002  # §16 is quoted in Turkish, verbatim from the spec
 """Dedup and cooldown: a rule fires once, and its resolution is an event of its own.
 
-    Scheduler OpenSearch'ü sorgular; dedup/cooldown ile alert event ve mock email outbox üretir.
-    Resolved olayı da görünür. Bildirim hatası yeni sonsuz mail döngüsü açmaz.
+    The scheduler queries OpenSearch and uses deduplication/cooldown to produce alert events and
+    mock email outbox entries.
+    The resolved event is also visible. A notification failure does not start a new infinite email
+    loop.
 
 The scheduler runs on an interval and evaluates the same rules against overlapping windows, so the
 naive result is an alert every tick for a condition that has not changed. Three rules keep that from

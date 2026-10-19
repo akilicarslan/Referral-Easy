@@ -1,15 +1,18 @@
-# ruff: noqa: RUF001, RUF002  # the Turkish vectors are the point of several of these tests
+# ruff: noqa: RUF001  # Intentional Unicode patterns and examples.
 """§9 layer 1: patterns, normalisation, a length cap, and the two state-aware exceptions (§9).
 
 §9 gives layer 1 one sentence and two distinctions:
 
-*"Unicode normalize, uzunluk limiti, kelime sınırları, açık yasak kalıplar"* — normalise, cap the
+*"Unicode normalization, length limit, word boundaries, explicit prohibited patterns"* — normalise,
+cap the
 length, match explicit patterns on word boundaries. Then, because both of them are easy to get
 backwards and both of them break the product when they are:
 
-* *"Küfür içeren gerçek randevu talebi ile saldırı ayrılır"* — profanity inside a genuine appointment
+* *"Distinguish genuine appointment requests containing profanity from attacks"* — profanity inside
+* a genuine appointment
   request is not an attack.
-* *"'evet', tarih, ZIP code gibi kısa yanıtlar state'e göre geçerlidir"* — a short reply is valid
+* *"Short replies such as 'yes', dates, and ZIP codes are valid depending on state"* — a short reply
+* is valid
   depending on state, so there is no lower length bound to misuse.
 
 Every test here fails if the rule it names is deleted: the two distinctions are asserted in both

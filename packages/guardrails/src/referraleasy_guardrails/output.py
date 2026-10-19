@@ -1,8 +1,9 @@
-# ruff: noqa: RUF001, RUF002  # Turkish patterns and the §9 sentence are quoted verbatim
+# ruff: noqa: RUF001  # Intentional Unicode patterns and examples.
 """The output guardrail: what must be true before a card reaches a patient (§9, §2.5).
 
-§9 states it as a list — *"Output guardrail: schema, mevcut entity ID, doğrulanmış saat, kaynaklı
-telefon/adres ve gerçek booking state"* — with two prohibitions attached: no coverage or payment
+§9 states it as a list — *"Output guardrail: schema, existing entity IDs, verified times, sourced
+phone numbers/addresses, and actual booking state"* — with two prohibitions attached: no coverage or
+payment
 guarantee, and no clinical language. Each item is a check in this module, and each check is written so
 that a test can delete it and watch the suite fail.
 

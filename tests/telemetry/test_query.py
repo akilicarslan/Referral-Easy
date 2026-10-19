@@ -1,8 +1,8 @@
-# ruff: noqa: RUF002  # Turkish quoted from §15 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The typed query layer: the bodies it sends, the refusals it makes, the answers it builds (§15).
 
-    Gün, ay, özel aralık, timezone, agent/version, release/model ve synthetic/live-demo filtresi.
-    Deployment anotasyonu ve sample count bulunur.
+    Filters for day, month, custom range, timezone, agent/version, release/model, and
+    synthetic/live-demo traffic.
+    Deployment annotations and sample counts are included.
 
 **This file is the weaker of the two verifications, and it is labelled so on purpose.** Every
 response below is canned, served by an ``httpx.MockTransport``. That proves the request body this
@@ -494,7 +494,7 @@ class TestPercentiles:
 
 
 class TestTheDirectoryIndexIsRefused:
-    """§15: "Rehber ve telemetri indeksleri ayrılır"."""
+    """§15: "Directory and telemetry indices are separate"."""
 
     def test_the_directory_family_is_refused(self) -> None:
         """Retrieved directory text is untrusted content. A query that joined the two families would
@@ -579,7 +579,7 @@ class TestEventCount:
 
 
 class TestOutcomeBreakdown:
-    """§15: "Empty geçerli sonuç error değildir"."""
+    """§15: "A valid empty result is not an error"."""
 
     def _response(self) -> dict[str, Any]:
         return {
@@ -678,7 +678,8 @@ class TestApiFailures:
 
 class TestLatency:
     def test_timeouts_are_in_the_distribution_by_default(self) -> None:
-        """§15: "Özellikle timeout'lar latency dağılımından silinmez". A latency chart that drops the
+        """§15: "In particular, timeouts are not removed from the latency distribution". A latency
+        chart that drops the
         slow requests is the chart that hides the outage, and the default has to be the honest one."""
         stub = Stub(
             {

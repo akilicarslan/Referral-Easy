@@ -1,8 +1,7 @@
-# ruff: noqa: RUF002  # §9's Turkish sentences are quoted verbatim
 """The labelled corpus, the reference utterances and the artifact pins — all as data (§9).
 
-§9 asks for measurements rather than opinions — *"Katman başına false-positive/false-negative ve ek
-latency/maliyet ölçülür"* — and a measurement needs a labelled set that was written down before the
+§9 asks for measurements rather than opinions — *"Measure false positives/false negatives and added
+latency/cost per layer"* — and a measurement needs a labelled set that was written down before the
 numbers were. This module is where that set lives and how it is hashed.
 
 Three things are deliberate:

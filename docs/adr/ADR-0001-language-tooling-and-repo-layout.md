@@ -17,7 +17,7 @@ could be frozen:
 1. Phase 0's spikes end by pinning a model ID after a **live** provider smoke test, but no provider
    credentials exist in this environment.
 2. §"Open questions": whether the patient-facing UI and agents speak Turkish or English. The spec is
-   Turkish and Scenario 2 is written as "Türkçe + cuma + 15 mil"; the TODO is English and uses
+   Turkish and Scenario 2 is written as "Turkish + Friday + 15 miles"; the TODO is English and uses
    miles/ZIP/`America/Chicago`.
 
 ## Decisions

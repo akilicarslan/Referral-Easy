@@ -1,4 +1,3 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """The command plane: what a patient action, a message, a transition and a booking actually do.
 
 This is the only module that *changes* control state, and everything it changes is one of four
@@ -241,7 +240,8 @@ class SubmittedAction:
 _TURN_OUTCOME: Final[Mapping[ResultOutcome, OutcomeClass]] = {
     # The platform answered the question.
     ResultOutcome.completed: OutcomeClass.SUCCESS_FULL,
-    # §15: *"Empty geçerli sonuç error değildir"* — a payer network with no in-network specialist is
+    # §15: *"A valid empty result is not an error"* — a payer network with no in-network specialist
+    # is
     # a correct answer to the question that was asked, not a failure to answer it.
     ResultOutcome.no_match: OutcomeClass.SUCCESS_EMPTY,
     # The turn ended by asking the patient something, which is what it set out to do, so it is not
@@ -691,8 +691,8 @@ class CommandService:
         """The static help card (§9). Deliberately the least privileged read in the service.
 
         It consults no policy row, no guardrail layer and no ledger, because it is the one thing that
-        has to keep working when those are unavailable — *"statik rehber/yardım kartı
-        kullanılabilir"*. It *is* scoped to the patient like every other read: an unscoped fallback
+        has to keep working when those are unavailable — *"the static guide/help card remains
+        available"*. It *is* scoped to the patient like every other read: an unscoped fallback
         would be a way to confirm that another patient's workflow exists.
         """
         row = self._load_scoped(session, workflow_id)

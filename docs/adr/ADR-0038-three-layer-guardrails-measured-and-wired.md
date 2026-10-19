@@ -13,7 +13,9 @@
 
 §9 names three input layers — **regex**, an **OpenRouter decision model on a masked message**, and a
 **local small semantic model** — with a fixed order, one short-circuit rule, a per-layer measurement
-requirement, and a rule that is a *product* rule rather than an engineering one: *"Guardrail dependency kapalıyken booking yazılamaz"*, with a static guide card staying available anyway. §4.3 adds the other
+requirement, and a rule that is a *product* rule rather than an engineering one: *"Booking writes
+are prohibited while a guardrail dependency is unavailable"*, with a static guide card staying
+available anyway. §4.3 adds the other
 side: the output is schema-valid, its entity ids exist, its times are real, its contacts are sourced,
 and it carries no coverage promise and no clinical language.
 
@@ -26,7 +28,8 @@ The repository before this phase had:
 - **no** measurement of anything: the pipeline recorded verdicts and latencies in memory and no corpus
   existed against which false positives, false negatives, added latency or added cost could be
   computed;
-- **no** second profile, so §9's *"conditional profil three-stage'e göre karşılaştırılır"* had nothing
+- **no** second profile, so §9's *"the conditional profile is compared against the three-stage
+  profile"* had nothing
   to compare;
 - **no** output guardrail at all;
 - and **no** answer to the question the corpus exists to force: which layer actually catches what, and

@@ -1,8 +1,8 @@
-# ruff: noqa: RUF002  # Turkish quoted from §9 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Approval binding: consent is bound to five things, and the fifth is a hash (§9).
 
-§9: *"Approval, hasta + workflow + state_version + booking payload hash + expiry ile bağlıdır; veri
-değişirse onay geçersizdir."* That is one sentence with five clauses, and the point of it is the last
+§9: *"Approval is bound to the patient + workflow + state_version + booking payload hash + expiry;
+if the data changes, approval is invalid."* That is one sentence with five clauses, and the point of
+it is the last
 one — the invalidation is **structural**, not a rule someone remembers to check. If the payload
 changes, the hash changes, the binding no longer matches, and the booking is refused.
 

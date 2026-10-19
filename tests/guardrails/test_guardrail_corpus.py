@@ -1,8 +1,7 @@
-# ruff: noqa: RUF002  # the corpus carries Turkish text and the file's own vocabulary verbatim
 """The labelled corpus, the reference utterances and the pin table — the data behind §9's numbers (§9).
 
-§9 asks for measurement rather than opinion — *"Katman başına false-positive/false-negative ve ek
-latency/maliyet ölçülür"* — and a measurement is only as good as the set it was taken over. This file
+§9 asks for measurement rather than opinion — *"Measure false positives/false negatives and added
+latency/cost per layer"* — and a measurement is only as good as the set it was taken over. This file
 is the one that refuses to let the set be vacuous: it asserts that the corpus carries more than one
 answer, that every kind it names is actually present, that the two partitions are non-empty, disjoint
 and cover every case a layer screens, and that both sides of what layer 3 selects between are in each

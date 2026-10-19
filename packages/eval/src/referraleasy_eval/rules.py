@@ -1,6 +1,6 @@
 """§14's deterministic evaluators. Rules first; the judge arrives only where a rule cannot reach.
 
-§14 is explicit about the order — *"deterministic kurallar önce, judge ikinci"* — and the reason is
+§14 is explicit about the order — *"deterministic rules first, judge second"* — and the reason is
 that a judge is a second model whose answers are hard to audit, so every question a rule *can* answer
 is a question nobody should be paying a model to guess at. Every rule here is a pure function of a
 case and a run record: no clock, no network, no randomness, so the same inputs produce the same

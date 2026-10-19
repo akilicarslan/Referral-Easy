@@ -45,7 +45,8 @@ from referraleasy_agent_runtime import (
 from referraleasy_contracts.generated.booking import BookingAttemptResult
 from referraleasy_contracts.generated.common import BookingState
 
-#: §7, quoted verbatim: "İkinci bağımsız booking key üretilmez" — a second, independent booking key is never  # noqa: RUF003
+#: §7, translated: "A second independent booking key is never generated" — a second, independent
+#: booking key is never
 #: generated. The requirement keeps its own words so it can be found in the spec by them.
 __all__ = [
     "BookingApi",

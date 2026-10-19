@@ -1,10 +1,9 @@
-# ruff: noqa: RUF002  # Turkish quoted from §3 of ReferralEasy_Architecture_v3.md is kept verbatim
 """Provider Matching's two local ADK sub-agents, and what is deliberately *not* theirs.
 
 §3 puts two sub-agents inside Provider Matching and draws the line between them and
-code very precisely: *"Mesafe hesabı, filtreleme ve uniqueness kodla uygulanır…
-Basit sıralama doğrudan kodla yapılır; alt ajan belirsiz/çelişkili metinsel koşulları
-ve kullanıcıya sorulacak alternatifleri yorumlar."* — distance, filtering and
+code very precisely: *"Distance calculation, filtering, and uniqueness are implemented in code…
+Simple ranking is performed directly in code; the sub-agent interprets ambiguous/contradictory
+textual conditions and alternatives to present to the user."* — distance, filtering and
 uniqueness are implemented in code; simple ranking is done directly in code; the
 sub-agent interprets ambiguous or contradictory textual conditions **and the
 alternatives to put to the user**.
@@ -136,7 +135,7 @@ Compare each candidate in the pool against each stated constraint, and for every
 * `satisfied: true` or `false` — and then the `evidence_ids` for that constraint, or
 * `satisfied: null` — when the evidence does not say. A null verdict is a real
   answer, not a gap to fill: **absent data is never covered by a score**
-  (Türkçe: *"bulunmayan veriyi puanla örtemez"*), and there is no numeric field in
+  (§3: *"may not conceal missing data with a score"*), and there is no numeric field in
   this output to hide one in.
 
 Then, when nothing satisfies everything, say **which alternative to put to the

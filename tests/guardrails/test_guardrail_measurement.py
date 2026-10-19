@@ -1,7 +1,6 @@
-# ruff: noqa: RUF002  # §9's Turkish sentences are quoted verbatim
 """§9's four numbers per layer, on the labelled corpus — measured, and refusing to substitute (§9).
 
-§9 requires *"Katman başına false-positive/false-negative ve ek latency/maliyet ölçülür"* on a
+§9 requires *"Measure false positives/false negatives and added latency/cost per layer"* on a
 labelled corpus, and it requires the conditional profile to be **compared** rather than assumed better.
 :mod:`referraleasy_guardrails.evaluation` produces those numbers; this file is what keeps them honest,
 in four ways.
@@ -15,8 +14,8 @@ not about a layer.
 unmeasured — not as zero false positives, and not as a cost of zero — and the run is asserted to force
 the offline backend even when the checkout's environment says ``live``, with the provider client
 patched to raise if anything constructs one. The ``unmeasured`` list is checked to name layer 2, the
-document channel and the output guardrail, because §9's point that *"input screening prompt injection
-için tek savunma değildir"* is a statement that belongs where the numbers are.
+document channel and the output guardrail, because §9's point that *"input screening is not the only
+defense against prompt injection"* is a statement that belongs where the numbers are.
 
 **The comparison is computed, not asserted.** The profile comparison's deltas, decision changes and
 totals are recomputed from the two profile runs in the same report, and the sentence that describes
@@ -562,7 +561,8 @@ def test_the_cli_json_is_the_report_and_the_run_is_offline_by_default(
 
 
 def test_a_score_is_reported_as_a_similarity_rather_than_a_probability() -> None:
-    """§9: *"model confidence kalibre olasılık sayılmaz"* — the number the report carries says so."""
+    """§9: *"model confidence is not treated as a calibrated probability"* — the number the report
+    carries says so."""
     score: ClassifierScore = independent_layer3().score("bu ne biçim randevu sistemi")
     assert score.as_dict()["score_is_calibrated_probability"] is False
     assert 0.0 <= score.similarity <= 1.0

@@ -93,8 +93,8 @@ x-healthcheck-defaults: &hc-defaults
 # ── the seven specialist agents (§3, §5, §18) ───────────────────────────────
 #
 # ONE IMAGE, SEVEN SERVICES. The image is built once from services/agents/Dockerfile
-# and the role is chosen at run time by AGENT_ROLE, which is §18's rule ("Tek agent
-# image AGENT_ROLE ile ... servisleri açar") and the reason there are seven entries
+# and the role is chosen at run time by AGENT_ROLE, which is §18's rule ("One agent image starts the
+# services selected by AGENT_ROLE") and the reason there are seven entries
 # below rather than seven Dockerfiles. Everything that differs between them is
 # therefore deployment data: the role, the service name, and the host port.
 #

@@ -6,7 +6,7 @@
 
 **Google ADK · A2A · A2UI · Hybrid RAG · OpenSearch · Guardrails · Durable workflows**
 
-[![Watch the ReferralEasy enterprise showcase — 60 seconds](docs/media/referraleasy-showcase.jpg)](docs/media/referraleasy-showcase-enterprise.mp4)
+https://github.com/user-attachments/assets/24517357-e5ea-45a1-b4d0-4db36b714ea3
 
 **[▶ Watch the 60-second product film](docs/media/referraleasy-showcase-enterprise.mp4)**
 

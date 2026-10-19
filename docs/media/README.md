@@ -18,13 +18,12 @@ For a GitHub Pages HTML page in the parent `docs/` directory:
 </video>
 ```
 
-The repository README uses a clickable poster and a direct link to the tracked MP4. Both use
-relative paths, so they keep working when the repository is renamed or transferred.
+The repository README embeds the [GitHub-hosted video attachment](https://github.com/user-attachments/assets/24517357-e5ea-45a1-b4d0-4db36b714ea3)
+as a native inline player, with a direct relative link to the tracked MP4 as a fallback.
 
-For a native inline GitHub video attachment, upload this MP4 through a GitHub attachment field,
-then place the returned `https://github.com/user-attachments/assets/...` URL on its own line below
-the title. Retain the repository MP4 link as a fallback. A local file path cannot supply that
-GitHub-hosted attachment URL; the current README therefore uses the linked poster.
+To replace the inline video, upload the new MP4 through a GitHub attachment field, then replace
+the attachment URL in the repository README. Keep the URL on its own line with blank lines
+around it so GitHub renders a player. Retain the repository MP4 link as a fallback.
 See GitHub's [attachment instructions and video limits](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files).
 
 The film uses synthetic data and animated UI reconstructions. It presents implemented engineering

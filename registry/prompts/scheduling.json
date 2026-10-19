@@ -1,0 +1,7 @@
+{
+  "agent_name": "scheduling",
+  "instruction_hash": "4d6aa36a7b6c1678195d80fcbb7afc50e11f717ab325bc95f968b8af3c93ae8c",
+  "prompt_version": "1.0.0",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "scheduling"
+}

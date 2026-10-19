@@ -1,0 +1,7 @@
+{
+  "agent_name": "care-coordinator",
+  "instruction_hash": "94dd671e23c63adda22840ab3a9625ac31cdaec9af2b0e6dd0bf2d6de857c950",
+  "prompt_version": "1.0.0",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "care_coordinator"
+}

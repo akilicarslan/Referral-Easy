@@ -1,0 +1,79 @@
+[
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000001",
+    "patient_id": "b0000000-0000-4000-8000-000000000001",
+    "full_name": "Avery Thompson",
+    "date_of_birth": "1984-03-12",
+    "phone": "+13125550101",
+    "email": "avery.thompson@example.com",
+    "postal_code": "60610",
+    "preferred_language": "en",
+    "synthetic": true
+  },
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000002",
+    "patient_id": "b0000000-0000-4000-8000-000000000002",
+    "full_name": "Daniel Okafor",
+    "date_of_birth": "1979-11-02",
+    "phone": "+16305550102",
+    "email": null,
+    "postal_code": "60540",
+    "preferred_language": "en",
+    "synthetic": true
+  },
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000003",
+    "patient_id": "b0000000-0000-4000-8000-000000000003",
+    "full_name": "Maria Delgado",
+    "date_of_birth": "1991-06-24",
+    "phone": "+17735550103",
+    "email": "maria.delgado@example.com",
+    "postal_code": "60622",
+    "preferred_language": "es",
+    "synthetic": true
+  },
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000004",
+    "patient_id": "b0000000-0000-4000-8000-000000000004",
+    "full_name": "Emre Yilmaz",
+    "date_of_birth": "1988-02-09",
+    "phone": "+17085550104",
+    "email": null,
+    "postal_code": "60302",
+    "preferred_language": "tr",
+    "synthetic": true
+  },
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000005",
+    "patient_id": "b0000000-0000-4000-8000-000000000005",
+    "full_name": "Priya Raghavan",
+    "date_of_birth": "1995-09-30",
+    "phone": "+18475550105",
+    "email": "priya.raghavan@example.com",
+    "postal_code": "60173",
+    "preferred_language": "en",
+    "synthetic": true
+  },
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000006",
+    "patient_id": "b0000000-0000-4000-8000-000000000006",
+    "full_name": "Jonah Feldman",
+    "date_of_birth": "1968-05-17",
+    "phone": "+17735550106",
+    "email": null,
+    "postal_code": "60614",
+    "preferred_language": "en",
+    "synthetic": true
+  },
+  {
+    "patient_details_id": "c0000000-0000-4000-8000-000000000007",
+    "patient_id": "b0000000-0000-4000-8000-000000000007",
+    "full_name": "Grace Whitfield",
+    "date_of_birth": "1972-08-08",
+    "phone": "+13125550107",
+    "email": "grace.whitfield@example.com",
+    "postal_code": "60614",
+    "preferred_language": "en",
+    "synthetic": true
+  }
+]

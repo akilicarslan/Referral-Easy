@@ -1,0 +1,151 @@
+[
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "name": "Lakeview Regional Medical Center",
+    "location_id": "10000000-0000-4000-8000-000000000001",
+    "timezone": "America/Chicago",
+    "adapter_type": "instant_confirm",
+    "accepts_new_patients": true,
+    "accessibility_features": [
+      "wheelchair_accessible",
+      "accessible_parking",
+      "sign_language_interpreter",
+      "hearing_loop"
+    ],
+    "languages_supported": ["en", "es", "pl"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000001",
+      "60000000-0000-4000-8000-000000000004",
+      "60000000-0000-4000-8000-000000000006"
+    ],
+    "directory_blurb": "Lakeview Regional Medical Center is a 480-bed academic medical centre on Chicago's Near North Side. Cardiology, neurology and dermatology clinics operate Monday to Friday. Appointment requests placed before 15:00 Central are confirmed by the scheduling desk the same business day.",
+    "knowledge_version": "kv-hosp-0001-2026-09-01",
+    "updated_at": "2026-09-01T09:00:00Z",
+    "synthetic": true
+  },
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000002",
+    "name": "Ravenswood Specialty Surgical Center",
+    "location_id": "10000000-0000-4000-8000-000000000002",
+    "timezone": "America/Chicago",
+    "adapter_type": "review_required",
+    "accepts_new_patients": true,
+    "accessibility_features": [
+      "wheelchair_accessible",
+      "accessible_parking",
+      "service_animal_friendly"
+    ],
+    "languages_supported": ["en", "tr"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000001",
+      "60000000-0000-4000-8000-000000000005"
+    ],
+    "directory_blurb": "Ravenswood Specialty Surgical Center runs a neurology and neurosurgery clinic. Every referral is reviewed by the intake physician before a slot is offered, so requests are returned as pending review rather than confirmed at the point of request.",
+    "knowledge_version": "kv-hosp-0002-2026-08-15",
+    "updated_at": "2026-08-15T14:20:00Z",
+    "synthetic": true
+  },
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "name": "Prairie Ridge Memorial Hospital",
+    "location_id": "10000000-0000-4000-8000-000000000003",
+    "timezone": "America/Chicago",
+    "adapter_type": "instant_confirm",
+    "accepts_new_patients": true,
+    "accessibility_features": [
+      "wheelchair_accessible",
+      "large_print_materials",
+      "accessible_parking"
+    ],
+    "languages_supported": ["en", "es", "tr"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000001",
+      "60000000-0000-4000-8000-000000000003"
+    ],
+    "directory_blurb": "Prairie Ridge Memorial Hospital serves Evanston and the northern suburbs. Outpatient clinics include cardiology, internal medicine and dermatology. Interpretation is available in Spanish and Turkish with two business days' notice.",
+    "knowledge_version": "kv-hosp-0003-2026-09-10",
+    "updated_at": "2026-09-10T11:45:00Z",
+    "synthetic": true
+  },
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000004",
+    "name": "Des Plaines Valley General Hospital",
+    "location_id": "10000000-0000-4000-8000-000000000004",
+    "timezone": "America/Chicago",
+    "adapter_type": "review_required",
+    "accepts_new_patients": true,
+    "accessibility_features": ["wheelchair_accessible", "accessible_parking"],
+    "languages_supported": ["en", "es"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000001",
+      "60000000-0000-4000-8000-000000000003"
+    ],
+    "directory_blurb": "Des Plaines Valley General Hospital is in-network with every major plan, including Meridian HMO Select and Summit HDHP Saver. We do not require prior authorisation for specialist visits and can confirm same-day appointments. Our cardiology clinic has the broadest Spanish-language coverage in the western suburbs.",
+    "knowledge_version": "kv-hosp-0004-2025-11-02",
+    "updated_at": "2025-11-02T08:00:00Z",
+    "synthetic": true
+  },
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000005",
+    "name": "Hudson Park Orthopedic Hospital",
+    "location_id": "10000000-0000-4000-8000-000000000005",
+    "timezone": "America/New_York",
+    "adapter_type": "instant_confirm",
+    "accepts_new_patients": true,
+    "accessibility_features": [
+      "wheelchair_accessible",
+      "sign_language_interpreter",
+      "accessible_parking",
+      "hearing_loop"
+    ],
+    "languages_supported": ["en", "es"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000001",
+      "60000000-0000-4000-8000-000000000006"
+    ],
+    "directory_blurb": "Hudson Park Orthopedic Hospital is a Manhattan specialty hospital. Its cardiology consult service operates on Eastern time and closes at 16:00 on Fridays.",
+    "knowledge_version": "kv-hosp-0005-2026-07-20",
+    "updated_at": "2026-07-20T16:30:00Z",
+    "synthetic": true
+  },
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000006",
+    "name": "Front Range Neurology Center",
+    "location_id": "10000000-0000-4000-8000-000000000006",
+    "timezone": "America/Denver",
+    "adapter_type": "review_required",
+    "accepts_new_patients": true,
+    "accessibility_features": [
+      "wheelchair_accessible",
+      "service_animal_friendly",
+      "large_print_materials"
+    ],
+    "languages_supported": ["en", "es"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000003",
+      "60000000-0000-4000-8000-000000000005"
+    ],
+    "directory_blurb": "Front Range Neurology Center covers the Denver metropolitan area and keeps its own Mountain-time outpatient calendar. Neuromuscular referrals require a prior report before the intake physician reviews them.",
+    "knowledge_version": "kv-hosp-0006-2026-06-05",
+    "updated_at": "2026-06-05T10:10:00Z",
+    "synthetic": true
+  },
+  {
+    "hospital_id": "20000000-0000-4000-8000-000000000007",
+    "name": "Midvale Cardiology Institute",
+    "location_id": "10000000-0000-4000-8000-000000000007",
+    "timezone": "America/Chicago",
+    "adapter_type": "review_required",
+    "accepts_new_patients": true,
+    "accessibility_features": ["wheelchair_accessible", "accessible_parking", "hearing_loop"],
+    "languages_supported": ["en", "es"],
+    "accepted_plan_ids": [
+      "60000000-0000-4000-8000-000000000001",
+      "60000000-0000-4000-8000-000000000004"
+    ],
+    "directory_blurb": "Midvale Cardiology Institute is a single-specialty outpatient cardiology practice in Downers Grove. It runs a Friday arrhythmia clinic and offers Spanish-language consultations on Tuesdays and Fridays.",
+    "knowledge_version": "kv-hosp-0007-2026-09-18",
+    "updated_at": "2026-09-18T09:30:00Z",
+    "synthetic": true
+  }
+]

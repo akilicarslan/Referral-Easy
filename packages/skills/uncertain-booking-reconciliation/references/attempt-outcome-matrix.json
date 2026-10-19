@@ -1,0 +1,105 @@
+{
+  "$comment": "Read-only reference for uncertain-booking-reconciliation. Maps the result of the original booking attempt, and then the result of the lookup, onto a reconciliation outcome. The governing rule is stated once under `key_rule` and applies to every row.",
+  "version": "1.0.0",
+  "drives": "packages/skills/uncertain-booking-reconciliation/SKILL.md",
+  "key_rule": {
+    "statement": "Every lookup uses the idempotency_key minted for the original attempt. A second key is a second booking attempt, not a retry.",
+    "why": "With the original key, the facility answers about the same write: 'this request exists' or 'this request does not exist'. With a new key, the facility answers about a new write, which either double-books a patient or books one without a valid approval binding.",
+    "consequences": [
+      "Never mint, derive or substitute an idempotency key during reconciliation.",
+      "Never call create_booking from this skill, under any circumstances.",
+      "Never call list_slots as a proxy for the answer; a free slot is not evidence about whether the write landed."
+    ]
+  },
+  "original_attempt_results": [
+    {
+      "result": "created",
+      "reconciliation_needed": false,
+      "notes": "A definite outcome. This skill does not apply."
+    },
+    {
+      "result": "duplicate_replayed",
+      "reconciliation_needed": false,
+      "notes": "The facility recognised the key and returned the existing booking. Resolved as booked, with that state."
+    },
+    {
+      "result": "timeout_before_commit",
+      "reconciliation_needed": true,
+      "notes": "Contact was lost before a commit was acknowledged. The write may still have landed after the timeout."
+    },
+    {
+      "result": "timeout_after_commit",
+      "reconciliation_needed": true,
+      "notes": "Contact was lost after a commit may have occurred. Same question, same key."
+    },
+    {
+      "result": "malformed_response",
+      "reconciliation_needed": true,
+      "notes": "A response arrived but could not be understood. It is not a confirmation and not a rejection."
+    },
+    {
+      "result": "rate_limited",
+      "reconciliation_needed": true,
+      "notes": "The request was refused at the gate. Whether an earlier or later write landed is still open."
+    },
+    {
+      "result": "slot_conflict",
+      "reconciliation_needed": false,
+      "notes": "A definite no. Return to slot choice; the approval is invalidated if the replacement payload differs."
+    },
+    {
+      "result": "rejected_by_hospital",
+      "reconciliation_needed": false,
+      "notes": "A definite no from the facility, which is a decision and not an uncertainty."
+    }
+  ],
+  "lookup_outcomes": [
+    {
+      "lookup_result": "booking_found_under_same_key",
+      "reconciliation_status": "resolved_booked",
+      "state_to_report": "the facility's own BookingState, typically REQUESTED or PENDING_REVIEW",
+      "notes": "It landed. Report the facility's state, not the word 'confirmed'."
+    },
+    {
+      "lookup_result": "definitively_absent_for_same_key",
+      "reconciliation_status": "resolved_not_booked",
+      "state_to_report": "no booking exists",
+      "notes": "Only from a source that would hold the booking if it existed. Any further attempt needs a fresh approval."
+    },
+    {
+      "lookup_result": "lookup_failed_or_timed_out",
+      "reconciliation_status": "pending",
+      "state_to_report": "unknown",
+      "notes": "Count the attempt, back off, retry within budget. A failed lookup is not evidence of absence."
+    },
+    {
+      "lookup_result": "booking_found_under_a_different_key",
+      "reconciliation_status": "escalated",
+      "state_to_report": "unknown",
+      "escalation_reason": "a booking exists that this workflow did not create; report both keys",
+      "notes": "Something wrote under a key this workflow never minted. Do not attribute it to this patient and do not ignore it."
+    },
+    {
+      "lookup_result": "lookups_disagree",
+      "reconciliation_status": "escalated",
+      "state_to_report": "unknown",
+      "escalation_reason": "conflicting sources",
+      "notes": "Keep the unknown status. Record both responses."
+    },
+    {
+      "lookup_result": "budget_exhausted",
+      "reconciliation_status": "escalated",
+      "state_to_report": "unknown",
+      "escalation_reason": "prolonged unknown booking; a human with access to the facility system can answer what the API cannot",
+      "notes": "Handoff reason class prolonged_unknown_booking."
+    }
+  ],
+  "never_do": [
+    "Never mint or substitute an idempotency key during reconciliation.",
+    "Never re-book, and never 'try again just in case'.",
+    "Never describe an unresolved booking as failed.",
+    "Never describe an unresolved booking as confirmed.",
+    "Never treat a failed or silent lookup as evidence that the booking does not exist.",
+    "Never resolve an unknown booking by looking for free slots."
+  ]
+}

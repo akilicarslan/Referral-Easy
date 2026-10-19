@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/booking.json",
+  "title": "Approval, Booking Request and Appointment",
+  "description": "The write path (§2.5, §7, §9). Carries the two hardest invariants in the project: no booking without a valid bound approval, and no double booking on retry.",
+  "$defs": {
+    "Approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_id",
+        "patient_id",
+        "workflow_id",
+        "state_version",
+        "payload_hash",
+        "granted_at",
+        "expires_at",
+        "granted_by",
+        "consumed"
+      ],
+      "properties": {
+        "approval_id": { "$ref": "common.json#/$defs/Uuid" },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "state_version": {
+          "$ref": "common.json#/$defs/StateVersion",
+          "description": "The workflow version the patient approved against."
+        },
+        "payload_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Hash of the exact booking payload the patient saw. Any data change — slot, provider, visit type, preferences — invalidates the approval, because the hash no longer matches (§9)."
+        },
+        "granted_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "expires_at": {
+          "$ref": "common.json#/$defs/IsoTimestamp",
+          "description": "Approval is time-bounded. An expired approval is never extended implicitly — the patient is asked again."
+        },
+        "granted_by": {
+          "title": "ApprovalGrantedBy",
+          "type": "string",
+          "enum": ["patient", "human_operator"],
+          "description": "The final booking always requires patient approval, even after human intervention (§7, §11): an operator's resolution returns to a safe state, it does not grant booking consent."
+        },
+        "consumed": {
+          "type": "boolean",
+          "description": "Set when a booking write takes it. A consumed approval cannot authorise a second write — this is a structural guard against double booking, not just a validation rule."
+        },
+        "consumed_by_booking_request_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/BookingRequestId" }, { "type": "null" }]
+        },
+        "invalidated_reason": {
+          "title": "ApprovalInvalidationReason",
+          "type": "string",
+          "enum": ["payload_changed", "state_version_superseded", "expired", "patient_withdrew"],
+          "description": "Optional: absent means the approval is still valid."
+        }
+      }
+    },
+
+    "BookingPayload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patient_id", "provider_id", "hospital_id", "slot_id", "visit_type"],
+      "properties": {
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "slot_id": { "$ref": "common.json#/$defs/SlotId" },
+        "visit_type": { "$ref": "common.json#/$defs/VisitType" },
+        "document_ids": { "type": "array", "items": { "$ref": "common.json#/$defs/DocumentId" } },
+        "contact_phone": { "type": ["string", "null"] }
+      },
+      "$comment": "This object is the hashed unit. Two payloads that differ in any field must produce different hashes, so an approval can never be replayed against a changed booking."
+    },
+
+    "BookingRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "booking_request_id",
+        "workflow_id",
+        "command_id",
+        "idempotency_key",
+        "payload_hash",
+        "payload",
+        "state",
+        "adapter_type",
+        "attempt_count",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "booking_request_id": { "$ref": "common.json#/$defs/BookingRequestId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "command_id": { "$ref": "common.json#/$defs/CommandId" },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 200,
+          "description": "Sent to the hospital adapter. On outcome_unknown the SAME key is re-used for lookup and reconcile — a second, independent key is never minted (§7)."
+        },
+        "payload_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "payload": { "$ref": "#/$defs/BookingPayload" },
+        "approval_id": { "oneOf": [{ "$ref": "common.json#/$defs/Uuid" }, { "type": "null" }] },
+        "state": { "$ref": "common.json#/$defs/BookingState" },
+        "adapter_type": { "type": "string", "enum": ["instant_confirm", "review_required"] },
+        "external_reference": {
+          "type": ["string", "null"],
+          "description": "The hospital-side identifier once it exists. Null while REQUESTED or unresolved."
+        },
+        "attempt_count": { "type": "integer", "minimum": 0 },
+        "reconciliation": {
+          "oneOf": [{ "$ref": "#/$defs/ReconciliationState" }, { "type": "null" }]
+        },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "updated_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "reschedule_of": {
+          "oneOf": [{ "$ref": "common.json#/$defs/BookingRequestId" }, { "type": "null" }],
+          "description": "Set when this request replaces an earlier booking. §2.5: the old booking is cancelled only AFTER the new one is verified — never before."
+        }
+      }
+    },
+
+    "ReconciliationState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "started_at", "lookup_attempts"],
+      "properties": {
+        "status": {
+          "title": "ReconciliationStatus",
+          "type": "string",
+          "enum": ["pending", "resolved_booked", "resolved_not_booked", "escalated"],
+          "description": "Driven by lookup_request against the same idempotency key until it resolves or escalates (§7)."
+        },
+        "started_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "lookup_attempts": { "type": "integer", "minimum": 0 },
+        "last_lookup_at": { "type": ["string", "null"], "format": "date-time" },
+        "escalation_reason": { "type": ["string", "null"] }
+      },
+      "$comment": "While status is `pending` the booking is shown as UNVERIFIED, never as confirmed and never as failed (§2.5: HTTP 200 is not a confirmation, and an unknown outcome is not a rejection)."
+    },
+
+    "BookingAttempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempt", "idempotency_key", "started_at", "result"],
+      "properties": {
+        "attempt": { "type": "integer", "minimum": 1 },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 8,
+          "description": "Every attempt for one logical booking carries the SAME key. A differing key on a retry is the double-booking bug this field exists to catch."
+        },
+        "started_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "finished_at": { "type": ["string", "null"], "format": "date-time" },
+        "result": {
+          "title": "BookingAttemptResult",
+          "type": "string",
+          "enum": [
+            "created",
+            "duplicate_replayed",
+            "slot_conflict",
+            "rejected_by_hospital",
+            "timeout_before_commit",
+            "timeout_after_commit",
+            "malformed_response",
+            "rate_limited",
+            "upstream_unavailable",
+            "outcome_unknown"
+          ],
+          "description": "`timeout_before_commit` and `timeout_after_commit` are distinct outcomes (§17) and lead to different next steps: only the latter creates a booking that must be reconciled."
+        },
+        "http_status": { "type": ["integer", "null"] },
+        "raw_response_ref": {
+          "type": ["string", "null"],
+          "description": "Pointer to the stored vendor payload. Kept for the adapter-normalisation evidence, never shown to the patient."
+        }
+      }
+    },
+
+    "AppointmentRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appointment_id",
+        "booking_request_id",
+        "hospital_id",
+        "provider_id",
+        "patient_id",
+        "start_at",
+        "display_timezone",
+        "state",
+        "verified",
+        "synthetic"
+      ],
+      "properties": {
+        "appointment_id": { "$ref": "common.json#/$defs/Uuid" },
+        "booking_request_id": { "$ref": "common.json#/$defs/BookingRequestId" },
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "slot_id": { "$ref": "common.json#/$defs/SlotId" },
+        "start_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "end_at": { "type": ["string", "null"], "format": "date-time" },
+        "display_timezone": { "$ref": "common.json#/$defs/IanaTimezone" },
+        "state": { "$ref": "common.json#/$defs/BookingState" },
+        "verified": {
+          "type": "boolean",
+          "description": "True only after the appointment was read back from the hospital. A receipt is never rendered from a local optimistic write."
+        },
+        "verification_method": {
+          "title": "AppointmentVerificationMethod",
+          "type": "string",
+          "enum": ["create_response", "lookup_request"],
+          "description": "Optional: absent means the appointment has not been verified yet."
+        },
+        "synthetic": { "type": "boolean", "const": true }
+      },
+      "$comment": "REQUESTED and PENDING_REVIEW must never be rendered as a confirmed appointment (§2.5). The receipt component branches on `state` AND `verified`, not on HTTP status."
+    },
+
+    "NotificationOutboxEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outbox_id", "booking_request_id", "channel", "status", "attempts", "created_at"],
+      "properties": {
+        "outbox_id": { "$ref": "common.json#/$defs/Uuid" },
+        "booking_request_id": { "$ref": "common.json#/$defs/BookingRequestId" },
+        "channel": { "title": "NotificationChannel", "type": "string", "enum": ["email", "sms"] },
+        "recipient": { "type": "string", "minLength": 1 },
+        "template_key": { "type": "string", "minLength": 1 },
+        "status": {
+          "title": "OutboxStatus",
+          "type": "string",
+          "enum": ["pending", "sent", "failed", "abandoned"],
+          "description": "Written in the SAME transaction as the booking (§7). A notification failure never rolls the booking back, and a permanently failed notification stops rather than looping forever (§16)."
+        },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "next_attempt_at": { "type": ["string", "null"], "format": "date-time" },
+        "last_error": { "type": ["string", "null"] },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      }
+    }
+  },
+  "$comment": "Version: v1."
+}

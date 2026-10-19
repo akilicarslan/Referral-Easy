@@ -1,0 +1,53 @@
+{
+  "index_patterns": ["referraleasy-directory-*"],
+  "priority": 500,
+  "version": 1,
+  "_meta": {
+    "referraleasy.data_class": "directory-vector",
+    "referraleasy.retention_days": null,
+    "referraleasy.retention_note": "No age-based deletion: the directory is rebuilt from fixtures/releases, not expired by time. This is intentionally NOT the telemetry lifecycle.",
+    "referraleasy.isolation_rule": "SEPARATE INDEX, SEPARATE TEMPLATE, SEPARATE LIFECYCLE. Retrieved directory text is untrusted content. It must never be written into, aliased over, or merged with otel-traces-* / otel-events-* / referraleasy-evaluation-*: a retrieved passage must never be able to override a structured telemetry or evaluation record. Any future 'unified search' feature must join these by explicit query, never by alias or index merge.",
+    "referraleasy.dimension": "MUST equal EMBEDDING_DIMENSIONS in .env.example (768 for gemini-embedding-001). Changing the embedding model changes this number and requires a reindex.",
+    "referraleasy.knn": "k-NN plugin (bundled with OpenSearch). Lucene engine is the default and the only engine needed at demo scale."
+  },
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "1s",
+      "index.knn": true,
+      "index.knn.algo_param.ef_search": 100
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "embedding": {
+          "type": "knn_vector",
+          "dimension": 768,
+          "method": {
+            "name": "hnsw",
+            "space_type": "cosinesimil",
+            "engine": "lucene",
+            "parameters": {
+              "ef_construction": 128,
+              "m": 16
+            }
+          }
+        },
+        "document_id": { "type": "keyword" },
+        "chunk_id": { "type": "keyword" },
+        "title": {
+          "type": "text",
+          "fields": { "keyword": { "type": "keyword", "ignore_above": 512 } }
+        },
+        "content": { "type": "text" },
+        "source_url": { "type": "keyword", "index": false },
+        "synthetic": { "type": "boolean" },
+        "indexed_at": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        }
+      }
+    }
+  }
+}

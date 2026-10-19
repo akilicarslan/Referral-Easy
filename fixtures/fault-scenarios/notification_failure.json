@@ -1,0 +1,18 @@
+{
+  "scenario_id": "standard_booking",
+  "description": "The appointment is committed successfully but the confirmation notification fails to send. The booking must stand, the failure must be recorded on the notification outbox rather than swallowed, and the patient must see the receipt anyway.",
+  "fault_seed": 50,
+  "default_fault": "notification_failure",
+  "steps": [
+    {
+      "match": { "method": "POST", "path": "/notifications" },
+      "occurrence": 1,
+      "fault": {
+        "type": "notification_failure",
+        "channel": "sms",
+        "http_status": 502,
+        "booking_still_committed": true
+      }
+    }
+  ]
+}

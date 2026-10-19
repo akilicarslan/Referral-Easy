@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.example/schemas/skill-manifest-v1.json",
+  "title": "Skill package manifest",
+  "description": "Selection metadata for one skill package (ADR-0028). Deliberately NOT an Agent Card: a package instructs, a card advertises, and the two are separate records mapped by agent_card_skill_id. The schema refuses Agent Card keys and every tool-authority key, because a manifest that could name a tool or a permission would be granting authority that belongs to the runtime allowlist and the state-keyed policy table.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "name",
+    "version",
+    "title",
+    "owner_agent",
+    "summary",
+    "when_to_use",
+    "inputs",
+    "outputs",
+    "references",
+    "authority",
+    "grants_tool_permissions",
+    "agent_card_skill_id",
+    "tags"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": "1",
+      "description": "Format version of this manifest. Bumped only on a breaking change to the package format."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "description": "Package name in kebab-case. Must equal the containing directory name."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+      "description": "Semantic version of the instruction body. A change to procedure or boundaries is a version change."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name for logs and traces."
+    },
+    "owner_agent": {
+      "type": "string",
+      "enum": [
+        "care_coordinator",
+        "referral_intake",
+        "coverage_network",
+        "provider_matching",
+        "referral_readiness",
+        "scheduling",
+        "recovery_handoff"
+      ],
+      "description": "The section 3 agent role this package instructs. One of the seven; care_coordinator routes and owns no package."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "One line (no newline) stating what the skill produces. This is what a selector shows and scores against."
+    },
+    "when_to_use": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"type": "string", "minLength": 1},
+      "description": "Concrete triggers a selector can match without reading the body."
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type", "description"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "type": {"type": "string", "minLength": 1, "description": "Contract type or plain-language shape."},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type", "description"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "type": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "purpose"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^references/", "description": "Path relative to the package directory."},
+          "purpose": {"type": "string", "minLength": 1, "description": "One line saying what the file is for."}
+        }
+      },
+      "description": "Read-only material the body cites. Loaded only when the selected skill cites it."
+    },
+    "authority": {
+      "const": "instructions_only",
+      "description": "This package carries instructions and confers no authority of any kind."
+    },
+    "grants_tool_permissions": {
+      "const": false,
+      "description": "Always false. A constant, not a convention: tool authority lives in the runtime allowlist and in the database policy table keyed by workflow state."
+    },
+    "agent_card_skill_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+      "description": "Identifier of the Agent Card skill entry this package is mapped to. The card advertises; the package instructs. Never equal to the package name."
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1},
+      "description": "Coarse filter facets for selection."
+    }
+  }
+}

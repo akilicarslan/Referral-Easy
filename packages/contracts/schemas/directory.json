@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/directory.json",
+  "title": "Directory — Locations, Hospitals, Providers, Availability",
+  "description": "Synthetic directory entities (§17). Availability and any person-specific policy state live in the API, never in the RAG index (§10).",
+  "$defs": {
+    "Location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location_id", "address_line1", "city", "state", "postal_code", "geo", "timezone"],
+      "properties": {
+        "location_id": { "$ref": "common.json#/$defs/LocationId" },
+        "address_line1": { "type": "string", "minLength": 1 },
+        "address_line2": { "type": ["string", "null"] },
+        "city": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "postal_code": { "type": "string", "pattern": "^[0-9]{5}$" },
+        "geo": {
+          "$ref": "common.json#/$defs/GeoPoint",
+          "description": "The only permissible source for a distance calculation (§10)."
+        },
+        "timezone": { "$ref": "common.json#/$defs/IanaTimezone" }
+      }
+    },
+
+    "Hospital": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hospital_id",
+        "name",
+        "location_id",
+        "timezone",
+        "adapter_type",
+        "accepts_new_patients",
+        "accessibility_features",
+        "synthetic"
+      ],
+      "properties": {
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "name": { "type": "string", "minLength": 1 },
+        "location_id": { "$ref": "common.json#/$defs/LocationId" },
+        "timezone": {
+          "$ref": "common.json#/$defs/IanaTimezone",
+          "description": "Slots are stored UTC and displayed in this zone (§17)."
+        },
+        "adapter_type": {
+          "title": "HospitalAdapterType",
+          "type": "string",
+          "enum": ["instant_confirm", "review_required"],
+          "description": "The two hospital adapters (§17). `instant_confirm` returns CONFIRMED; `review_required` returns PENDING_REVIEW. Both normalise to the internal contract — the difference is never leaked to the patient as a raw vendor payload."
+        },
+        "accepts_new_patients": { "type": "boolean" },
+        "accessibility_features": {
+          "type": "array",
+          "items": {
+            "title": "AccessibilityFeature",
+            "type": "string",
+            "enum": [
+              "wheelchair_accessible",
+              "sign_language_interpreter",
+              "hearing_loop",
+              "accessible_parking",
+              "service_animal_friendly",
+              "large_print_materials"
+            ]
+          }
+        },
+        "languages_supported": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/LanguageTag" }
+        },
+        "accepted_plan_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/PlanId" },
+          "description": "Plan ids this hospital contracts with. Distinct from per-provider network records (§2.2)."
+        },
+        "directory_blurb": {
+          "type": ["string", "null"],
+          "maxLength": 4000,
+          "description": "Indexed for the hybrid RAG (§10). DATA, never instructions. It may be stale, and it may never override a structured network record."
+        },
+        "knowledge_version": {
+          "type": "string",
+          "description": "RAG metadata (§10). Any change re-indexes and moves the knowledge version."
+        },
+        "updated_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "synthetic": { "type": "boolean", "const": true }
+      }
+    },
+
+    "Provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_id",
+        "display_name",
+        "specialty",
+        "languages",
+        "accepts_new_patients",
+        "accessibility_features",
+        "first_visit_duration_minutes",
+        "return_visit_duration_minutes",
+        "hospital_ids",
+        "accepts_insurance",
+        "synthetic"
+      ],
+      "properties": {
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "display_name": { "type": "string", "minLength": 1 },
+        "credentials": { "type": ["string", "null"], "examples": ["MD", "DO", "MD, PhD"] },
+        "specialty": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Free text from the directory. Matching a referral's specialty to this field is code, not an LLM judgement."
+        },
+        "subspecialties": { "type": "array", "items": { "type": "string" } },
+        "languages": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/LanguageSkill" },
+          "description": "Backs the `provider_language` constraint (§2.1, and Scenario 2's language filter)."
+        },
+        "accepts_new_patients": {
+          "type": "boolean",
+          "description": "Separate fixture field from visit durations (§17)."
+        },
+        "accessibility_features": {
+          "type": "array",
+          "items": {
+            "title": "AccessibilityFeature",
+            "type": "string",
+            "enum": [
+              "wheelchair_accessible",
+              "sign_language_interpreter",
+              "hearing_loop",
+              "accessible_parking",
+              "service_animal_friendly",
+              "large_print_materials"
+            ]
+          }
+        },
+        "first_visit_duration_minutes": {
+          "type": "integer",
+          "minimum": 5,
+          "description": "First-visit duration is its own fixture field, distinct from the return-visit duration (§17)."
+        },
+        "return_visit_duration_minutes": { "type": "integer", "minimum": 5 },
+        "hospital_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/HospitalId" },
+          "minItems": 1
+        },
+        "accepts_insurance": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Payers this provider bills in general. NOT plan-level network status — that comes from a NetworkRecord (§2.2)."
+        },
+        "profile_text": {
+          "type": ["string", "null"],
+          "maxLength": 8000,
+          "description": "Indexed for the RAG directory. Entity-based chunking preserves the name↔phone relation (§10)."
+        },
+        "contact_phone": {
+          "type": ["string", "null"],
+          "description": "Always paired with its SourceBinding. A phone number shown to a patient must be sourced, never generated (§9 output guardrail)."
+        },
+        "contact_source": {
+          "oneOf": [{ "$ref": "common.json#/$defs/SourceBinding" }, { "type": "null" }]
+        },
+        "knowledge_version": { "type": "string" },
+        "updated_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "synthetic": { "type": "boolean", "const": true }
+      }
+    },
+
+    "Slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slot_id", "provider_id", "hospital_id", "start_at", "end_at", "display_timezone", "visit_type", "status"],
+      "properties": {
+        "slot_id": { "$ref": "common.json#/$defs/SlotId" },
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "start_at": {
+          "$ref": "common.json#/$defs/IsoTimestamp",
+          "description": "Always UTC in storage (§17)."
+        },
+        "end_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "display_timezone": {
+          "$ref": "common.json#/$defs/IanaTimezone",
+          "description": "Hospital's IANA zone, for rendering only. Never used for arithmetic."
+        },
+        "visit_type": { "$ref": "common.json#/$defs/VisitType" },
+        "status": {
+          "title": "SlotStatus",
+          "type": "string",
+          "enum": ["available", "held", "booked", "expired"],
+          "description": "`held` is a real state, but the system never pre-books or auto-selects a slot (§4). A slot the patient has not chosen is never held."
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optimistic-concurrency token on the slot. A stale slot presented for booking returns 409 and is re-fetched rather than silently moved."
+        }
+      }
+    },
+
+    "AvailabilityQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hospital_id", "provider_id", "visit_type"],
+      "properties": {
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "visit_type": { "$ref": "common.json#/$defs/VisitType" },
+        "earliest": { "oneOf": [{ "$ref": "common.json#/$defs/IsoTimestamp" }, { "type": "null" }] },
+        "latest": { "oneOf": [{ "$ref": "common.json#/$defs/IsoTimestamp" }, { "type": "null" }] },
+        "preferred_days": { "type": "array", "items": { "type": "string" } },
+        "preferred_time_of_day": {
+          "title": "SlotTimeOfDay",
+          "type": "string",
+          "enum": ["morning", "afternoon", "evening"],
+          "description": "Optional: absent means no time-of-day preference."
+        }
+      }
+    },
+
+    "AvailabilityResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query", "slots", "result_kind", "evidence_id", "synthetic"],
+      "properties": {
+        "query": { "$ref": "#/$defs/AvailabilityQuery" },
+        "slots": { "type": "array", "items": { "$ref": "#/$defs/Slot" } },
+        "result_kind": {
+          "title": "AvailabilityResultKind",
+          "type": "string",
+          "enum": ["slots_found", "no_slots_for_constraints", "no_matching_provider", "upstream_error"],
+          "description": "§17: an API failure is a different result from a genuine 'no specialist'. Collapsing these into an empty list would let a fault be reported to the patient as a real answer."
+        },
+        "partial": {
+          "type": "boolean",
+          "description": "True when the upstream returned a truncated page. Partial agent output is never committed as final state (§2.1)."
+        },
+        "evidence_id": { "$ref": "common.json#/$defs/EvidenceId" },
+        "synthetic": { "type": "boolean" }
+      }
+    },
+
+    "ProviderCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_id", "hospital_id", "constraint_fit", "evidence_ids"],
+      "properties": {
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "distance_miles": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Computed from coordinates in code, never from an embedding score (§10)."
+        },
+        "constraint_fit": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["constraint_id", "satisfied", "reason_code"],
+            "properties": {
+              "constraint_id": { "$ref": "common.json#/$defs/Uuid" },
+              "satisfied": { "type": ["boolean", "null"], "description": "Null means unknown, and unknown is never rounded up to satisfied." },
+              "reason_code": { "$ref": "common.json#/$defs/ReasonCode" },
+              "detail": { "type": ["string", "null"] }
+            }
+          },
+          "description": "Per-candidate, per-constraint fit produced by the Constraint Analyst. Absent data is not scored over (§3): a missing fact yields null, not a filled-in guess."
+        },
+        "rank": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Simple ranking is done in code (§3). The sub-agent explains ambiguity; it does not own the ordering."
+        },
+        "provenance": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/EvidenceId" },
+          "description": "Candidate Researcher preserves provenance and filters (§3)."
+        },
+        "evidence_ids": { "type": "array", "items": { "$ref": "common.json#/$defs/EvidenceId" } }
+      }
+    }
+  },
+  "$comment": "Version: v1."
+}

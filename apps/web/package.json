@@ -1,0 +1,32 @@
+{
+  "name": "@referraleasy/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ReferralEasy web client — Lit + A2UI v0.9 surface renderer for the patient referral flow.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite --port 3000 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 3000 --strictPort",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@a2ui/lit": "0.13.0",
+    "@a2ui/web_core": "0.13.0",
+    "@referraleasy/contracts": "workspace:*",
+    "lit": "^3.3.3",
+    "zod-v3": "npm:zod@^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "jsdom": "^26.0.0",
+    "typescript": "5.7.3",
+    "vite": "^6.0.7",
+    "vitest": "^3.2.4"
+  }
+}

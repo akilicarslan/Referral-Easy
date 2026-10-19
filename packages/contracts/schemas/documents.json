@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/documents.json",
+  "title": "Referral Documents and Readiness",
+  "description": "Document fixtures and the readiness check (§2.3). Documents are DATA. Extraction is source-bound, and when a document arrives only the affected check re-runs.",
+  "$defs": {
+    "DocumentFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "patient_id",
+        "kind",
+        "filename",
+        "mime_type",
+        "text",
+        "issued_at",
+        "source_organization",
+        "synthetic",
+        "contains_injection_attempt"
+      ],
+      "properties": {
+        "document_id": { "$ref": "common.json#/$defs/DocumentId" },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "kind": { "$ref": "common.json#/$defs/DocumentKind" },
+        "filename": { "type": "string", "minLength": 1 },
+        "mime_type": { "type": "string", "enum": ["text/plain", "application/pdf", "text/markdown"] },
+        "text": {
+          "type": "string",
+          "maxLength": 50000,
+          "description": "Pre-extracted synthetic text — the plan explicitly does not require a real OCR platform for v1 (§2.3). Treated strictly as DATA: the inspection tool extracts fields and never follows instructions found inside (§9)."
+        },
+        "issued_at": { "type": "string", "format": "date" },
+        "source_organization": { "type": "string", "minLength": 1 },
+        "synthetic": { "type": "boolean", "const": true },
+        "contains_injection_attempt": {
+          "type": "boolean",
+          "description": "True on the deliberate injection fixture (§1.2). Its presence in an index or a test proves the data-vs-instruction boundary is exercised rather than assumed."
+        }
+      }
+    },
+
+    "ExtractedField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "value", "binding", "confidence"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1 },
+        "value": { "type": ["string", "null"] },
+        "binding": {
+          "$ref": "common.json#/$defs/SourceBinding",
+          "description": "Every extracted value carries where it came from (§2.3 source-bound extraction). A value with no binding is not presented as a fact."
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "value_present": {
+          "type": "boolean",
+          "description": "Distinguishes 'extracted an empty value' from 'field not found'. Absence must not be silently turned into a null value."
+        }
+      }
+    },
+
+    "DocumentExtraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_id", "fields", "unreadable_fields", "inspected_at", "synthetic"],
+      "properties": {
+        "document_id": { "$ref": "common.json#/$defs/DocumentId" },
+        "kind": { "$ref": "common.json#/$defs/DocumentKind" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/ExtractedField" } },
+        "unreadable_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fields present in the document but not machine-readable. Reported as unreadable — never guessed, and never silently dropped."
+        },
+        "injection_attempt_detected": {
+          "type": "boolean",
+          "description": "Set by the inspecting tool. Detection is a logged observation, not a security boundary — the boundary is that document text is never executed as instruction (§9)."
+        },
+        "evidence_id": { "$ref": "common.json#/$defs/EvidenceId" },
+        "inspected_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "synthetic": { "type": "boolean", "const": true }
+      }
+    },
+
+    "DocumentCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "status", "checked_at"],
+      "properties": {
+        "kind": { "$ref": "common.json#/$defs/DocumentKind" },
+        "status": {
+          "title": "DocumentCheckStatus",
+          "type": "string",
+          "enum": ["satisfied", "missing", "expired", "unreadable", "not_required"],
+          "description": "The unit of re-checking. When a document arrives only this check re-runs (§2.3) — the rest keep their prior result and their prior evidence id."
+        },
+        "document_id": { "oneOf": [{ "$ref": "common.json#/$defs/DocumentId" }, { "type": "null" }] },
+        "reason_code": { "$ref": "common.json#/$defs/ReasonCode" },
+        "checked_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "evidence_ids": { "type": "array", "items": { "$ref": "common.json#/$defs/EvidenceId" } },
+        "run_id": {
+          "$ref": "common.json#/$defs/Uuid",
+          "description": "Which inspection run produced this. A resumed workflow keeps the untouched checks' original run ids, so the trace shows exactly one check re-running."
+        }
+      }
+    },
+
+    "ReadinessResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readiness_id",
+        "workflow_id",
+        "hospital_id",
+        "visit_type",
+        "checks",
+        "satisfied",
+        "evidence_ids",
+        "checked_at"
+      ],
+      "properties": {
+        "readiness_id": { "$ref": "common.json#/$defs/Uuid" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "hospital_id": {
+          "$ref": "common.json#/$defs/HospitalId",
+          "description": "§4: a hospital's requirement set is never presented as final before that hospital is chosen. Readiness for an unchosen hospital is not shown to the patient."
+        },
+        "plan_id": { "oneOf": [{ "$ref": "common.json#/$defs/PlanId" }, { "type": "null" }] },
+        "visit_type": { "$ref": "common.json#/$defs/VisitType" },
+        "checks": { "type": "array", "items": { "$ref": "#/$defs/DocumentCheck" } },
+        "satisfied": {
+          "type": "boolean",
+          "description": "True only when every required check is `satisfied`. `not_required` counts as satisfied; unknown never does."
+        },
+        "missing_kinds": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/DocumentKind" }
+        },
+        "can_proceed": {
+          "type": "boolean",
+          "description": "Whether the workflow may move to scheduling. A suspended workflow resumes here without re-running satisfied checks (§2.3)."
+        },
+        "evidence_ids": { "type": "array", "items": { "$ref": "common.json#/$defs/EvidenceId" } },
+        "checked_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      },
+      "$comment": "The Readiness agent may not assume a document exists (§3) and may not grant administrative or clinical approval — this object records readiness only."
+    }
+  },
+  "$comment": "Version: v1."
+}

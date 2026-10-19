@@ -1,0 +1,19 @@
+{
+  "a2a_card_hash": "9e7d0c2c7895f4db2087ed0ce5081cfa6e1b00c991b14d26f7f3d908692f2792",
+  "agent_hash": "f8923d11edfdf4d625133f1af722a365ba623493b8b85bc3a2100e9ed61b444c",
+  "agent_name": "provider-matching",
+  "instruction_hash": "bc4cd28dc70922536372925ba6926645cbafbd2b519cf3e370ff0d20854f0b7e",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "provider_matching",
+  "service": "agent-provider_matching",
+  "skill_hashes": {
+    "provider_matching.ground_directory_answers": "8c6577f21c50b8efbb96a7d453af4ce9625c10eeb15126cb2227066f3663efcb",
+    "provider_matching.negotiate_constraints": "e54d72608ce9357a10ffb9b202f6b859f7e4476c61dd4573ae875c7eb934f931"
+  },
+  "sub_agent_manifest_hash": "a67244ab7b28f85d756d883c6f1f4dd6b4337537efa061b23aedaa33b3898ede",
+  "tool_description_hashes": {
+    "find_candidates": "cec0e001e2d7e523fc1956994f7819f862478c05514ff76739921ec366255eeb",
+    "search_directory": "afa4f2c1a7f5ba4d88a067539b1239390ad8ce9eefa7cd0cf205469eaf445562"
+  },
+  "version": "1.0.0"
+}

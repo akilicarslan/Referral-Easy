@@ -1,0 +1,125 @@
+/**
+ * ReferralEasy web client — design tokens.
+ *
+ * Direction: Minimal, clinical, quiet. Flat surfaces, hairline dividers, generous
+ * whitespace, and typography doing the work that colour would otherwise do.
+ * Nothing here is decorative: every token exists so a component does not have to
+ * invent a value, and so the honest-state colours stay distinguishable.
+ *
+ * Palette division (60-30-10):
+ *   60%  the calm ground — page background and card surfaces
+ *   30%  ink and hairlines — all text, all structure
+ *   10%  the single accent — primary actions, selection, focus
+ *
+ * The four "state" hues are NOT part of the 10%. They are semantic: booked /
+ * requested / unknown / degraded. They are always paired with a written label
+ * and a glyph, so meaning never rests on colour alone (WCAG 1.4.1).
+ */
+
+:root {
+  /* ── 60%: ground ─────────────────────────────────────────────────────── */
+  --re-bg: #f4f6f7;
+  --re-surface: #ffffff;
+  --re-surface-sunken: #fafbfc;
+
+  /* ── 30%: ink and structure ──────────────────────────────────────────── */
+  --re-line: #e3e7ea;
+  --re-line-strong: #ccd3d8;
+
+  --re-ink: #131a1f;
+  --re-ink-2: #5a6672;
+  --re-ink-3: #8a949e;
+
+  /* ── 10%: accent ─────────────────────────────────────────────────────── */
+  --re-accent: #0b6b60;
+  --re-accent-hover: #095a51;
+  --re-accent-active: #074b43;
+  --re-accent-ink: #ffffff;
+  --re-accent-soft: #e6f2f0;
+  --re-accent-line: #a9d3ce;
+
+  /* ── Semantic state ──────────────────────────────────────────────────── */
+  /* Confirmed. Reserved: only ever used when the hospital has actually
+     confirmed. `REQUESTED` and `PENDING_REVIEW` must never reach for this. */
+  --re-ok: #0f6b37;
+  --re-ok-bg: #e8f5ec;
+  --re-ok-line: #b6ddc4;
+
+  /* Requested / awaiting review. Amber by intent: in progress, not confirmed. */
+  --re-requested: #8a5a00;
+  --re-requested-bg: #fff4e2;
+  --re-requested-line: #eccf99;
+
+  /* Unknown — we could not verify. Deliberately neutral, never red (which
+     would read as "no") and never green (which would read as "yes"). */
+  --re-unknown: #4b5560;
+  --re-unknown-bg: #edeff1;
+  --re-unknown-line: #c9cfd5;
+
+  /* Degraded — the answer came from a reduced pipeline. */
+  --re-degraded: #5b3fa8;
+  --re-degraded-bg: #f2eefc;
+  --re-degraded-line: #cbbcef;
+
+  /* Error / failure. */
+  --re-error: #a3231b;
+  --re-error-bg: #fdecea;
+  --re-error-line: #f0bcb7;
+
+  /* Fixture / synthetic output. A label, not a warning. */
+  --re-synthetic: #5a6672;
+  --re-synthetic-bg: #eef1f3;
+  --re-synthetic-line: #d5dade;
+
+  /* ── Spacing — one 4px base, used on an 8px rhythm ───────────────────── */
+  --re-s1: 4px;
+  --re-s2: 8px;
+  --re-s3: 12px;
+  --re-s4: 16px;
+  --re-s5: 24px;
+  --re-s6: 32px;
+  --re-s7: 48px;
+
+  /* ── Radius ──────────────────────────────────────────────────────────── */
+  --re-r-sm: 8px;
+  --re-r: 12px;
+  --re-r-lg: 16px;
+  --re-r-pill: 999px;
+
+  /* ── Elevation — barely there. Structure comes from hairlines. ───────── */
+  --re-shadow-1: 0 1px 2px rgba(16, 24, 32, 0.05);
+  --re-shadow-2: 0 8px 24px rgba(16, 24, 32, 0.1);
+  --re-shadow-bar: 0 -1px 0 var(--re-line);
+
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  --re-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --re-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --re-t-meta: 12px;   /* timestamps, sample counts, freshness */
+  --re-t-label: 13px;  /* field labels, chips */
+  --re-t-body: 15px;   /* default reading size */
+  --re-t-lead: 17px;   /* card titles, list item titles */
+  --re-t-title: 20px;
+  --re-t-display: 26px;
+
+  --re-lh-tight: 1.25;
+  --re-lh-body: 1.5;
+
+  /* ── Layout ──────────────────────────────────────────────────────────── */
+  --re-tap: 44px;         /* minimum interactive size */
+  --re-gutter: 16px;
+  --re-maxw: 560px;       /* the column never gets wider than a phone */
+  --re-header-h: 56px;
+  --re-actionbar-h: 72px;
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+  --re-ease: cubic-bezier(0.2, 0, 0, 1);
+  --re-dur: 140ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --re-dur: 0ms;
+  }
+}

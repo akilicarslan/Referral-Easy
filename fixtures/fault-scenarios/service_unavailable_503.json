@@ -1,0 +1,23 @@
+{
+  "scenario_id": "three_transient_errors",
+  "description": "Slot retrieval fails with 503 on the third attempt. The third of the three transient faults injected for Scenario 6: the bounded retry budget is now exhausted, the workflow reports an upstream error rather than an empty result, and the hybrid directory falls back to its static seed copy while the degraded flag is surfaced.",
+  "fault_seed": 43,
+  "default_fault": "service_unavailable_503",
+  "steps": [
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 1,
+      "fault": { "type": "latency", "delay_ms": 12000 }
+    },
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 2,
+      "fault": { "type": "rate_limit_429", "retry_after_s": 1, "retry_after_header": "1" }
+    },
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 3,
+      "fault": { "type": "service_unavailable_503", "retry_after_s": 2, "degrade_to": "static_seed" }
+    }
+  ]
+}

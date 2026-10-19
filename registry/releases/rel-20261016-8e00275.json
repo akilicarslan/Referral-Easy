@@ -1,0 +1,253 @@
+{
+  "agents": [
+    {
+      "a2a_card_hash": "7c07f87523264dd694944bda4d6c08040fc630b6a5f1e328a241a5344b46b1c6",
+      "agent_hash": "15d8883f94acf8262f05499bec2dc56c212bc036382a3abeb2104eb784c1c4c8",
+      "agent_name": "care-coordinator",
+      "instruction_hash": "94dd671e23c63adda22840ab3a9625ac31cdaec9af2b0e6dd0bf2d6de857c950",
+      "skill_hashes": {},
+      "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+      "tool_description_hashes": {
+        "delegate_task": "c4f46bd948bafdb4e441c95fb5cf0da1d3b953b9ffd544c7babaec5d37d15ce8"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "a2a_card_hash": "ef9e39b64fd6b223e0415f557a7bef36ba7dd852c9564e189b0ea8cb729e817b",
+      "agent_hash": "6cec8563651a30583a4dbad164de20d92e0e2694c7e11a15500b8b4412273f16",
+      "agent_name": "referral-intake",
+      "instruction_hash": "75bee4891d6c63ec1dff6139f9ed3f7c9eae6ff8a9ea255c160469fdb5a612fd",
+      "skill_hashes": {
+        "referral_intake.extract_referral_fields": "14195962c5a619dadf7a2d9994a2506c9d145af56c9b617a404662153b52c373"
+      },
+      "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+      "tool_description_hashes": {
+        "patient_preferences": "99f5b9d0fd9ad7603e00232c9758fcd91bf6e43e792445d1e13a4004dd0a0ad3",
+        "resolve_location": "0ea3194e1f45e5203b9f8d5702a62eac680271a95712e104ade07b0f4eb2c205",
+        "validate_referral": "54e0612cd46464e5ab7bcb8ae5bf3a261c72916ff6d69d9635b57581f1870d44"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "a2a_card_hash": "189c9ee0bbccead75dba5c4a6aa160dde22b1b7da682185bf88381e358bfb43c",
+      "agent_hash": "5e44475466f325d9670d215599c4fb59dc55ee059331c86ec6bec3f447b2d87d",
+      "agent_name": "coverage-network",
+      "instruction_hash": "c9d48284a36957a375983d5fcaed608fe68b1869f463ef7945d3cf7bb433613d",
+      "skill_hashes": {
+        "coverage_network.interpret_coverage_evidence": "1d6cb63901f2c4c7bfa44bf29378338a3fead915fc76a58dea164e19a2e57c74"
+      },
+      "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+      "tool_description_hashes": {
+        "check_plan": "bdc1e6ca1252dcf29e5b31d3bbf4813073be7b5c522d625c2ea577cad74fa7cf",
+        "check_provider_network": "f0052a13f00496426a47247914c39b7581862c38d036d7e1a0a3b73a2b55d1ed",
+        "get_coverage_rules": "8c4e4e307e549642b207635c8cdb300b7222233e0be43268d1fc3df428bdb77a"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "a2a_card_hash": "9e7d0c2c7895f4db2087ed0ce5081cfa6e1b00c991b14d26f7f3d908692f2792",
+      "agent_hash": "f8923d11edfdf4d625133f1af722a365ba623493b8b85bc3a2100e9ed61b444c",
+      "agent_name": "provider-matching",
+      "instruction_hash": "bc4cd28dc70922536372925ba6926645cbafbd2b519cf3e370ff0d20854f0b7e",
+      "skill_hashes": {
+        "provider_matching.ground_directory_answers": "8c6577f21c50b8efbb96a7d453af4ce9625c10eeb15126cb2227066f3663efcb",
+        "provider_matching.negotiate_constraints": "e54d72608ce9357a10ffb9b202f6b859f7e4476c61dd4573ae875c7eb934f931"
+      },
+      "sub_agent_manifest_hash": "a67244ab7b28f85d756d883c6f1f4dd6b4337537efa061b23aedaa33b3898ede",
+      "tool_description_hashes": {
+        "find_candidates": "cec0e001e2d7e523fc1956994f7819f862478c05514ff76739921ec366255eeb",
+        "search_directory": "afa4f2c1a7f5ba4d88a067539b1239390ad8ce9eefa7cd0cf205469eaf445562"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "a2a_card_hash": "e3e29a3f6a2ffca090b36ab560d00acc86fce11442d0437f2e91812de8de750a",
+      "agent_hash": "40d04bcb539be78aacfd9e3aa0b0b0123fb2ae5252d63aff3dbe17e23d4b53e3",
+      "agent_name": "referral-readiness",
+      "instruction_hash": "14398a2147d55f3ea2ae568fc9c92bd5b419ed7a67a00a27f0d0a9ed1e5f156c",
+      "skill_hashes": {
+        "referral_readiness.check_document_readiness": "8fcb0a2ae011128b7db0030f9ac39b9cdf798a96746b88449e6426f76db2584a"
+      },
+      "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+      "tool_description_hashes": {
+        "get_referral_requirements": "2594fe02b8912181343be2695196a850135450c14e7487f027769022162634bf",
+        "inspect_document": "5efe723ce29c68a9c38b655820e71fdd056b0f27e315b929270cabc7b6e3d1fe",
+        "validate_referral_package": "ab4817c3b4ca04c86ab2b4a20ebdb3a905e69ed15d6960c5e6b1b6ab886f156f"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "a2a_card_hash": "8a4624b02d15c51091cef5ff77a14450485ab919915295b8a69a6a1a4154baec",
+      "agent_hash": "9459de25b1a74cb206205496caafcd600d1b3771561c8d9c42182499a14fc697",
+      "agent_name": "scheduling",
+      "instruction_hash": "4d6aa36a7b6c1678195d80fcbb7afc50e11f717ab325bc95f968b8af3c93ae8c",
+      "skill_hashes": {
+        "scheduling.confirm_booking_with_consent": "b18458ec21d7a3a83db0a53c400e535458c1cff2af2bd300a7032db6deb755c7",
+        "scheduling.reconcile_uncertain_booking": "8f1f379241cefe4e2de0f9b43a72a6bc59109b894098c67e5ec7c7dcfee6f315"
+      },
+      "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+      "tool_description_hashes": {
+        "cancel_booking": "088fdc531bd1dff1cbb656aafa1d112fda6e68129e462c579749b880b220a234",
+        "create_booking": "bcd56e0f1a247e7b0dc4130d764ac51cc31526df2d63300dbe2c9299f9db0ee2",
+        "list_slots": "18dd9f0a6a48ba7b758ee4aee51d9ff417263f8f6c80965e1542d9a7dcf91383",
+        "lookup_request": "f9d8d2f1fe50362810ddd4989ec086325e19c85db9c9bfb34f13de6b87a512ef",
+        "reschedule_booking": "0128c3f36c9464fd544469b0b1c6ccec51fb7874cc5cf4e66e266ae720145fbe"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "a2a_card_hash": "c8219d522ca9ffcc0b62560588b7173accf51c6f679280a9e5cb075b084c9a94",
+      "agent_hash": "a85c28163ca68314fb4f9d6b4dfdd83be44d86e9acd53697f516b2baf4f5bea4",
+      "agent_name": "recovery-handoff",
+      "instruction_hash": "b2a745996655decd10d369feba984b6925dbd2cfc11b3ff8e9d5bee2b3d9b666",
+      "skill_hashes": {
+        "recovery_handoff.triage_handoff_reason": "b473a5f074f98bf4368aa2893c6dcc092851276d8d859d4bdd52db06b813bcd5"
+      },
+      "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+      "tool_description_hashes": {
+        "classify_error": "9adeef8ac692789d652ba070270097eccaae8c1cced272d332f8e7f5a9bb488b",
+        "create_handoff": "b135aa2219d79f24d59e8edbd23ab38b8720c27d1e38c12d2a20c043b3724709",
+        "search_directory": "afa4f2c1a7f5ba4d88a067539b1239390ad8ce9eefa7cd0cf205469eaf445562"
+      },
+      "version": "1.0.0"
+    }
+  ],
+  "created_at": "2026-10-16T00:38:34.065295Z",
+  "guardrail_policy": {
+    "classifier_hash": "c3813e3c7a2bd7ec6f0da53ad4a281a23548e47a76a87b97f33d3a0edff7e57d",
+    "mode": "three_stage",
+    "thresholds": {
+      "local_classifier": 0.32
+    }
+  },
+  "parent_release_manifest_id": null,
+  "prompts": {
+    "care-coordinator": "1.0.0",
+    "coverage-network": "1.0.0",
+    "provider-matching": "1.0.0",
+    "recovery-handoff": "1.0.0",
+    "referral-intake": "1.0.0",
+    "referral-readiness": "1.0.0",
+    "scheduling": "1.0.0"
+  },
+  "provider": {
+    "agent_model_id": "anthropic/claude-haiku-5.5",
+    "agent_model_provider": "openrouter",
+    "params": {
+      "AGENT_ATTEMPT_TIMEOUT_MS": "3000",
+      "AGENT_MAX_ATTEMPTS": "3",
+      "MAX_DELEGATIONS_PER_TURN": "8",
+      "MAX_MODEL_CALLS_PER_TURN": "12",
+      "MAX_TOOL_CALLS_PER_TURN": "16",
+      "MODEL_BACKEND": "live",
+      "TURN_DEADLINE_MS": "30000"
+    },
+    "per_agent_overrides": {}
+  },
+  "rag": {
+    "embedding_dimensions": 768,
+    "embedding_model_id": "gemini-embedding-003",
+    "index_name": "referraleasy-directory-chunks",
+    "knowledge_version": "directory-chunker-1+21v+6cefb9624388",
+    "reranker_model_id": "cohere/rerank-v3.5"
+  },
+  "release_manifest_id": "rel-20261016-8e00275",
+  "rollout": {
+    "cohort": "stable",
+    "cohort_percentage": 1.0,
+    "kill_switch_engaged": false
+  },
+  "skills": {
+    "booking-confirmation": "1.0.0",
+    "constraint-negotiation": "1.0.0",
+    "coverage-interpretation": "1.0.0",
+    "directory-grounding": "1.0.0",
+    "handoff-triage": "1.0.0",
+    "referral-intake": "1.0.0",
+    "referral-readiness": "1.0.0",
+    "uncertain-booking-reconciliation": "1.0.0"
+  },
+  "source": {
+    "git_sha": "57975d5a522e652e23829fda72931f76f83e5a97",
+    "image_digest": "sha256:71224672e6299332510e0ca58971228b4e3cf68b883637d6f088f78a4c3f9bc2",
+    "lockfile_hash": "7c3515a197b81e89ed8fd6e5a007ff36669d719b33f53e5481171f533e44eb92"
+  },
+  "tools": {
+    "cancel_booking": {
+      "implementation_digest": "064769f9f3945db9f833ff0215c98babf5df393c6430967dc1cb2b88e6b0ebce",
+      "schema_hash": "758803683185133a7d50a6437a4d19c2d2776e6b746bc0ba099412b6419cba1d"
+    },
+    "check_plan": {
+      "implementation_digest": "c38fa43d001b507683f8d5518e93fc5962e609417982b384e87c495ec5260601",
+      "schema_hash": "6c804434162eab89244f98da250f0c2b72a0c0005b6475e5d61ef0d5f96883df"
+    },
+    "check_provider_network": {
+      "implementation_digest": "a8ef8083ba313cada193dac3a768a01be7962b8d3afec407412eab507a94922b",
+      "schema_hash": "40f02b82ef9c57b5f7e36dee939237f9acdf14005cb40cc32b935cf938273e1f"
+    },
+    "classify_error": {
+      "implementation_digest": "79acd1434b483c0541f2121d97bc228fe92ff1df1819033093e6986a4b74817c",
+      "schema_hash": "c5f768bd8061801b5ad8164504b7c248a5cb08b1122e5abde835cc20f31da47e"
+    },
+    "create_booking": {
+      "implementation_digest": "785b7ed1915f313ceccd18f3fcf2704799f0030cdc21c68aed930a8bba664b76",
+      "schema_hash": "1340628dde0364e4154b8198a55e10f6cb54faadf8b7385b14adf7483bade94c"
+    },
+    "create_handoff": {
+      "implementation_digest": "58928195569911be3ed2765a85ebc9ecd9ae4b59be9fce4f7385d261aed19c7c",
+      "schema_hash": "545fa54065bb4a88d52f22c40e98e6c550b6cebaa89b2ae35799d04f88170ee2"
+    },
+    "delegate_task": {
+      "implementation_digest": "2f226c6951cd79f293ec7ddd8c6f212892d65249acd975ae9a0fbc0afe9fb34b",
+      "schema_hash": "d1d8f088c13a6b24e43c1b9e64010802de66787f9c668fc3ddebd39202d5eccd"
+    },
+    "find_candidates": {
+      "implementation_digest": "8addb5d4e5964d868f2cc1b13c5b3526263584784f4652adc73a18936807fde4",
+      "schema_hash": "956e5a064fccd9f791f9cb12b0063afb805fe0b3f8a9e1a293b6c01a1aa0966a"
+    },
+    "get_coverage_rules": {
+      "implementation_digest": "d0974f5e4f66782ca358efe8cb1bd0a61ee9b4c083b8e047d668e56ee518b538",
+      "schema_hash": "d8484e9ca5917d4218449c3d1556f19f44ae5bd1f3f6bae526ef182c02ff737d"
+    },
+    "get_referral_requirements": {
+      "implementation_digest": "b1b124445d04e9c8bbe9d6ca0fd5783958ba8b528a54f3789ebe57526d5e03c5",
+      "schema_hash": "84e6f1eb64f394b2dfa66349fb4796cabb20e2f969939d669a37fb3bb6c83bb3"
+    },
+    "inspect_document": {
+      "implementation_digest": "1e6fe12e86898b099c66f230204aac00d980dee227e728ceb491cafdb3d47790",
+      "schema_hash": "e804a718f40c33f732b6f814b09ddaa7fbc746dc9794c940913af2445f2db076"
+    },
+    "list_slots": {
+      "implementation_digest": "735705b69d6fda51ea12c487c886883b0df1ee5043c0faf879abea39ae771913",
+      "schema_hash": "f35551458968a80f2171d6fd9834400b2c73b47278a3c3c65f14eff48a98ff21"
+    },
+    "lookup_request": {
+      "implementation_digest": "2bf5d5ff354205e0752c51921509e6c91be0808d442760d7c9ec98ae3bae81bb",
+      "schema_hash": "137338ee167893a78725971bb3c20905ae57e1e8104c5acd93325838da28d191"
+    },
+    "patient_preferences": {
+      "implementation_digest": "56ec28f0cdbe297b65a5f92d3b7145f0f5adb7ad41968e8aae1b2875053e5180",
+      "schema_hash": "178612ee23d80acc2cde4d31a53d76f4c6089f3072cdcd4f69ad40ffa6c036f3"
+    },
+    "reschedule_booking": {
+      "implementation_digest": "72e0303b64eb42c585813b4a1590d7a1d3b8c1deccb34133513a225fdc379284",
+      "schema_hash": "93ee961c4fb8f37ccd2afaeb3e08d3d5e01fb8023b626df8c437c9fdc2564a59"
+    },
+    "resolve_location": {
+      "implementation_digest": "b186134d972435b5f756052bf65e0c1402a197198a5c8e1a9b73387bb08e19a0",
+      "schema_hash": "deece5bcd5857b87ec5e98abeb91795439323b84925213cc4e2038254f943313"
+    },
+    "search_directory": {
+      "implementation_digest": "e888c112b7ad25ebf77da23879435b8fc86fa355796d13eecd792f21da9dcbbb",
+      "schema_hash": "97f9c2b531a546c215acaa10db07a3aa25554c05ed534dd6da242a4bdf7b2d6d"
+    },
+    "validate_referral": {
+      "implementation_digest": "879216286b680f02f88b0a8c75500519b225a498321f0596155f5fbff7e35ca2",
+      "schema_hash": "7e6a2b802d234e15196cc09d462017eed6ab26d69b7efd055ef58baa5f6a282c"
+    },
+    "validate_referral_package": {
+      "implementation_digest": "2957e17c6a63d0d9d5dc4620e70baaf1580e0ab1c8b2f81a1486458a6f3603c1",
+      "schema_hash": "e2e48ad70513d975928425decfdd6318566f1a7223f2a1b627ef085265ac1aec"
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/sse.json",
+  "title": "Streaming surface (SSE + A2UI)",
+  "description": "What the gateway streams and what the web client renders (§12). This is the one interface the two share, so it lives in the contract rather than in either side.",
+  "$defs": {
+    "RenderableComponent": {
+      "title": "RenderableComponent",
+      "type": "string",
+      "enum": [
+        "HospitalPicker",
+        "DoctorPicker",
+        "SlotPicker",
+        "PatientDetailsForm",
+        "BookingReview",
+        "AppointmentReceipt",
+        "DirectoryFallbackCard",
+        "HumanHandoffCard"
+      ],
+      "description": "The eight components from §12. Coverage, preference and readiness information are section/field variants of these — never a new component, and never a new UI system per feature."
+    },
+
+    "ComponentInstance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instance_id", "component", "props", "workflow_state_version"],
+      "properties": {
+        "instance_id": {
+          "$ref": "common.json#/$defs/Uuid",
+          "description": "Stable for the life of the surface slot. Re-rendering the same instance id replaces it rather than adding a second one — which is what makes an SSE replay idempotent on the client (§12: re-rendering never creates a second booking)."
+        },
+        "component": {
+          "$ref": "#/$defs/RenderableComponent",
+          "description": "One of the eight §12 components."
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Component-specific. Validated against the component's own schema before it reaches the client; the gateway never forwards an unvalidated agent payload (§2.1)."
+        },
+        "workflow_state_version": {
+          "$ref": "common.json#/$defs/StateVersion",
+          "description": "The version this instance was built from. A client action carrying a stale version is refused rather than applied (§9)."
+        },
+        "action": {
+          "oneOf": [{ "$ref": "common.json#/$defs/ActionRef" }, { "type": "null" }],
+          "description": "The server-validated action this component submits. Null for display-only components. The client never invents an action: it echoes one the server issued."
+        },
+        "submitted": {
+          "type": "boolean",
+          "description": "Set once the patient has answered this instance, so a replayed surface cannot solicit the same choice twice."
+        },
+        "disabled": { "type": "boolean" },
+        "notice": {
+          "type": ["string", "null"],
+          "description": "Inline explanation, e.g. why an option is unavailable or that a value is unknown rather than absent (§2.2)."
+        }
+      }
+    },
+
+    "StreamEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "workflow_id", "seq", "type", "created_at", "synthetic"],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$",
+          "description": "Content-addressed id used for SSE replay (§12) and for deduplicating authoritative events (§15). Replaying from a given id must reproduce the same sequence and must not create a second booking."
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Monotonic within a workflow. A client that sees a gap knows it missed an event and should replay."
+        },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "type": {
+          "title": "StreamEventType",
+          "type": "string",
+          "enum": [
+            "workflow_state",
+            "surface_update",
+            "agent_progress",
+            "partial_text",
+            "notice",
+            "terminal"
+          ],
+          "description": "`partial_text` is explicitly NOT final state (§2.1: partial agent output is never committed). `terminal` closes the stream and carries the outcome; the client must not infer completion from the stream simply ending."
+        },
+        "payload": {
+          "type": ["object", "null"],
+          "additionalProperties": true,
+          "description": "Typed by `type`: a SurfaceUpdate for surface_update, a WorkflowStateChange for workflow_state, and so on."
+        },
+        "progress_elapsed_ms": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Progress latency, measured separately from final-response latency (§12). Null on a terminal event, which carries the final timing instead."
+        },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "synthetic": {
+          "type": "boolean",
+          "description": "True for fixture and offline-profile output, so the UI can label it and no admin chart can present canned data as a measurement (§12, §18)."
+        }
+      }
+    },
+
+    "SurfaceUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["surface_id", "components"],
+      "properties": {
+        "surface_id": { "$ref": "common.json#/$defs/Uuid" },
+        "components": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ComponentInstance" },
+          "description": "Ordered. A later update replaces instances by `instance_id`; it never appends a duplicate."
+        },
+        "remove_instance_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/Uuid" },
+          "description": "Instances the client must drop, so a superseded choice cannot be re-submitted."
+        }
+      }
+    },
+
+    "WorkflowStateChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_state", "to_state", "state_version", "reason_code"],
+      "properties": {
+        "from_state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "to_state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "state_version": { "$ref": "common.json#/$defs/StateVersion" },
+        "reason_code": { "$ref": "common.json#/$defs/ReasonCode" },
+        "degraded": {
+          "anyOf": [{ "$ref": "common.json#/$defs/DegradationLevel" }, { "type": "null" }],
+          "description": "Set when this step ran on a reduced pipeline (§10). Surfaced to the patient, because an unknown answer produced without the directory is a different answer."
+        }
+      }
+    },
+
+    "ClientAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instance_id", "action", "workflow_state_version", "command_id"],
+      "properties": {
+        "instance_id": { "$ref": "common.json#/$defs/Uuid" },
+        "action": { "$ref": "common.json#/$defs/ActionRef" },
+        "workflow_state_version": { "$ref": "common.json#/$defs/StateVersion" },
+        "command_id": {
+          "$ref": "common.json#/$defs/CommandId",
+          "description": "The idempotency key for this action (§7). A resubmitted action reuses it, so a double-click or a retried request cannot become a second booking."
+        },
+        "value": {
+          "type": ["object", "null"],
+          "additionalProperties": true,
+          "description": "The patient's answer. Validated server-side against the component's schema; form data is never trusted because it came from the client (§6, §12)."
+        }
+      }
+    }
+  },
+  "$comment": "Version: v1."
+}

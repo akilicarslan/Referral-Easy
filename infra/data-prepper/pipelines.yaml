@@ -1,0 +1,71 @@
+# ════════════════════════════════════════════════════════════════════════════
+# ReferralEasy — Data Prepper pipelines
+# ADR: docs/adr/ADR-0023-compose-topology.md
+#
+# Two pipelines, two index families. They are NEVER merged:
+#
+#   OTLP traces  -> trace-pipeline  -> otel-traces-<date>   (7 day retention)
+#   OTLP logs    -> event-pipeline  -> otel-events-<date>   (7 day retention)
+#
+# Retention is declared in infra/opensearch/index-templates/*.json and
+# enforced by the ISM policies in infra/opensearch/ism-policies/*.json, so
+# the delete age is visible in configuration rather than implied by code.
+#
+# The directory/vector index used for RAG retrieval is NOT written here.
+# Retrieved directory text is untrusted content and lives in its own index
+# family (referraleasy-directory-*), so it can never overwrite a structured
+# telemetry record.
+#
+# Both sinks delete into a local, credential-free OpenSearch. `index_type:
+# custom` is used deliberately: it stops Data Prepper from creating its own
+# index templates, which would compete with the templates that this repo
+# ships as the single source of truth for mappings and retention.
+# ════════════════════════════════════════════════════════════════════════════
+
+trace-pipeline:
+  workers: 2                      # bounded: this is a laptop demo, not a fleet
+  delay: 50
+  source:
+    # MEASURED with data-prepper 2.16.0:
+    #   * `otel_trace_source` still works but logs a deprecation warning
+    #     ("Consider using the updated plugin name 'otlp_traces'").
+    #   * `record_type: event` — present in the example pipelines that ship
+    #     INSIDE the 2.16.0 image — is rejected by this version:
+    #       Unrecognized field "record_type" (class ...OTelTraceSourceConfig)
+    #     and the pipeline is skipped without the container failing, which is
+    #     exactly the kind of silent gap this stack must not have.
+    otlp_traces:
+      port: 21890                 # matches the collector's otlp/data-prepper-traces exporter
+      ssl: false                  # local network only, zero credentials
+  # No processor step. MEASURED on 2.16.0: keeping the legacy
+  # `otel_traces:` processor here makes the pipeline receive spans and emit
+  # NOTHING (trace_pipeline_otel_traces_recordsIn_total=1,
+  # recordsOut_total=0) — the pre-2.16 source emitted an intermediate "event"
+  # representation that this processor converted, and the current OTLP source
+  # already produces the span documents the OpenSearch sink expects.
+  sink:
+    - opensearch:
+        hosts: ["http://opensearch:9200"]
+        index_type: custom
+        # Daily indices: retention can only be enforced per index age if the
+        # data is actually segmented by age.
+        index: "otel-traces-%{yyyy.MM.dd}"
+        # MEASURED: with the default flush timeout a single span stayed in the
+        # sink buffer for ~10-15s before appearing in OpenSearch, which makes a
+        # live demo look broken. 2s keeps the demo responsive while still
+        # batching bursts.
+        flush_timeout: 2000
+
+event-pipeline:
+  workers: 2
+  delay: 50
+  source:
+    otlp_logs:                    # current plugin name in 2.16 (otel_logs_source still works but is deprecated)
+      port: 21892                 # matches the collector's otlp/data-prepper-logs exporter
+      ssl: false
+  sink:
+    - opensearch:
+        hosts: ["http://opensearch:9200"]
+        index_type: custom
+        index: "otel-events-%{yyyy.MM.dd}"
+        flush_timeout: 2000

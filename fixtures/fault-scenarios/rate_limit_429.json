@@ -1,0 +1,18 @@
+{
+  "scenario_id": "three_transient_errors",
+  "description": "Slot retrieval is rate limited on the second attempt. The second of the three transient faults injected for Scenario 6: the retry is rejected with 429 and a Retry-After hint, which the caller must honour rather than hammer the upstream.",
+  "fault_seed": 42,
+  "default_fault": "rate_limit_429",
+  "steps": [
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 1,
+      "fault": { "type": "latency", "delay_ms": 12000 }
+    },
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 2,
+      "fault": { "type": "rate_limit_429", "retry_after_s": 1, "retry_after_header": "1" }
+    }
+  ]
+}

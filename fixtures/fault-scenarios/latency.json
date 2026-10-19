@@ -1,0 +1,13 @@
+{
+  "scenario_id": "three_transient_errors",
+  "description": "Slot retrieval is slow on the first attempt. The first of the three transient faults injected for Scenario 6: the request eventually succeeds after a delay, so a bounded retry with a deadline is enough.",
+  "fault_seed": 41,
+  "default_fault": "latency",
+  "steps": [
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 1,
+      "fault": { "type": "latency", "delay_ms": 12000 }
+    }
+  ]
+}

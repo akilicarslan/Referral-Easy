@@ -1,0 +1,38 @@
+[project]
+name = "referraleasy-agents"
+version = "0.1.0"
+description = "The seven specialist A2A agents, their Agent Cards, tools and two sub-agents (§3, §4, §5)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "referraleasy-contracts",
+  "referraleasy-domain",
+  # The specialists are ADK agents assembled from the runtime's pieces — the model factory, the
+  # ToolGate, the TurnBudget, the result envelope. The runtime deliberately keeps `google.adk`
+  # imports lazy so that this package owns assembly; see ADR-0033.
+  "referraleasy-agent-runtime",
+  # Read by the Agent Cards to map a card's skill entry to the instruction package it names.
+  "referraleasy-skills",
+  "google-adk==2.12.0",
+  "fastapi>=0.115",
+  "httpx>=0.28",
+  "pydantic>=2.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Flat layout: the package sits directly under the service root, beside the seven role entry
+# directories (`coordinator/`, `intake/`, …) which are scripts rather than packages — each holds
+# an `__init__.py` and a `__main__.py` and is run to start one role's service.
+[tool.hatch.build.targets.wheel]
+packages = ["referraleasy_agents"]
+
+[tool.uv.sources]
+referraleasy-agent-runtime = { workspace = true }
+referraleasy-contracts = { workspace = true }
+referraleasy-domain = { workspace = true }
+referraleasy-skills = { workspace = true }

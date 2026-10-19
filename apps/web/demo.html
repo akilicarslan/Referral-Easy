@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="robots" content="noindex" />
+    <title>ReferralEasy — component gallery</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #f4f6f7;
+        color: #131a1f;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+          Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      #demo {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 24px 16px 64px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .demo-header {
+        border-bottom: 1px solid #e3e7ea;
+        padding-bottom: 16px;
+      }
+      .demo-header h1 {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0 0 8px;
+        letter-spacing: -0.01em;
+      }
+      .demo-lede {
+        color: #5a6672;
+        font-size: 14px;
+        margin: 0 0 12px;
+      }
+      .demo-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .demo-actions button {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 12px;
+        border: 1px solid #ccd3d8;
+        background: #fff;
+        cursor: pointer;
+      }
+      .demo-actions button:hover {
+        background: #fafbfc;
+      }
+      .demo-actions button:focus-visible {
+        outline: 2px solid #0b6b60;
+        outline-offset: 2px;
+      }
+      .demo-log {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px;
+        color: #5a6672;
+        background: #fff;
+        border: 1px solid #e3e7ea;
+        border-radius: 8px;
+        padding: 8px;
+        margin: 0;
+        max-height: 8em;
+        overflow: auto;
+      }
+      .demo-log-entry + .demo-log-entry {
+        margin-top: 2px;
+      }
+      .demo-scene {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .demo-scene-head h2 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .demo-scene-head p {
+        font-size: 13px;
+        color: #5a6672;
+        margin: 2px 0 0;
+      }
+      .demo-slot {
+        /* A phone-width column, so the components are seen at the size they are
+           actually used at rather than stretched across a desktop window. */
+        max-width: 420px;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9em;
+        background: #eef1f3;
+        padding: 1px 4px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="demo"></main>
+    <script type="module" src="/src/demo-main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/workflow.json",
+  "title": "Workflow Durability, Ownership, HITL and Release Registry",
+  "description": "PostgreSQL-backed control state (§7, §11, §13). Ownership, lease and generation live here because a stale worker must not be able to write.",
+  "$defs": {
+    "WorkflowRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflow_id",
+        "conversation_id",
+        "patient_id",
+        "state",
+        "state_version",
+        "release_manifest_id",
+        "automation_suspended",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "conversation_id": { "$ref": "common.json#/$defs/ConversationId" },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "state_version": { "$ref": "common.json#/$defs/StateVersion" },
+        "lease": {
+          "oneOf": [{ "$ref": "common.json#/$defs/Lease" }, { "type": "null" }],
+          "description": "Present while a worker owns active work. Every write is checked against BOTH the lease expiry and the generation."
+        },
+        "release_manifest_id": {
+          "$ref": "common.json#/$defs/ReleaseManifestId",
+          "description": "The conversation is pinned to this release for its whole lifetime (§13). Mid-conversation version mixing is not permitted."
+        },
+        "automation_suspended": {
+          "type": "boolean",
+          "description": "True while a human owns the workflow (§11). While set, no automation may write — a human and the automation can never write concurrently."
+        },
+        "human_owner_id": { "type": ["string", "null"] },
+        "active_handoff_id": { "oneOf": [{ "$ref": "common.json#/$defs/HandoffId" }, { "type": "null" }] },
+        "active_booking_request_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/BookingRequestId" }, { "type": "null" }]
+        },
+        "turn_deadline_at": { "type": ["string", "null"], "format": "date-time" },
+        "budget": { "oneOf": [{ "$ref": "task.json#/$defs/CallBudget" }, { "type": "null" }] },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "updated_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      }
+    },
+
+    "StateTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["transition_id", "workflow_id", "from_state", "to_state", "from_version", "to_version", "actor", "occurred_at"],
+      "properties": {
+        "transition_id": { "$ref": "common.json#/$defs/Uuid" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "from_state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "to_state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "from_version": { "$ref": "common.json#/$defs/StateVersion" },
+        "to_version": { "$ref": "common.json#/$defs/StateVersion" },
+        "actor": { "type": "string", "minLength": 1 },
+        "command_id": { "oneOf": [{ "$ref": "common.json#/$defs/CommandId" }, { "type": "null" }] },
+        "reason_code": { "$ref": "common.json#/$defs/ReasonCode" },
+        "occurred_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      },
+      "$comment": "Transitions are atomic with an optimistic version check; no long-held transaction spans a workflow (§7). An illegal transition is rejected, not coerced."
+    },
+
+    "CommandDedup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command_id", "workflow_id", "request_hash", "received_at"],
+      "properties": {
+        "command_id": { "$ref": "common.json#/$defs/CommandId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "request_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Same command_id + same hash ⇒ replay the stored response. Same command_id + different hash ⇒ reject. Silently accepting the second would let a replayed command mutate state (§7)."
+        },
+        "response_ref": { "type": ["string", "null"] },
+        "received_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      }
+    },
+
+    "PolicyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "allowed_agents", "allowed_actions", "forbidden_actions"],
+      "properties": {
+        "state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "allowed_agents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Which specialist may run in this state. Enforced in code — the coordinator LLM cannot override this table (§4)."
+        },
+        "allowed_actions": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/ActionRef" }
+        },
+        "forbidden_actions": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/ActionRef" },
+          "description": "Stated explicitly so a refusal is a policy decision with a reason, not a missing branch."
+        },
+        "requires_human_approval": { "type": "boolean" },
+        "notes": { "type": ["string", "null"] }
+      }
+    },
+
+    "Handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "handoff_id",
+        "workflow_id",
+        "reason_class",
+        "patient_visible_summary",
+        "consent_given_at",
+        "created_at",
+        "status"
+      ],
+      "properties": {
+        "handoff_id": { "$ref": "common.json#/$defs/HandoffId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "reason_class": { "$ref": "common.json#/$defs/HandoffReasonClass" },
+        "reason_detail": { "type": ["string", "null"], "maxLength": 2000 },
+        "patient_visible_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000,
+          "description": "The exact text the patient reviewed. The patient sees what will be shared and consents before it leaves the workflow (§11)."
+        },
+        "consent_given_at": {
+          "oneOf": [{ "$ref": "common.json#/$defs/IsoTimestamp" }, { "type": "null" }],
+          "description": "Null means consent has not been given. An un-consented handoff is not queued to a human."
+        },
+        "response_deadline_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When no operator is available the patient gets a pending ticket plus directory contact details — never a pretence of a live agent (§11)."
+        },
+        "status": {
+          "title": "HandoffStatus",
+          "type": "string",
+          "enum": ["created", "queued", "claimed", "resolved", "expired", "withdrawn"]
+        },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      }
+    },
+
+    "HumanQueueTicket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticket_id", "handoff_id", "workflow_id", "status", "claim_generation", "created_at"],
+      "properties": {
+        "ticket_id": { "$ref": "common.json#/$defs/Uuid" },
+        "handoff_id": { "$ref": "common.json#/$defs/HandoffId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "status": { "title": "TicketStatus", "type": "string", "enum": ["pending", "claimed", "resolved", "expired"] },
+        "claimed_by": { "type": ["string", "null"] },
+        "claimed_at": { "type": ["string", "null"], "format": "date-time" },
+        "claim_generation": {
+          "$ref": "common.json#/$defs/Generation",
+          "description": "Conflicting claims are blocked by an atomic compare-and-set on this generation (§11). Two operators cannot both own a ticket."
+        },
+        "added_alternatives": { "type": "array", "items": { "$ref": "patient.json#/$defs/AlternativeOption" } },
+        "operator_notes": { "type": ["string", "null"], "maxLength": 4000 },
+        "return_state": {
+          "oneOf": [{ "$ref": "common.json#/$defs/WorkflowState" }, { "type": "null" }],
+          "description": "The explicit safe state the workflow returns to. Automation stays suspended until this is set (§11)."
+        },
+        "final_approval_still_required": {
+          "type": "boolean",
+          "const": true,
+          "description": "§7/§11: resolving a ticket never grants booking consent. The patient still approves the final booking."
+        },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      }
+    },
+
+    "AuditEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["audit_id", "workflow_id", "actor", "actor_kind", "action", "occurred_at"],
+      "properties": {
+        "audit_id": { "$ref": "common.json#/$defs/Uuid" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "actor": { "type": "string", "minLength": 1 },
+        "actor_kind": { "type": "string", "enum": ["patient", "human_operator", "agent", "system"] },
+        "action": { "type": "string", "minLength": 1 },
+        "before": { "type": ["object", "null"], "additionalProperties": true },
+        "after": { "type": ["object", "null"], "additionalProperties": true },
+        "occurred_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      },
+      "$comment": "Critical business audit stays in PostgreSQL even though telemetry lives in OpenSearch (§15) — telemetry is never the audit of record."
+    },
+
+    "ReleaseManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_manifest_id",
+        "created_at",
+        "agents",
+        "prompts",
+        "tools",
+        "skills",
+        "provider",
+        "guardrail_policy",
+        "rag",
+        "source"
+      ],
+      "properties": {
+        "release_manifest_id": { "$ref": "common.json#/$defs/ReleaseManifestId" },
+        "created_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "parent_release_manifest_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/ReleaseManifestId" }, { "type": "null" }]
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["agent_name", "version", "agent_hash", "a2a_card_hash"],
+            "properties": {
+              "agent_name": { "type": "string" },
+              "version": { "type": "string" },
+              "agent_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "instruction_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+              "tool_description_hashes": { "type": "object", "additionalProperties": { "type": "string" } },
+              "skill_hashes": { "type": "object", "additionalProperties": { "type": "string" } },
+              "sub_agent_manifest_hash": { "type": ["string", "null"] },
+              "a2a_card_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "prompts": { "type": "object", "additionalProperties": { "type": "string" } },
+        "tools": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "schema_hash": { "type": "string" },
+              "implementation_digest": { "type": "string" }
+            }
+          },
+          "description": "Schema AND implementation digest (§13) — a behaviour change in code must move the hash even when the schema is unchanged."
+        },
+        "skills": { "type": "object", "additionalProperties": { "type": "string" } },
+        "provider": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agent_model_provider", "agent_model_id", "params"],
+          "properties": {
+            "agent_model_provider": { "type": "string" },
+            "agent_model_id": { "type": "string" },
+            "params": { "type": "object", "additionalProperties": true },
+            "per_agent_overrides": {
+              "type": "object",
+              "additionalProperties": { "type": "object", "additionalProperties": true },
+              "description": "Per-agent overrides are recorded in the manifest, not hidden in env (§8)."
+            }
+          }
+        },
+        "guardrail_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "classifier_hash", "thresholds"],
+          "properties": {
+            "mode": { "title": "GuardrailMode", "type": "string", "enum": ["three_stage", "conditional"] },
+            "classifier_hash": { "type": "string" },
+            "thresholds": { "type": "object", "additionalProperties": { "type": "number" } }
+          }
+        },
+        "rag": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["embedding_model_id", "embedding_dimensions", "index_name", "reranker_model_id", "knowledge_version"],
+          "properties": {
+            "embedding_model_id": { "type": "string" },
+            "embedding_dimensions": { "type": "integer" },
+            "index_name": { "type": "string" },
+            "reranker_model_id": { "type": "string" },
+            "knowledge_version": { "type": "string" }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["git_sha", "image_digest", "lockfile_hash"],
+          "properties": {
+            "git_sha": { "type": "string" },
+            "image_digest": { "type": "string" },
+            "lockfile_hash": { "type": "string" }
+          }
+        },
+        "rollout": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cohort": { "title": "RolloutCohort", "type": "string", "enum": ["canary", "stable", "rolled_back"] },
+            "cohort_percentage": { "type": "number", "minimum": 0, "maximum": 1 },
+            "kill_switch_engaged": { "type": "boolean" }
+          },
+          "$comment": "§13: the kill switch stops pinned conversations too. Rollback does not erase an in-flight booking's uncertain external outcome — reconciliation keeps running (§16)."
+        }
+      }
+    }
+  },
+  "$comment": "Version: v1."
+}

@@ -1,0 +1,29 @@
+{
+  "latest": "rel-20261016-8e00275",
+  "latest_entry": {
+    "artifact_hash": "8e00275515cb7958f370e427aeeecfd5134cb108b97259d43289317676e720ba",
+    "cohort": "stable",
+    "cohort_percentage": 1.0,
+    "created_at": "2026-10-16T00:38:34.065295+00:00",
+    "file": "rel-20261016-8e00275.json",
+    "git_sha": "57975d5a522e652e23829fda72931f76f83e5a97",
+    "image_digest": "sha256:71224672e6299332510e0ca58971228b4e3cf68b883637d6f088f78a4c3f9bc2",
+    "manifest_hash": "bdcb4b13654b9a91a63165bbcea11cf615db3b216be5963a64abe9132323ad10",
+    "release_manifest_id": "rel-20261016-8e00275",
+    "release_version": "0.1.0"
+  },
+  "releases": [
+    {
+      "artifact_hash": "8e00275515cb7958f370e427aeeecfd5134cb108b97259d43289317676e720ba",
+      "cohort": "stable",
+      "cohort_percentage": 1.0,
+      "created_at": "2026-10-16T00:38:34.065295+00:00",
+      "file": "rel-20261016-8e00275.json",
+      "git_sha": "57975d5a522e652e23829fda72931f76f83e5a97",
+      "image_digest": "sha256:71224672e6299332510e0ca58971228b4e3cf68b883637d6f088f78a4c3f9bc2",
+      "manifest_hash": "bdcb4b13654b9a91a63165bbcea11cf615db3b216be5963a64abe9132323ad10",
+      "release_manifest_id": "rel-20261016-8e00275",
+      "release_version": "0.1.0"
+    }
+  ]
+}

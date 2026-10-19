@@ -1,0 +1,19 @@
+{
+  "a2a_card_hash": "e3e29a3f6a2ffca090b36ab560d00acc86fce11442d0437f2e91812de8de750a",
+  "agent_hash": "40d04bcb539be78aacfd9e3aa0b0b0123fb2ae5252d63aff3dbe17e23d4b53e3",
+  "agent_name": "referral-readiness",
+  "instruction_hash": "14398a2147d55f3ea2ae568fc9c92bd5b419ed7a67a00a27f0d0a9ed1e5f156c",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "referral_readiness",
+  "service": "agent-referral_readiness",
+  "skill_hashes": {
+    "referral_readiness.check_document_readiness": "8fcb0a2ae011128b7db0030f9ac39b9cdf798a96746b88449e6426f76db2584a"
+  },
+  "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+  "tool_description_hashes": {
+    "get_referral_requirements": "2594fe02b8912181343be2695196a850135450c14e7487f027769022162634bf",
+    "inspect_document": "5efe723ce29c68a9c38b655820e71fdd056b0f27e315b929270cabc7b6e3d1fe",
+    "validate_referral_package": "ab4817c3b4ca04c86ab2b4a20ebdb3a905e69ed15d6960c5e6b1b6ab886f156f"
+  },
+  "version": "1.0.0"
+}

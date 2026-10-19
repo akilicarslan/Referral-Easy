@@ -1,0 +1,36 @@
+[project]
+name = "referraleasy-workers"
+version = "0.1.0"
+description = "Worker processes: outbox delivery, ownership and leases, booking reconciliation, recovery and HITL (§7, §8, §11)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "referraleasy-contracts",
+  "referraleasy-domain",
+  # The retry/backoff curve, the turn budget and the retry-free HTTP client are §8's, and they live
+  # in the agent runtime. Depending on them is what keeps the workers from becoming a second retry
+  # owner: a worker that grew its own backoff curve would multiply the attempt budget the same way a
+  # hidden transport retry does.
+  "referraleasy-agent-runtime",
+  # §15's event vocabulary and the emitter. The workers own the two HITL measurements (§15's
+  # "HITL bekleme/çözüm") because the workers own the human queue (ADR-0035), so the metric has to
+  # be emitted from here rather than from the gateway, which never sees a ticket resolved.
+  "referraleasy-telemetry",
+  "psycopg[binary]>=3.2",
+  "httpx>=0.28",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/referraleasy_workers"]
+
+[tool.uv.sources]
+referraleasy-agent-runtime = { workspace = true }
+referraleasy-telemetry = { workspace = true }
+referraleasy-contracts = { workspace = true }
+referraleasy-domain = { workspace = true }

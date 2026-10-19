@@ -1,0 +1,18 @@
+{
+  "scenario_id": "timeout_after_commit",
+  "description": "The booking request times out before the hospital commits it. The safe half of Scenario 5: because nothing was committed, exactly one retry is permitted. It exists so the demo can show that the timeout-before-commit and timeout-after-commit cases are treated differently rather than both being retried.",
+  "fault_seed": 47,
+  "default_fault": "timeout_before_commit",
+  "steps": [
+    {
+      "match": { "method": "POST", "path": "/appointments" },
+      "occurrence": 1,
+      "fault": { "type": "timeout_before_commit", "delay_ms": 30000, "committed": false }
+    },
+    {
+      "match": { "method": "POST", "path": "/appointments" },
+      "occurrence": 2,
+      "fault": { "type": "timeout_before_commit", "delay_ms": 0, "committed": true }
+    }
+  ]
+}

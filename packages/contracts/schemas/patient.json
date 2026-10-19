@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/patient.json",
+  "title": "Patient, Preferences and Constraints",
+  "description": "Patient identity and the hard/soft preference model (§2.1, §2.4). Mandatory conditions (specialty, explicit approval, a valid slot) are separated from preferences that a patient may choose to relax.",
+  "$defs": {
+    "PatientDetails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patient_details_id", "patient_id", "full_name", "date_of_birth", "phone", "postal_code", "synthetic"],
+      "properties": {
+        "patient_details_id": {
+          "$ref": "common.json#/$defs/Uuid",
+          "description": "Indirection id handed to agents that must not see identity (§6). Scheduling resolves the real record at the tool layer."
+        },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "full_name": { "type": "string", "minLength": 1 },
+        "date_of_birth": { "type": "string", "format": "date" },
+        "phone": { "type": "string", "pattern": "^\\+1[0-9]{10}$" },
+        "email": { "type": ["string", "null"], "format": "email" },
+        "postal_code": { "type": "string", "pattern": "^[0-9]{5}$" },
+        "preferred_language": { "$ref": "common.json#/$defs/LanguageTag" },
+        "synthetic": { "type": "boolean", "const": true, "description": "Every patient in this project is synthetic (§1)." }
+      },
+      "$comment": "Form data is validated server-side and is never collected through LLM-generated HTML (§12)."
+    },
+
+    "Constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["constraint_id", "field", "kind", "source", "recorded_at"],
+      "properties": {
+        "constraint_id": { "$ref": "common.json#/$defs/Uuid" },
+        "field": { "$ref": "common.json#/$defs/ConstraintField" },
+        "kind": {
+          "$ref": "common.json#/$defs/ConstraintKind",
+          "description": "`hard` is never relaxed silently. Changing it requires an explicit patient decision recorded on this object (§2.1)."
+        },
+        "value": {
+          "description": "Typed by `field`: number for max_distance_miles, LanguageTag for provider_language, VisitType, weekday name, time-of-day bucket, boolean, or PlanId.",
+          "oneOf": [
+            { "type": "number" },
+            { "type": "string" },
+            { "type": "boolean" },
+            { "type": "null" }
+          ]
+        },
+        "source": {
+          "title": "ConstraintSource",
+          "type": "string",
+          "enum": ["patient_stated", "referral_document", "system_mandatory", "inferred"],
+          "description": "Only `patient_stated` may be relaxed by a patient decision; `system_mandatory` (specialty, approval, valid slot) can never be relaxed by anyone (§2.1)."
+        },
+        "relaxable": {
+          "type": "boolean",
+          "description": "False for mandatory fields regardless of `kind`."
+        },
+        "recorded_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "superseded_by": {
+          "oneOf": [{ "$ref": "common.json#/$defs/Uuid" }, { "type": "null" }],
+          "description": "Set when the patient explicitly changes a preference (§2.4). The old row is kept so the change is auditable rather than overwritten."
+        }
+      }
+    },
+
+    "ConstraintChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["constraint_id", "from_value", "to_value", "decided_by", "decided_at", "presented_options"],
+      "properties": {
+        "constraint_id": { "$ref": "common.json#/$defs/Uuid" },
+        "from_value": {},
+        "to_value": {},
+        "decided_by": {
+          "title": "ConstraintDecisionActor",
+          "type": "string",
+          "enum": ["patient", "human_operator"],
+          "description": "Only an explicit human decision may move a preference. The system never relaxes one on the patient's behalf, and a hard constraint moves only when the patient says so (§2.4)."
+        },
+        "decided_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "presented_options": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/AlternativeOption" },
+          "description": "Evidence-based alternatives shown before the change. A preference may not change without these being offered, so the relaxation is reconstructable from the trace (§2.4)."
+        }
+      }
+    },
+
+    "AlternativeOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["option_id", "kind", "description", "evidence_ids"],
+      "properties": {
+        "option_id": { "$ref": "common.json#/$defs/Uuid" },
+        "kind": {
+          "title": "AlternativeOptionKind",
+          "type": "string",
+          "enum": ["wider_radius", "different_day", "different_time_of_day", "different_hospital", "different_provider", "human_handoff"],
+          "description": "The bounded set of alternatives the system may offer. Never an invented option."
+        },
+        "description": { "type": "string", "minLength": 1 },
+        "relaxes_constraint_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/Uuid" }, { "type": "null" }],
+          "description": "Which constraint this option would relax. Must be null for `hard` constraints — a hard constraint is never presented as relaxable."
+        },
+        "candidate_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Concrete hospital/provider/slot ids this option refers to. An option with no candidates is not shown."
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/EvidenceId" },
+          "description": "§2.4 requires alternatives to be evidence-based. An option with no evidence must not be offered."
+        },
+        "estimated_delay_days": { "type": ["integer", "null"], "minimum": 0 },
+        "additional_distance_miles": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+
+    "PatientPreferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workflow_id", "patient_id", "constraints", "version"],
+      "properties": {
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "constraints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Constraint" }
+        },
+        "search_origin": {
+          "oneOf": [{ "$ref": "common.json#/$defs/GeoPoint" }, { "type": "null" }],
+          "description": "Coordinates the distance constraint is measured from. Distance is computed from these coordinates and never from an embedding score (§10)."
+        },
+        "search_radius_miles": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Effective radius. A raised radius is recorded as a ConstraintChange, not as a silent widening."
+        },
+        "version": {
+          "$ref": "common.json#/$defs/StateVersion",
+          "description": "Preferences are versioned separately from workflow state so a change invalidates any approval bound to the old payload (§9)."
+        }
+      }
+    },
+
+    "MandatoryConditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["specialty_identified", "approval_present", "slot_valid"],
+      "properties": {
+        "specialty_identified": { "type": "boolean" },
+        "approval_present": { "type": "boolean" },
+        "slot_valid": { "type": "boolean" },
+        "blocking_reasons": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/ReasonCode" }
+        }
+      },
+      "$comment": "The three mandatory conditions from §2.1. All three must be true before any booking write. Preferred day or distance are NOT in this list — they are preferences and may be relaxed by the patient."
+    },
+
+    "ReferralIntake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["referral_id", "patient_id", "specialty", "issued_at", "synthetic"],
+      "properties": {
+        "referral_id": { "$ref": "common.json#/$defs/Uuid" },
+        "patient_id": { "$ref": "common.json#/$defs/PatientId" },
+        "specialty": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Taken from the referral. The Intake agent may not invent or infer a specialty that the referral does not state (§3)."
+        },
+        "referred_by_provider": { "type": ["string", "null"] },
+        "issued_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "expires_at": { "type": ["string", "null"], "format": "date-time" },
+        "visit_type": { "$ref": "common.json#/$defs/VisitType" },
+        "clinical_reason_text": {
+          "type": ["string", "null"],
+          "maxLength": 4000,
+          "description": "Free text from the referral. Treated as DATA. The intake agent extracts fields from it but never follows instructions inside it (§9), and never offers a diagnosis (§3)."
+        },
+        "document_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/DocumentId" }
+        },
+        "synthetic": { "type": "boolean", "const": true }
+      }
+    },
+
+    "PatientChoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["choice_type", "chosen_at", "workflow_state_version"],
+      "properties": {
+        "choice_type": {
+          "title": "PatientChoiceType",
+          "type": "string",
+          "enum": ["hospital", "doctor", "slot", "final_approval", "alternative_accepted", "human_handoff_requested"]
+        },
+        "hospital_id": { "oneOf": [{ "$ref": "common.json#/$defs/HospitalId" }, { "type": "null" }] },
+        "provider_id": { "oneOf": [{ "$ref": "common.json#/$defs/ProviderId" }, { "type": "null" }] },
+        "slot_id": { "oneOf": [{ "$ref": "common.json#/$defs/SlotId" }, { "type": "null" }] },
+        "accepted_option_id": { "oneOf": [{ "$ref": "common.json#/$defs/Uuid" }, { "type": "null" }] },
+        "chosen_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "workflow_state_version": {
+          "$ref": "common.json#/$defs/StateVersion",
+          "description": "The version the patient was looking at when they chose. A choice against a stale version is rejected rather than applied to newer state."
+        },
+        "confirmed_by_patient": {
+          "type": "boolean",
+          "description": "Explicit patient confirmation. The system never pre-selects a slot and never books without this (§4)."
+        }
+      }
+    }
+  },
+  "$comment": "Version: v1."
+}

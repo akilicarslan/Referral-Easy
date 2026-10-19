@@ -1,0 +1,62 @@
+[
+  {
+    "choice_type": "hospital",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "provider_id": null,
+    "slot_id": null,
+    "accepted_option_id": null,
+    "chosen_at": "2026-10-13T14:22:00Z",
+    "workflow_state_version": 4,
+    "confirmed_by_patient": true
+  },
+  {
+    "choice_type": "doctor",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "slot_id": null,
+    "accepted_option_id": null,
+    "chosen_at": "2026-10-13T14:26:00Z",
+    "workflow_state_version": 5,
+    "confirmed_by_patient": true
+  },
+  {
+    "choice_type": "slot",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "slot_id": "40000000-0000-4000-8000-000000000001",
+    "accepted_option_id": null,
+    "chosen_at": "2026-10-13T14:31:00Z",
+    "workflow_state_version": 6,
+    "confirmed_by_patient": true
+  },
+  {
+    "choice_type": "final_approval",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "slot_id": "40000000-0000-4000-8000-000000000001",
+    "accepted_option_id": null,
+    "chosen_at": "2026-10-13T14:34:00Z",
+    "workflow_state_version": 7,
+    "confirmed_by_patient": true
+  },
+  {
+    "choice_type": "alternative_accepted",
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "provider_id": "30000000-0000-4000-8000-000000000002",
+    "slot_id": "40000000-0000-4000-8000-000000000006",
+    "accepted_option_id": "a1000000-0000-4000-8000-000000000001",
+    "chosen_at": "2026-10-14T09:41:00Z",
+    "workflow_state_version": 2,
+    "confirmed_by_patient": true
+  },
+  {
+    "choice_type": "human_handoff_requested",
+    "hospital_id": null,
+    "provider_id": null,
+    "slot_id": null,
+    "accepted_option_id": "a1000000-0000-4000-8000-000000000005",
+    "chosen_at": "2026-10-13T15:52:00Z",
+    "workflow_state_version": 6,
+    "confirmed_by_patient": true
+  }
+]

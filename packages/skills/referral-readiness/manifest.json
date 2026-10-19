@@ -1,0 +1,73 @@
+{
+  "manifest_version": "1",
+  "name": "referral-readiness",
+  "version": "1.0.0",
+  "title": "Referral Readiness",
+  "owner_agent": "referral_readiness",
+  "summary": "Compare required documents against what exists for one hospital, plan and visit type, report the missing kinds, and re-check only what changed.",
+  "when_to_use": [
+    "The workflow is in READINESS_CHECK after a hospital and doctor have been chosen",
+    "A hospital, plan or visit type changed mid-workflow and the previous readiness result is invalidated",
+    "A new document arrived and only the checks it could affect should be re-run",
+    "A booking attempt is about to run and the package must be certified complete for that facility"
+  ],
+  "inputs": [
+    {
+      "name": "requirement",
+      "type": "ReferralRequirement",
+      "description": "Published requirements for a hospital, narrowed by plan and keyed by visit_type; carries max_document_age_days and requires_prior_auth_reference."
+    },
+    {
+      "name": "documents",
+      "type": "DocumentExtraction[]",
+      "description": "Each document with its kind, extracted fields and unreadable_fields."
+    },
+    {
+      "name": "hospital_id",
+      "type": "HospitalId",
+      "description": "One of the three keys that select the requirement set."
+    },
+    {
+      "name": "plan_id",
+      "type": "PlanId | null",
+      "description": "Narrows the requirement set when the hospital publishes plan-specific rules."
+    },
+    {
+      "name": "visit_type",
+      "type": "VisitType",
+      "description": "first_visit or return_visit; requirements differ and are not interchangeable."
+    },
+    {
+      "name": "prior_readiness",
+      "type": "ReadinessResult | null",
+      "description": "An earlier result, present on the re-check path so unaffected checks can be carried forward."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "readiness",
+      "type": "ReadinessResult",
+      "description": "checks, satisfied, missing_kinds, can_proceed and evidence_ids, checked_at."
+    },
+    {
+      "name": "checks",
+      "type": "DocumentCheck[]",
+      "description": "One per required kind, each satisfied, missing, expired, unreadable or not_required, with its own run_id."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code is ok, document_missing, document_unreadable, stale_evidence or conflicting_evidence."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/requirement-check-map.json",
+      "purpose": "Requirement condition to DocumentCheck status and reason code, including the age-limit and prior-auth cases."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "referral_readiness.check_document_readiness",
+  "tags": ["readiness", "documents", "re-check", "per-facility"]
+}

@@ -1,0 +1,171 @@
+[
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "distance_miles": 3.2,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": true, "reason_code": "ok", "detail": "Specialty is cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": true, "reason_code": "ok", "detail": "3.2 miles, inside the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": true, "reason_code": "ok", "detail": "Spanish, native fluency." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": false, "reason_code": "no_slot_available", "detail": "Tuesday and Thursday clinics only. No Friday session exists in the next four weeks." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": null, "reason_code": "no_slot_available", "detail": "No Friday session to score a time-of-day preference against." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": true, "reason_code": "ok", "detail": "Open to new patients." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "Northbridge Choice PPO 1500 network record is in_network." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist on Tuesday and Thursday." }
+    ],
+    "rank": 1,
+    "provenance": ["50000000-0000-4000-8000-000000000007", "50000000-0000-4000-8000-000000000012"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000007",
+      "50000000-0000-4000-8000-000000000010",
+      "50000000-0000-4000-8000-000000000012",
+      "50000000-0000-4000-8000-000000000001"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000002",
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "distance_miles": 9.7,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": true, "reason_code": "ok", "detail": "Specialty is cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": true, "reason_code": "ok", "detail": "9.7 miles, inside the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": true, "reason_code": "ok", "detail": "Spanish, native fluency." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": false, "reason_code": "no_slot_available", "detail": "Monday, Tuesday and Wednesday clinics. No Friday session." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": true, "reason_code": "ok", "detail": "Tuesday 08:00 Central is a morning appointment." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": true, "reason_code": "ok", "detail": "Open to new patients." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "Northbridge Choice PPO 1500 network record is in_network." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist on Tuesday and Wednesday." }
+    ],
+    "rank": 2,
+    "provenance": ["50000000-0000-4000-8000-000000000019", "50000000-0000-4000-8000-000000000036"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000019",
+      "50000000-0000-4000-8000-000000000036"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000004",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "distance_miles": 3.2,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": true, "reason_code": "ok", "detail": "Specialty is cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": true, "reason_code": "ok", "detail": "3.2 miles, inside the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": false, "reason_code": "no_candidate_matched", "detail": "English only. No Spanish skill is recorded." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": true, "reason_code": "ok", "detail": "Friday 16 October 11:00 Central." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": true, "reason_code": "ok", "detail": "Friday 11:00 Central is a morning appointment." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": true, "reason_code": "ok", "detail": "Open to new patients." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "Northbridge Choice PPO 1500 network record is in_network." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist on Friday and Monday." }
+    ],
+    "rank": 3,
+    "provenance": ["50000000-0000-4000-8000-000000000045", "50000000-0000-4000-8000-000000000028"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000045",
+      "50000000-0000-4000-8000-000000000028",
+      "50000000-0000-4000-8000-000000000011"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000003",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "distance_miles": 3.2,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": true, "reason_code": "ok", "detail": "Specialty is cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": true, "reason_code": "ok", "detail": "3.2 miles, inside the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": false, "reason_code": "no_candidate_matched", "detail": "English only." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": false, "reason_code": "no_slot_available", "detail": "Only return-visit sessions are published; no first-visit session is available." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": null, "reason_code": "no_slot_available", "detail": "No first-visit session to score a time-of-day preference against." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": false, "reason_code": "no_candidate_matched", "detail": "The panel is closed to new patient referrals." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "Northbridge Choice PPO 1500 network record is in_network." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": false, "reason_code": "hard_constraint_unsatisfiable", "detail": "No first-visit slot exists." }
+    ],
+    "rank": null,
+    "provenance": ["50000000-0000-4000-8000-000000000017"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000017",
+      "50000000-0000-4000-8000-000000000040"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000006",
+    "hospital_id": "20000000-0000-4000-8000-000000000007",
+    "distance_miles": 18.8,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": true, "reason_code": "ok", "detail": "Specialty is cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": false, "reason_code": "hard_constraint_unsatisfiable", "detail": "18.8 miles, 3.8 miles beyond the 15 mile limit. The limit is hard and is not widened automatically." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": true, "reason_code": "ok", "detail": "Spanish, fluent." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": true, "reason_code": "ok", "detail": "Friday 16 October 13:00 Central." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": false, "reason_code": "no_slot_available", "detail": "The Friday slot is in the afternoon." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": true, "reason_code": "ok", "detail": "Open to new patients." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "Northbridge Choice PPO 1500 network record is in_network." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist on Fridays." }
+    ],
+    "rank": null,
+    "provenance": ["50000000-0000-4000-8000-000000000014", "50000000-0000-4000-8000-000000000015"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000015",
+      "50000000-0000-4000-8000-000000000014"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000007",
+    "hospital_id": "20000000-0000-4000-8000-000000000004",
+    "distance_miles": 25.9,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": true, "reason_code": "ok", "detail": "Specialty is cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": false, "reason_code": "hard_constraint_unsatisfiable", "detail": "25.9 miles, 10.9 miles beyond the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": true, "reason_code": "ok", "detail": "Spanish, native fluency." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": true, "reason_code": "ok", "detail": "Friday 23 October 11:00 Central." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": true, "reason_code": "ok", "detail": "Friday 11:00 Central is a morning appointment." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": true, "reason_code": "ok", "detail": "Open to new patients." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "Northbridge Choice PPO 1500 network record is in_network." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist on Friday and Tuesday." }
+    ],
+    "rank": null,
+    "provenance": ["50000000-0000-4000-8000-000000000016", "50000000-0000-4000-8000-000000000039"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000016",
+      "50000000-0000-4000-8000-000000000039"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000010",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "distance_miles": 3.2,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000001", "satisfied": false, "reason_code": "no_candidate_matched", "detail": "Specialty is dermatology, not cardiology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000002", "satisfied": true, "reason_code": "ok", "detail": "3.2 miles, inside the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000003", "satisfied": true, "reason_code": "ok", "detail": "Spanish, fluent." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000004", "satisfied": true, "reason_code": "ok", "detail": "Friday 16 October 15:30 Central." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000005", "satisfied": false, "reason_code": "no_slot_available", "detail": "The Friday slot is in the afternoon." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000006", "satisfied": true, "reason_code": "ok", "detail": "Open to new patients." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000007", "satisfied": true, "reason_code": "ok", "detail": "In network for this plan." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000008", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist." }
+    ],
+    "rank": null,
+    "provenance": ["50000000-0000-4000-8000-000000000042"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000042",
+      "50000000-0000-4000-8000-000000000038"
+    ]
+  },
+  {
+    "provider_id": "30000000-0000-4000-8000-000000000009",
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "distance_miles": 12.5,
+    "constraint_fit": [
+      { "constraint_id": "e0000000-0000-4000-8000-000000000031", "satisfied": false, "reason_code": "no_candidate_matched", "detail": "Specialty is internal medicine, not neurology." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000032", "satisfied": true, "reason_code": "ok", "detail": "Turkish, native fluency." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000033", "satisfied": false, "reason_code": "no_slot_available", "detail": "Tuesday and Thursday clinics. No Friday session." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000034", "satisfied": true, "reason_code": "ok", "detail": "12.5 miles, inside the 15 mile limit." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000035", "satisfied": null, "reason_code": "coverage_unknown", "detail": "The plan-level network record for Great Lakes POS Standard and this provider is unknown. Unknown is not scored as satisfied." },
+      { "constraint_id": "e0000000-0000-4000-8000-000000000036", "satisfied": true, "reason_code": "ok", "detail": "First-visit slots exist on Tuesday and Thursday." }
+    ],
+    "rank": null,
+    "provenance": ["50000000-0000-4000-8000-000000000020", "50000000-0000-4000-8000-000000000033"],
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000020",
+      "50000000-0000-4000-8000-000000000033"
+    ]
+  }
+]

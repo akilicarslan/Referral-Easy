@@ -1,0 +1,13 @@
+{
+  "scenario_id": "timeout_after_commit",
+  "description": "Booking is committed by the hospital, the response is lost.",
+  "fault_seed": 42,
+  "default_fault": "timeout_after_commit",
+  "steps": [
+    {
+      "match": { "method": "POST", "path": "/appointments" },
+      "occurrence": 1,
+      "fault": { "type": "timeout_after_commit", "delay_ms": 30000 }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "a2a_card_hash": "189c9ee0bbccead75dba5c4a6aa160dde22b1b7da682185bf88381e358bfb43c",
+  "agent_hash": "5e44475466f325d9670d215599c4fb59dc55ee059331c86ec6bec3f447b2d87d",
+  "agent_name": "coverage-network",
+  "instruction_hash": "c9d48284a36957a375983d5fcaed608fe68b1869f463ef7945d3cf7bb433613d",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "coverage_network",
+  "service": "agent-coverage_network",
+  "skill_hashes": {
+    "coverage_network.interpret_coverage_evidence": "1d6cb63901f2c4c7bfa44bf29378338a3fead915fc76a58dea164e19a2e57c74"
+  },
+  "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+  "tool_description_hashes": {
+    "check_plan": "bdc1e6ca1252dcf29e5b31d3bbf4813073be7b5c522d625c2ea577cad74fa7cf",
+    "check_provider_network": "f0052a13f00496426a47247914c39b7581862c38d036d7e1a0a3b73a2b55d1ed",
+    "get_coverage_rules": "8c4e4e307e549642b207635c8cdb300b7222233e0be43268d1fc3df428bdb77a"
+  },
+  "version": "1.0.0"
+}

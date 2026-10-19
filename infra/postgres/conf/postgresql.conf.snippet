@@ -1,0 +1,78 @@
+# postgresql.conf for the ReferralEasy demo node.
+#
+# This file is mounted as the server's whole configuration file, so it replaces
+# the image default rather than adding to it. Every setting below says what it
+# is for and what a production deployment would do differently -- a tuning file
+# with unexplained numbers is a file nobody dares change.
+
+# ---------------------------------------------------------------------------
+# Connections
+# ---------------------------------------------------------------------------
+listen_addresses = '*'
+port = 5432
+
+# The demo runs one gateway, a couple of workers and the migration runner. A
+# production deployment sizes this against its connection pooler, and puts
+# pgbouncer in front rather than raising it.
+max_connections = 50
+
+# ---------------------------------------------------------------------------
+# Memory
+# ---------------------------------------------------------------------------
+# Sized for a developer laptop running the whole stack in containers. A real
+# deployment starts at 25% of RAM for shared_buffers and tunes from measured
+# cache hit ratios, not from a template.
+shared_buffers = 256MB
+effective_cache_size = 768MB
+work_mem = 8MB
+maintenance_work_mem = 64MB
+
+# ---------------------------------------------------------------------------
+# Write-ahead log
+# ---------------------------------------------------------------------------
+# The demo values durability and predictability over throughput: the schema's
+# guarantees are about not double-booking, and a lost transaction is a much
+# worse outcome for a demo than a slow one.
+wal_level = replica
+max_wal_size = 1GB
+min_wal_size = 80MB
+
+# ---------------------------------------------------------------------------
+# Planner
+# ---------------------------------------------------------------------------
+# Containers usually sit on SSDs, but the image cannot tell. The planner's
+# default assumption of spinning disks makes it avoid the index scans that the
+# lease-sweeping and queue-retrieval queries are built around.
+random_page_cost = 1.1
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+log_destination = 'stderr'
+logging_collector = off
+log_min_duration_statement = 500   # ms; catches a lease sweep going wrong
+log_lock_waits = on                # lock contention is how a queue stalls
+log_line_prefix = '%m [%p] %q%u@%d '
+
+# ---------------------------------------------------------------------------
+# Autovacuum
+# ---------------------------------------------------------------------------
+# The outbox and audit tables are append-heavy with short row lifetimes, so
+# dead tuples accumulate faster than the defaults expect. Vacuuming eagerly here
+# is cheap at demo scale and prevents a transaction-ID wraparound conversation
+# in a portfolio project.
+autovacuum_naptime = 30s
+autovacuum_vacuum_scale_factor = 0.1
+autovacuum_analyze_scale_factor = 0.05
+
+# ---------------------------------------------------------------------------
+# Statement behaviour
+# ---------------------------------------------------------------------------
+# Server-wide safety nets; the per-database values in init/00-bootstrap.sql also
+# apply and are the ones a session inherits.
+statement_timeout = 30s
+lock_timeout = 10s
+idle_in_transaction_session_timeout = 60s
+
+timezone = 'UTC'
+intervalstyle = 'iso_8601'

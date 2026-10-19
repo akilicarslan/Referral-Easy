@@ -1,0 +1,15 @@
+{
+  "a2a_card_hash": "7c07f87523264dd694944bda4d6c08040fc630b6a5f1e328a241a5344b46b1c6",
+  "agent_hash": "15d8883f94acf8262f05499bec2dc56c212bc036382a3abeb2104eb784c1c4c8",
+  "agent_name": "care-coordinator",
+  "instruction_hash": "94dd671e23c63adda22840ab3a9625ac31cdaec9af2b0e6dd0bf2d6de857c950",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "care_coordinator",
+  "service": "agent-care_coordinator",
+  "skill_hashes": {},
+  "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+  "tool_description_hashes": {
+    "delegate_task": "c4f46bd948bafdb4e441c95fb5cf0da1d3b953b9ffd544c7babaec5d37d15ce8"
+  },
+  "version": "1.0.0"
+}

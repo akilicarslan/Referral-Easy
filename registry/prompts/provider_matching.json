@@ -1,0 +1,7 @@
+{
+  "agent_name": "provider-matching",
+  "instruction_hash": "bc4cd28dc70922536372925ba6926645cbafbd2b519cf3e370ff0d20854f0b7e",
+  "prompt_version": "1.0.0",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "provider_matching"
+}

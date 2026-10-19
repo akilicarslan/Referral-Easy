@@ -1,0 +1,19 @@
+{
+  "scenario_id": "multi_constraint_search",
+  "description": "The upstream returns an empty but completely valid result page. This is not an error and not a fault: it is the honest answer that no slot satisfies the constraint set. The point of injecting it is that the caller must report `no_slots_for_constraints` rather than collapsing an empty page into `no_match` or into an error.",
+  "fault_seed": 45,
+  "default_fault": "empty_valid_result",
+  "steps": [
+    {
+      "match": { "method": "GET", "path": "/availability" },
+      "occurrence": 1,
+      "fault": {
+        "type": "empty_valid_result",
+        "http_status": 200,
+        "result_kind": "no_slots_for_constraints",
+        "slots": [],
+        "partial": false
+      }
+    }
+  ]
+}

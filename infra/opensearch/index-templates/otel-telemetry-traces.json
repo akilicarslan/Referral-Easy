@@ -1,0 +1,49 @@
+{
+  "index_patterns": ["otel-traces-*", "otel-v1-apm-span-*"],
+  "priority": 500,
+  "version": 1,
+  "_meta": {
+    "referraleasy.data_class": "telemetry",
+    "referraleasy.retention_days": 7,
+    "referraleasy.retention_ism_policy": "referraleasy-telemetry-7d",
+    "referraleasy.written_by": "data-prepper: trace pipeline (otel_trace_raw -> opensearch sink)",
+    "referraleasy.never_joined_with": "referraleasy-directory-* (vector / RAG retrieval text)",
+    "referraleasy.note": "7 day retention: this is operational telemetry. Evaluation records are kept 30 days - see referraleasy-evaluation.json."
+  },
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "10s",
+      "plugins.index_state_management.policy_id": "referraleasy-telemetry-7d"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "traceId": { "type": "keyword" },
+        "spanId": { "type": "keyword" },
+        "parentSpanId": { "type": "keyword" },
+        "traceGroup": { "type": "keyword" },
+        "name": {
+          "type": "keyword",
+          "fields": { "text": { "type": "text" } }
+        },
+        "serviceName": { "type": "keyword" },
+        "kind": { "type": "keyword" },
+        "startTime": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "endTime": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "durationInNanos": { "type": "long" },
+        "synthetic": {
+          "type": "boolean",
+          "doc_values": true
+        }
+      }
+    }
+  }
+}

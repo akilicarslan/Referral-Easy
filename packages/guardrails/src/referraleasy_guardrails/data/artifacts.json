@@ -1,0 +1,24 @@
+{
+  "note": "ADR-0005's artifact pins, transcribed. A pin is only usable with its content hash: the model is never committed (`.pre-commit-config.yaml` refuses files over 2 MB), so what the package carries is the hash and the acquisition procedure, not the bytes. `tokenizer.json` is a regular git blob rather than an LFS object, so the only content identity the Hub exposes for it is a SHA-1 git blob id — presenting that as a SHA-256 would be wrong, which is why the field has its own name.",
+  "pins": [
+    {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "file": "onnx/model_qint8_avx512_vnni.onnx",
+      "sha256": "4278337fd0ff3c68bfb6291042cad8ab363e1d9fbc43dcb499fe91c871902474",
+      "bytes": 23026053,
+      "tokenizer": {
+        "file": "tokenizer.json",
+        "bytes": 466247,
+        "git_blob_sha1": "cb202bfe2e3c98645018a6d12f182a434c9d3e02"
+      },
+      "runtime": {"onnxruntime": "1.31.0", "tokenizers": "0.23.3"},
+      "adr": "ADR-0005",
+      "byte_identical_variants": [
+        "onnx/model_qint8_arm64.onnx",
+        "onnx/model_qint8_avx512.onnx"
+      ],
+      "variant_note": "All three files resolve to the same LFS object id, so one SHA-256 verifies all of them and choosing between them is not a kernel choice."
+    }
+  ]
+}

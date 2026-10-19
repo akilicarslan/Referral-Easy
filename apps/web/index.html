@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="ReferralEasy — patient referral client" />
+    <title>ReferralEasy</title>
+    <style>
+      /*
+       * Critical, pre-bundle styling.
+       *
+       * The first paint must not be a white flash on a blank page: the honest
+       * loading state is part of the product, and it has to exist before any
+       * JavaScript has parsed.
+       */
+      html,
+      body {
+        margin: 0;
+        background: #f4f6f7;
+        color: #131a1f;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+          Arial, sans-serif;
+      }
+      #app {
+        min-height: 100dvh;
+      }
+      #boot {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      #boot .card {
+        background: #fff;
+        border: 1px solid #e3e7ea;
+        border-radius: 12px;
+        padding: 16px;
+      }
+      #boot h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      #boot p {
+        font-size: 13px;
+        color: #5a6672;
+        margin: 0 0 16px;
+        line-height: 1.5;
+      }
+      #boot .bar {
+        height: 12px;
+        border-radius: 8px;
+        background: #e3e7ea;
+        margin-bottom: 8px;
+      }
+      #boot .bar.wide {
+        height: 44px;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        #boot .bar {
+          animation: pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.55;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The noscript state is a real state. A blank page tells the patient nothing;
+      this tells them what is happening and what to do about it.
+    -->
+    <noscript>
+      <div style="max-width: 560px; margin: 0 auto; padding: 16px">
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #e3e7ea;
+            border-radius: 12px;
+            padding: 16px;
+          "
+        >
+          <h1 style="font-size: 20px; margin: 0 0 8px">JavaScript is off</h1>
+          <p style="font-size: 14px; color: #5a6672; margin: 0; line-height: 1.5">
+            This referral client runs in the browser and cannot render without JavaScript. No
+            referral has been submitted from this page.
+          </p>
+        </div>
+      </div>
+    </noscript>
+
+    <div id="app">
+      <div id="boot" aria-live="polite">
+        <div class="card">
+          <h1>Connecting</h1>
+          <p>Reaching the referral service. Nothing has been received yet.</p>
+          <div class="bar" style="width: 40%"></div>
+          <div class="bar wide"></div>
+          <div class="bar wide"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

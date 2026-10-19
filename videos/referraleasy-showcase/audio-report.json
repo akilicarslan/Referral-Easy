@@ -1,0 +1,14 @@
+{
+  "duration_seconds": 60.0,
+  "sample_rate": 48000,
+  "channels": 2,
+  "sample_peak_dbfs": -2.102785964866452,
+  "background_gain": 0.2,
+  "background_gain_db": -13.979400086720375,
+  "gain_automation": false,
+  "ducking": false,
+  "narration_gain": 0.9,
+  "score": "Signal Path \u2014 original futuristic techno, 128 BPM",
+  "instrument_source": "Original deterministic DSP synthesis",
+  "source_recordings_or_melodies_reused": false
+}

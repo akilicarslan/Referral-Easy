@@ -1,0 +1,98 @@
+# gitleaks configuration (§0.1, §19): secrets never enter the repo.
+#
+# The default ruleset is kept in full (`useDefault`) and this file only *narrows* what it reports,
+# so a rule added upstream still protects this repository without an edit here.
+#
+# Every allowlist entry is a specific, reviewable exception with its reason. None of them is
+# "ignore this directory": a broad path exemption is how a real credential survives a scan, and
+# this repo is public.
+#
+# Run it the way CI does:
+#   gitleaks detect --config .gitleaks.toml --redact --verbose      # git history
+#   gitleaks detect --config .gitleaks.toml --redact --no-git       # working tree, uncommitted work
+
+[extend]
+useDefault = true
+
+# ── a rule the default ruleset does not have ────────────────────────────────────────────────────
+# gitleaks knows GCP *API keys* (`AIza…`) but not a GCP project id or number, and it never will: a
+# bare id is a short lowercase string and a number is twelve digits, both of which appear in
+# ordinary logs and prose. So this rule matches on the *key name* instead, which is the one place a
+# project id is written down unambiguously.
+#
+# It is here because of a measured gap, not a hunch: an adversarial `GCP_PROJECT_NUMBER =
+# "515711451848"` line was reported by neither the default ruleset nor this file.
+#
+# The value is deliberately NOT written into this config. A rule that detects a specific project id
+# by spelling it out would publish the thing it exists to protect — and this file is committed.
+[[rules]]
+id = "gcp-project-identifier"
+description = "A GCP project id or number assigned in-repo (§19: this repository is public)"
+regex = '''(?i)\b(VERTEX_PROJECT_ID|GOOGLE_CLOUD_PROJECT|GCP_PROJECT[A-Z0-9_]*|CLOUDSDK_CORE_PROJECT)\b\s*[:=]\s*['"]?([A-Za-z0-9][A-Za-z0-9._-]{5,})'''
+secretGroup = 2
+keywords = [
+  "VERTEX_PROJECT_ID",
+  "vertex_project_id",
+  "GOOGLE_CLOUD_PROJECT",
+  "google_cloud_project",
+  "GCP_PROJECT",
+  "gcp_project",
+  "CLOUDSDK_CORE_PROJECT",
+  "cloudsdk_core_project",
+]
+# Verified against every occurrence in the tree: an empty assignment (`VERTEX_PROJECT_ID=`), the
+# architecture doc's `<project>` placeholder, a backtick-wrapped `VERTEX_PROJECT_ID=` inside an ADR,
+# and the quoted key name in `scripts/validate_env.py`'s list all stay silent — none of them starts
+# its value with an alphanumeric. A real `VERTEX_PROJECT_ID=my-project-123` fires.
+
+[[allowlists]]
+description = "Values that are demonstrably not credentials"
+
+regexTarget = "line"
+regexes = [
+  # `idempotency_key` and `command_id` are caller-chosen dedupe identifiers, not secrets. They are
+  # part of the public contract (`sse.json` → `ClientAction.command_id`), the client makes them up,
+  # and §7 dedupes replay by them. The generic-api-key rule fires on the word "key" in the
+  # *parameter name* and never looks at what the value is.
+  #
+  # The pattern demands a fixture-shaped value rather than matching the name alone, so a real
+  # credential sitting on an `idempotency-key` line is still reported. Matching the name by itself
+  # would swallow the whole line, and with it anything else on it.
+  '''idempotency[-_]key['"]?\s*[:=]\s*['"]?(?:fixture-|constraint-key-|e2e-|fault-|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-)''',
+  # A test harness's own options-object parameter, same reasoning. `fault-duplicate-0001` names a
+  # fault to arm; it authenticates nothing.
+  '''\{\s*key:\s*['"](?:fault-|fixture-|e2e-)''',
+  # The template every deployment is told to replace. A `CHANGEME_` value is the *absence* of a
+  # secret — it is the sentinel `scripts/validate_env.py` refuses to run a live backend with.
+  '''CHANGEME_[A-Z0-9_]*''',
+  # A test asserting that a fake key is handled. The literal says what it is.
+  '''sk-or-v1-not-a-real-credential''',
+  # A *value* that names itself a fixture. `tests/gateway/gateway_fixtures.py` cannot fall back to
+  # the `CHANGEME_` placeholder for its JWT secrets — the gateway refuses to start with one outside
+  # the demo profile, so a test using the placeholder would be exercising a configuration the
+  # service rejects. It uses `fixture-…` instead, which is the same statement made in a form the
+  # service accepts. Keyed on the value, so a real secret that happens to sit on a
+  # `JWT_PATIENT_SECRET` line is still reported.
+  '''['"]fixture-[a-z0-9-]*['"]''',
+  # `tests/telemetry/test_masking.py` plants a token under a name that appears in no key list, on
+  # purpose: the assertion is that the *pattern* layer catches what the name-based layer cannot, so
+  # the value has to be credential-shaped or the test proves nothing. It is a hand-built JWT —
+  # header `{"alg":"HS256"}`, payload `{"sub":"x"}`, and a signature that is the alphabet. Narrow
+  # on both ends: the repo's own `PLANTED_` fixture convention *and* a `eyJ`-prefixed value, so a
+  # real JWT on a `token = …` or `Authorization: Bearer …` line is still caught.
+  '''PLANTED_TOKEN\s*=\s*['"]eyJ[A-Za-z0-9._-]*['"]''',
+  # The example trace id from the W3C Trace Context spec (§3.2.2.3), which the span and trace tests
+  # use as their `traceparent`. `tests/telemetry/test_query.py` puts it under an OpenSearch bucket's
+  # `"key"`, and the generic-api-key rule fires on that name. Matched as the exact literal, so any
+  # other 32-hex value on a `key` line is still reported.
+  '''4bf92f3577b34da6a3ce929d0e0e4736''',
+]
+
+[[allowlists]]
+description = "Generated and runtime artefacts that are never committed"
+# Both paths are in .gitignore, so this only affects a `--no-git` run over a working checkout.
+# Kept because the mock API rewrites its SQLite file on every test run, and a scanner a developer
+# learns to ignore is worse than no scanner.
+paths = [
+  '''^services/mock-api/\.data/''',
+]

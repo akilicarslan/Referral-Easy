@@ -1,0 +1,502 @@
+[
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000001",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000001",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:05:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 64800 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000002",
+    "source": "rag_directory",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000001#directory_blurb",
+    "authoritative": false,
+    "retrieved_at": "2026-10-13T14:05:02Z",
+    "freshness": { "state": "fresh", "age_seconds": 64802 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000003",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000002",
+    "authoritative": false,
+    "retrieved_at": "2026-06-30T21:15:00Z",
+    "freshness": { "state": "stale", "age_seconds": 9162900 },
+    "synthetic": true,
+    "invalidated_by": ["50000000-0000-4000-8000-000000000004"]
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000004",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000003",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:30:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3600 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000005",
+    "source": "rag_directory",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000004#directory_blurb",
+    "authoritative": false,
+    "retrieved_at": "2026-10-14T08:10:00Z",
+    "freshness": { "state": "stale", "age_seconds": 29376000 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000006",
+    "source": "provider_directory",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000004",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T08:10:01Z",
+    "freshness": { "state": "fresh", "age_seconds": 7200 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000007",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000001",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:05:03Z",
+    "freshness": { "state": "fresh", "age_seconds": 64803 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000008",
+    "source": "document_fixture",
+    "source_id": "document:a0000000-0000-4000-8000-000000000004",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T07:40:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 9000 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000009",
+    "source": "document_fixture",
+    "source_id": "document:a0000000-0000-4000-8000-000000000005",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:55:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 1860 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000010",
+    "source": "provider_directory",
+    "source_id": "availability:20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001/first_visit",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:12:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 4440 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000011",
+    "source": "provider_directory",
+    "source_id": "slot:40000000-0000-4000-8000-000000000013",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:12:30Z",
+    "freshness": { "state": "fresh", "age_seconds": 4410 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000012",
+    "source": "provider_directory",
+    "source_id": "availability:20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001/first_visit#no-slots",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:13:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 4380 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000013",
+    "source": "provider_directory",
+    "source_id": "availability:20000000-0000-4000-8000-000000000001/30000000-0000-4000-8000-000000000001/first_visit#upstream-error",
+    "authoritative": false,
+    "retrieved_at": "2026-10-14T09:14:00Z",
+    "freshness": { "state": "unknown", "age_seconds": 0 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000014",
+    "source": "rag_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000006#profile_text",
+    "authoritative": false,
+    "retrieved_at": "2026-10-14T09:16:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 4200 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000015",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000006",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:16:01Z",
+    "freshness": { "state": "fresh", "age_seconds": 4199 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000016",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000007",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:16:02Z",
+    "freshness": { "state": "fresh", "age_seconds": 4198 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000017",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000003",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:16:03Z",
+    "freshness": { "state": "fresh", "age_seconds": 4197 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000018",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000011",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:16:04Z",
+    "freshness": { "state": "fresh", "age_seconds": 4196 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000019",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000002",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:16:05Z",
+    "freshness": { "state": "fresh", "age_seconds": 4195 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000020",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000005",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:16:06Z",
+    "freshness": { "state": "fresh", "age_seconds": 4194 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000021",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000001",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:20:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3960 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000022",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000002",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:20:10Z",
+    "freshness": { "state": "fresh", "age_seconds": 3950 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000023",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000003",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:20:20Z",
+    "freshness": { "state": "fresh", "age_seconds": 3940 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000024",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000004",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:20:30Z",
+    "freshness": { "state": "fresh", "age_seconds": 3930 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000025",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000005",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:20:40Z",
+    "freshness": { "state": "fresh", "age_seconds": 3920 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000026",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000006",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:20:50Z",
+    "freshness": { "state": "fresh", "age_seconds": 3910 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000027",
+    "source": "referral_requirements_api",
+    "source_id": "hospital:20000000-0000-4000-8000-000000000007",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:21:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3900 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000028",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000004",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:06:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 64740 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000029",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000006",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:06:10Z",
+    "freshness": { "state": "fresh", "age_seconds": 64730 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000030",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000007",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:06:20Z",
+    "freshness": { "state": "fresh", "age_seconds": 64720 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000031",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000008",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:06:30Z",
+    "freshness": { "state": "fresh", "age_seconds": 64710 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000032",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000009",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:06:40Z",
+    "freshness": { "state": "fresh", "age_seconds": 64700 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000033",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000010",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:06:50Z",
+    "freshness": { "state": "fresh", "age_seconds": 64690 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000034",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000011",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:07:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 64680 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000035",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000012",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:07:10Z",
+    "freshness": { "state": "fresh", "age_seconds": 64670 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000036",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000013",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:07:20Z",
+    "freshness": { "state": "fresh", "age_seconds": 64660 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000037",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000014",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:07:30Z",
+    "freshness": { "state": "fresh", "age_seconds": 64650 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000038",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000015",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:07:40Z",
+    "freshness": { "state": "fresh", "age_seconds": 64640 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000039",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000016",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:07:50Z",
+    "freshness": { "state": "fresh", "age_seconds": 64630 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000040",
+    "source": "coverage_api",
+    "source_id": "network_record:70000000-0000-4000-8000-000000000017",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:08:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 64620 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000041",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000008",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:22:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3840 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000042",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000010",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:22:10Z",
+    "freshness": { "state": "fresh", "age_seconds": 3830 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000043",
+    "source": "document_fixture",
+    "source_id": "document:a0000000-0000-4000-8000-000000000007",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:24:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3720 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000044",
+    "source": "provider_directory",
+    "source_id": "availability:20000000-0000-4000-8000-000000000002/30000000-0000-4000-8000-000000000008/first_visit",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:25:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3660 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000045",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000004",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:26:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 3600 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000046",
+    "source": "provider_directory",
+    "source_id": "provider:30000000-0000-4000-8000-000000000012",
+    "authoritative": true,
+    "retrieved_at": "2026-10-14T09:26:10Z",
+    "freshness": { "state": "fresh", "age_seconds": 3590 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000047",
+    "source": "coverage_api",
+    "source_id": "coverage_snapshot:95000000-0000-4000-8000-000000000001",
+    "authoritative": false,
+    "retrieved_at": "2026-06-30T21:15:00Z",
+    "freshness": { "state": "stale", "age_seconds": 9162900 },
+    "synthetic": true,
+    "invalidated_by": ["50000000-0000-4000-8000-000000000004"]
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000048",
+    "source": "document_fixture",
+    "source_id": "document:a0000000-0000-4000-8000-000000000002",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:10:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 63000 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000049",
+    "source": "document_fixture",
+    "source_id": "document:a0000000-0000-4000-8000-000000000001",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T14:10:01Z",
+    "freshness": { "state": "fresh", "age_seconds": 62999 },
+    "synthetic": true,
+    "invalidated_by": null
+  },
+  {
+    "evidence_id": "50000000-0000-4000-8000-000000000050",
+    "source": "provider_directory",
+    "source_id": "search:specialty=functional_neurosurgery",
+    "authoritative": true,
+    "retrieved_at": "2026-10-13T15:40:00Z",
+    "freshness": { "state": "fresh", "age_seconds": 66600 },
+    "synthetic": true,
+    "invalidated_by": null
+  }
+]

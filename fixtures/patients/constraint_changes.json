@@ -1,0 +1,98 @@
+[
+  {
+    "constraint_id": "e0000000-0000-4000-8000-000000000004",
+    "from_value": "friday",
+    "to_value": "tuesday",
+    "decided_by": "patient",
+    "decided_at": "2026-10-14T09:41:00Z",
+    "presented_options": [
+      {
+        "option_id": "a1000000-0000-4000-8000-000000000001",
+        "kind": "different_day",
+        "description": "Dr. Camila Restrepo is a Spanish-speaking cardiologist at Prairie Ridge Memorial Hospital, 9.7 miles from your home and inside your 15 mile limit. Her first available appointment is Tuesday 20 October at 08:00 Central, not a Friday. Choosing this means accepting a weekday other than the Friday you asked for.",
+        "relaxes_constraint_id": null,
+        "candidate_ids": [
+          "30000000-0000-4000-8000-000000000002",
+          "40000000-0000-4000-8000-000000000006",
+          "20000000-0000-4000-8000-000000000003"
+        ],
+        "evidence_ids": [
+          "50000000-0000-4000-8000-000000000019",
+          "50000000-0000-4000-8000-000000000036"
+        ],
+        "estimated_delay_days": null,
+        "additional_distance_miles": null
+      },
+      {
+        "option_id": "a1000000-0000-4000-8000-000000000002",
+        "kind": "different_provider",
+        "description": "Dr. Samuel Whitaker is a cardiologist at Lakeview Regional Medical Center, 3.2 miles from your home, with a first visit on Friday 16 October at 11:00 Central. He consults in English only, so this option does not keep the Spanish-speaking requirement.",
+        "relaxes_constraint_id": null,
+        "candidate_ids": [
+          "30000000-0000-4000-8000-000000000004",
+          "40000000-0000-4000-8000-000000000011",
+          "20000000-0000-4000-8000-000000000001"
+        ],
+        "evidence_ids": [
+          "50000000-0000-4000-8000-000000000045",
+          "50000000-0000-4000-8000-000000000028"
+        ],
+        "estimated_delay_days": null,
+        "additional_distance_miles": null
+      },
+      {
+        "option_id": "a1000000-0000-4000-8000-000000000003",
+        "kind": "wider_radius",
+        "description": "Dr. Priya Nadkarni is a cardiologist at Midvale Cardiology Institute with a Friday first visit at 13:00 Central, and she consults in fluent Spanish. Her clinic is 18.8 miles from your home, which is 3.8 miles beyond the 15 mile limit you set. Accepting this option means travelling further than you asked to.",
+        "relaxes_constraint_id": null,
+        "candidate_ids": [
+          "30000000-0000-4000-8000-000000000006",
+          "40000000-0000-4000-8000-000000000016",
+          "20000000-0000-4000-8000-000000000007"
+        ],
+        "evidence_ids": [
+          "50000000-0000-4000-8000-000000000015",
+          "50000000-0000-4000-8000-000000000014"
+        ],
+        "estimated_delay_days": null,
+        "additional_distance_miles": 3.8
+      },
+      {
+        "option_id": "a1000000-0000-4000-8000-000000000004",
+        "kind": "wider_radius",
+        "description": "Dr. Omar Haddad is a Spanish-speaking cardiologist at Des Plaines Valley General Hospital with a Friday first visit on 23 October at 11:00 Central. His clinic is 25.9 miles from your home, which is 10.9 miles beyond the limit you set.",
+        "relaxes_constraint_id": null,
+        "candidate_ids": [
+          "30000000-0000-4000-8000-000000000007",
+          "40000000-0000-4000-8000-000000000018",
+          "20000000-0000-4000-8000-000000000004"
+        ],
+        "evidence_ids": [
+          "50000000-0000-4000-8000-000000000016",
+          "50000000-0000-4000-8000-000000000039"
+        ],
+        "estimated_delay_days": null,
+        "additional_distance_miles": 10.9
+      }
+    ]
+  },
+  {
+    "constraint_id": "e0000000-0000-4000-8000-000000000054",
+    "from_value": 25,
+    "to_value": 40,
+    "decided_by": "human_operator",
+    "decided_at": "2026-10-13T16:20:00Z",
+    "presented_options": [
+      {
+        "option_id": "a1000000-0000-4000-8000-000000000005",
+        "kind": "human_handoff",
+        "description": "No provider in the directory lists functional neurosurgery, so no appointment can be offered for this request. A referral coordinator can take the case, look outside the directory and place it in a queue. Nothing will be booked on your behalf: you will still be asked to approve the hospital, the doctor and the appointment before anything is confirmed.",
+        "relaxes_constraint_id": null,
+        "candidate_ids": ["f1000000-0000-4000-8000-000000000001"],
+        "evidence_ids": ["50000000-0000-4000-8000-000000000050"],
+        "estimated_delay_days": 14,
+        "additional_distance_miles": null
+      }
+    ]
+  }
+]

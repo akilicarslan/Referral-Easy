@@ -1,0 +1,61 @@
+# ════════════════════════════════════════════════════════════════════════════
+# ReferralEasy — single-node OpenSearch
+# ADR: docs/adr/ADR-0023-compose-topology.md
+#
+# ONE cluster, TWO jobs (deliberate, not a shortcut):
+#   1. telemetry store   — traces + events written by Data Prepper
+#                          (indices otel-traces-*, otel-events-*)
+#   2. vector store      — directory/embedding retrieval for the agent RAG
+#                          (index referraleasy-directory-*)
+#
+# They share a process but never share an index: retrieved directory text must
+# never be able to overwrite, alias over, or masquerade as a structured
+# telemetry record. See infra/opensearch/index-templates/ for the enforced
+# separation and the retention split (7 days telemetry / 30 days evaluation).
+#
+# There is NO separate vector database and NO Prometheus container in this
+# stack. k-NN is a first-class OpenSearch plugin and is enabled below.
+# ════════════════════════════════════════════════════════════════════════════
+
+cluster.name: referraleasy-local
+node.name: opensearch-node-1
+
+# ── single node, local only ─────────────────────────────────────────────────
+discovery.type: single-node
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+# ── resource discipline (see deploy.resources in compose.yaml) ──────────────
+bootstrap.memory_lock: true
+
+# ── security ────────────────────────────────────────────────────────────────
+# The stack must come up with ZERO credentials, so the security plugin is off
+# for this local demo profile. That is done with the image environment
+# variables DISABLE_SECURITY_PLUGIN / DISABLE_INSTALL_DEMO_CONFIG in
+# compose.yaml, which is also what keeps the image from generating demo
+# certificates or demanding an admin password.
+#
+# This is a local-demo decision, not a deployment posture: a deployed profile
+# replaces the whole block with certificate-based security plus audience-checked
+# service identity (see .env.example §"service auth").
+# NOTHING in this stack is reachable from outside this machine.
+
+# ── k-NN: the vector half of the cluster ────────────────────────────────────
+# The k-NN plugin ships with this distribution and is enabled by default. Its
+# per-index parameters (dimension, space type, engine, ef_search) live in the
+# index template infra/opensearch/index-templates/referraleasy-directory-vector.json.
+#
+# MEASURED: do NOT put `knn.algo_param.ef_search` here. With OpenSearch 3.9.0
+# the node refuses to boot with
+#   SettingsException[unknown setting [knn.algo_param.ef_search] ...]
+# and exits 70 in a restart loop. Search-time tuning is therefore expressed
+# per index (index.knn.algo_param.ef_search) in the template, where it is
+# scoped to the one index family that actually holds vectors.
+
+# ── indexing hygiene for a laptop demo ──────────────────────────────────────
+# Data Prepper and the demo scripts create indices through the index templates,
+# which pin 1 shard / 0 replicas so a single-node cluster reaches green.
+# Auto-creation is left ON but constrained by the templates' index_patterns:
+# an index that matches no template is created with conservative defaults
+# rather than inheriting a telemetry retention policy.

@@ -1,0 +1,104 @@
+{
+  "_comment": [
+    "Hand-written retrieval evaluation: queries whose correct answer is known from the fixtures.",
+    "expected_entity_ids are the directory entities a correct answer must surface; a retrieved",
+    "chunk counts as relevant when its entity_id is in that list. Every entry below was checked",
+    "against fixtures/directory/*.json by hand — a query whose expected answer is wrong makes",
+    "every number computed from it meaningless.",
+    "Ids are fixture ids: providers 30000000-…-XXXX, hospitals 20000000-…-XXXX.",
+    "kind 'lexical' means the query shares vocabulary with the target chunk; 'paraphrase' means",
+    "it does not, which is what the vector arm (and the reranker) is supposed to earn."
+  ],
+  "queries": [
+    {
+      "id": "q01",
+      "query": "Elena Marquez cardiologist phone number",
+      "expected_entity_ids": ["30000000-0000-4000-8000-000000000001"],
+      "filters": {},
+      "kind": "lexical",
+      "note": "name plus the field entity chunking must keep attached to it"
+    },
+    {
+      "id": "q02",
+      "query": "Turkish speaking neurologist",
+      "expected_entity_ids": ["30000000-0000-4000-8000-000000000008"],
+      "filters": {},
+      "kind": "paraphrase",
+      "note": "Ahmet Kilic consults in Turkish; his chunk says 'consults in Turkish (native)'"
+    },
+    {
+      "id": "q03",
+      "query": "cardiologist who is not accepting new patients",
+      "expected_entity_ids": ["30000000-0000-4000-8000-000000000003"],
+      "filters": {"specialty": "cardiology"},
+      "kind": "paraphrase",
+      "note": "Raymond Osei's panel is closed; the specialty filter must exclude Jonas Petersen"
+    },
+    {
+      "id": "q04",
+      "query": "movement disorders neurologist",
+      "expected_entity_ids": ["30000000-0000-4000-8000-000000000011"],
+      "filters": {},
+      "kind": "lexical",
+      "note": "Jonas Petersen's subspecialty, indexed as its own atom"
+    },
+    {
+      "id": "q05",
+      "query": "wheelchair accessible dermatology clinic in Chicago",
+      "expected_entity_ids": ["30000000-0000-4000-8000-000000000010"],
+      "filters": {"specialty": "dermatology", "cities": ["Chicago"]},
+      "kind": "paraphrase",
+      "note": "Melanie Cross at Lakeview; filters must reach both arms for this to stay on target"
+    },
+    {
+      "id": "q06",
+      "query": "hospital that reviews every referral before offering a slot",
+      "expected_entity_ids": ["20000000-0000-4000-8000-000000000002"],
+      "filters": {},
+      "kind": "paraphrase",
+      "note": "Ravenswood Specialty Surgical Center blurb, paraphrased"
+    },
+    {
+      "id": "q07",
+      "query": "address of the hospital on North Fairbanks Court",
+      "expected_entity_ids": [
+        "20000000-0000-4000-8000-000000000001",
+        "10000000-0000-4000-8000-000000000001"
+      ],
+      "filters": {},
+      "kind": "lexical",
+      "note": "either the hospital chunk or the location chunk is a correct source"
+    },
+    {
+      "id": "q08",
+      "query": "interventional cardiologist at the Naperville hospital",
+      "expected_entity_ids": ["30000000-0000-4000-8000-000000000007"],
+      "filters": {"specialty": "cardiology", "cities": ["Naperville"]},
+      "kind": "lexical",
+      "note": "Omar Haddad; the city filter is the discriminating constraint"
+    },
+    {
+      "id": "q09",
+      "query": "who speaks Spanish at Prairie Ridge Memorial Hospital",
+      "expected_entity_ids": [
+        "30000000-0000-4000-8000-000000000001",
+        "30000000-0000-4000-8000-000000000002",
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "filters": {"languages": ["es"], "hospital_ids": ["20000000-0000-4000-8000-000000000003"]},
+      "kind": "paraphrase",
+      "note": "Elena Marquez and Camila Restrepo, plus the hospital's own language statement"
+    },
+    {
+      "id": "q10",
+      "query": "hospital that can arrange a sign language interpreter",
+      "expected_entity_ids": [
+        "20000000-0000-4000-8000-000000000001",
+        "20000000-0000-4000-8000-000000000005"
+      ],
+      "filters": {},
+      "kind": "paraphrase",
+      "note": "Lakeview (Chicago) and Hudson Park (New York) both record that feature"
+    }
+  ]
+}

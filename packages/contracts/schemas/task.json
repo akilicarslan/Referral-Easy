@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/task.json",
+  "title": "Task and Result Envelopes",
+  "description": "The A2A-facing task contract (§5). Every agent call carries an envelope — never free text alone — and every reply carries an application outcome plus evidence ids.",
+  "$defs": {
+    "CallBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deadline_at", "remaining_model_calls", "remaining_tool_calls", "remaining_delegations"],
+      "properties": {
+        "deadline_at": {
+          "$ref": "common.json#/$defs/IsoTimestamp",
+          "description": "Absolute shared deadline. Parent, sub-agent, tool and model calls all draw from the same remaining budget (§3, §8) — a sub-agent cannot mint its own."
+        },
+        "turn_started_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "remaining_model_calls": { "type": "integer", "minimum": 0 },
+        "remaining_tool_calls": { "type": "integer", "minimum": 0 },
+        "remaining_delegations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Bounded by MAX_DELEGATIONS_PER_TURN. At zero the coordinator must stop delegating and answer or escalate."
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "1-based, first call included. Exactly one layer owns retries (§8) — SDK/HTTP/A2A internal retries are disabled so the budget cannot be multiplied."
+        }
+      }
+    },
+
+    "TaskEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "workflow_id",
+        "command_id",
+        "goal",
+        "current_state_version",
+        "allowed_actions",
+        "deadline",
+        "call_budget",
+        "release_manifest_id",
+        "synthetic"
+      ],
+      "properties": {
+        "task_id": { "$ref": "common.json#/$defs/TaskId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "command_id": {
+          "$ref": "common.json#/$defs/CommandId",
+          "description": "Deduplicated on replay (§7). The same command_id must never produce a second side effect."
+        },
+        "parent_task_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/TaskId" }, { "type": "null" }],
+          "description": "Set when this task was delegated by another agent. Null for a root task."
+        },
+        "goal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "description": "What the caller wants, in one instruction. Not a conversation transcript."
+        },
+        "workflow_state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "current_state_version": {
+          "$ref": "common.json#/$defs/StateVersion",
+          "description": "The version the caller read. A reply computed against a superseded version is rejected by the write path (§7)."
+        },
+        "constraints": {
+          "type": "array",
+          "items": { "$ref": "patient.json#/$defs/Constraint" },
+          "description": "Only the constraints this agent needs. Context minimisation (§6) is enforced at the envelope, not by asking the model to behave."
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/EvidenceRef" },
+          "description": "References, not payloads. A receiving agent must not be able to treat retrieved text as instructions (§9)."
+        },
+        "allowed_actions": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/ActionRef" },
+          "description": "The intersection of the caller's intent and the policy table for this state (§4). An action outside this list is refused by the tool layer even if the model requests it."
+        },
+        "deadline": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "call_budget": { "$ref": "#/$defs/CallBudget" },
+        "release_manifest_id": {
+          "$ref": "common.json#/$defs/ReleaseManifestId",
+          "description": "Pins the task to an immutable release (§13). A conversation never mixes versions mid-flight, and `latest` is never sufficient provenance for a report."
+        },
+        "patient_details_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/Uuid" }, { "type": "null" }],
+          "description": "Indirection so that agents which do not need identity (e.g. Provider Matching) never receive DOB or phone (§6). Scheduling resolves it at the tool layer."
+        },
+        "synthetic": {
+          "type": "boolean",
+          "description": "True for fixture data and the offline profile. Propagated into traces so demo traffic is never counted as live evidence (§14)."
+        }
+      }
+    },
+
+    "DecisionOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "reason_code", "evidence_ids", "missing_fields", "next_allowed_actions"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What this agent decided to do. Must be a member of the envelope's allowed_actions; anything else is refused rather than executed."
+        },
+        "reason_code": { "$ref": "common.json#/$defs/ReasonCode" },
+        "reason_detail": {
+          "type": ["string", "null"],
+          "maxLength": 2000,
+          "description": "Required when reason_code is `other`, or when the code alone would not let a reviewer reconstruct the decision."
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/EvidenceId" },
+          "description": "Everything this decision rests on. A decision with no evidence is only legal for a pure clarification request."
+        },
+        "missing_fields": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/MissingField" }
+        },
+        "next_allowed_actions": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/ActionRef" },
+          "description": "What the workflow may permit next. Computed from the policy table, not proposed by the model."
+        },
+        "degraded": {
+          "type": ["string", "null"],
+          "allOf": [{ "$ref": "common.json#/$defs/DegradationLevel" }],
+          "description": "Set when the decision was reached on a reduced pipeline (§10). Never null-and-assumed-fine: `full` is stated explicitly, absence means unrecorded."
+        }
+      }
+    },
+
+    "AgentError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "retryable", "message", "occurred_at"],
+      "properties": {
+        "class": {
+          "title": "AgentErrorClass",
+          "type": "string",
+          "enum": [
+            "transient_upstream",
+            "rate_limited",
+            "timeout",
+            "malformed_upstream_response",
+            "policy_refusal",
+            "budget_exhausted",
+            "deadline_exceeded",
+            "dependency_unavailable",
+            "internal"
+          ]
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "A valid empty result is NOT an error and is not retried (§8); it is a `completed` result with `no_match`."
+        },
+        "message": { "type": "string", "maxLength": 2000 },
+        "retry_after_seconds": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Honoured from Retry-After when the upstream supplies one (§8)."
+        },
+        "upstream": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "service": { "type": "string" },
+            "endpoint": { "type": "string" },
+            "status": { "type": ["integer", "null"] }
+          }
+        },
+        "occurred_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      }
+    },
+
+    "ResultEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "workflow_id", "command_id", "outcome", "a2a_state", "release_manifest_id", "synthetic"],
+      "properties": {
+        "task_id": { "$ref": "common.json#/$defs/TaskId" },
+        "workflow_id": { "$ref": "common.json#/$defs/WorkflowId" },
+        "command_id": { "$ref": "common.json#/$defs/CommandId" },
+        "outcome": {
+          "$ref": "common.json#/$defs/ResultOutcome",
+          "description": "The authoritative outcome. Callers branch on this, never on the A2A state."
+        },
+        "a2a_state": {
+          "$ref": "common.json#/$defs/A2ATaskState",
+          "description": "Protocol projection of `outcome`, produced only by the adapter. The custom enum is never declared as a protocol state (§5)."
+        },
+        "workflow_state": { "$ref": "common.json#/$defs/WorkflowState" },
+        "state_version": {
+          "$ref": "common.json#/$defs/StateVersion",
+          "description": "Version produced by this result. The caller writes it back only if it is still current."
+        },
+        "payload": {
+          "type": ["object", "null"],
+          "description": "Typed per agent. Validated against the agent's versioned output schema before it is ever committed (§2.1: partial agent output is not final state).",
+          "additionalProperties": true
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/EvidenceId" }
+        },
+        "decision": {
+          "oneOf": [{ "$ref": "#/$defs/DecisionOutput" }, { "type": "null" }]
+        },
+        "error": {
+          "oneOf": [{ "$ref": "#/$defs/AgentError" }, { "type": "null" }]
+        },
+        "call_budget_remaining": { "$ref": "#/$defs/CallBudget" },
+        "release_manifest_id": { "$ref": "common.json#/$defs/ReleaseManifestId" },
+        "synthetic": { "type": "boolean" },
+        "completed_at": { "$ref": "common.json#/$defs/IsoTimestamp" }
+      },
+      "allOf": [
+        {
+          "$comment": "outcome↔error coupling: error classes pair with the error outcomes; completed/no_match/needs_input carry no error.",
+          "if": { "properties": { "outcome": { "enum": ["retryable_error", "terminal_error"] } }, "required": ["outcome"] },
+          "then": { "required": ["error"], "properties": { "error": { "type": "object" } } }
+        }
+      ]
+    },
+
+    "A2ATaskRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "context_id", "state", "history_length"],
+      "properties": {
+        "task_id": { "type": "string", "minLength": 1 },
+        "context_id": { "type": "string", "minLength": 1 },
+        "message_id": { "type": ["string", "null"] },
+        "state": { "$ref": "common.json#/$defs/A2ATaskState" },
+        "history_length": { "type": "integer", "minimum": 0 }
+      },
+      "$comment": "task_id, context_id and message_id are recorded as separate trace attributes and are never equated with each other or with workflow_id/command_id/booking_request_id (§15)."
+    },
+
+    "AgentCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "version",
+        "agent_hash",
+        "capabilities",
+        "skills",
+        "input_schema_id",
+        "output_schema_id",
+        "auth"
+      ],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "description": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "agent_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Any change to a description, instruction, tool or skill changes this hash and forces a version bump (§13). CI fails when an affected agent's version did not increase."
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "streaming": { "type": "boolean" },
+            "pushNotifications": { "type": "boolean" },
+            "stateTransitionHistory": { "type": "boolean" }
+          }
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "description", "skill_version"],
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "skill_version": { "type": "string" }
+            },
+            "$comment": "An Agent Card skill entry and a runtime instruction package are SEPARATE records (§6); this is the card-side entry only."
+          }
+        },
+        "input_schema_id": { "type": "string", "minLength": 1 },
+        "output_schema_id": { "type": "string", "minLength": 1 },
+        "auth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scheme", "verified_at_transport"],
+          "properties": {
+            "scheme": { "title": "AuthScheme", "type": "string", "enum": ["bearer", "none"] },
+            "verified_at_transport": {
+              "type": "boolean",
+              "const": true,
+              "description": "Identity is verified on the HTTP transport (§9). A user_id inside the payload is never trusted, and a trace id never grants authority."
+            },
+            "required_scopes": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Effective allowlist. Adding a skill grants no tool permission (§6) — this list is the only source of tool authority."
+        },
+        "sub_agents": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$comment": "Version: v1."
+}

@@ -1,0 +1,63 @@
+{
+  "manifest_version": "1",
+  "name": "constraint-negotiation",
+  "version": "1.0.0",
+  "title": "Constraint Negotiation",
+  "owner_agent": "provider_matching",
+  "summary": "When nothing satisfies the constraints, name the binding one and offer evidence-based alternatives that relax exactly one thing, on an explicit patient decision.",
+  "when_to_use": [
+    "Candidate generation returned no_candidate_matched or no_slot_available",
+    "A result is reachable only by relaxing a constraint and the patient has not yet decided",
+    "A patient asks whether they could travel further, use another day, or try a different hospital",
+    "Two constraints conflict and one of them has to yield"
+  ],
+  "inputs": [
+    {
+      "name": "constraints",
+      "type": "Constraint[]",
+      "description": "Stated constraints, each classified hard or soft with a source and a recorded_at."
+    },
+    {
+      "name": "candidates",
+      "type": "ProviderCandidate[]",
+      "description": "Search output including near misses, with constraint_fit and coordinate-derived distance_miles."
+    },
+    {
+      "name": "availability",
+      "type": "AvailabilityResult",
+      "description": "Slots and a result_kind distinguishing 'no slots under these constraints' from 'no provider'."
+    },
+    {
+      "name": "mandatory_conditions",
+      "type": "MandatoryConditions",
+      "description": "specialty_identified, approval_present, slot_valid and their blocking_reasons."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "alternatives",
+      "type": "AlternativeOption[]",
+      "description": "Each relaxes exactly one constraint, priced as additional_distance_miles or estimated_delay_days and backed by evidence_ids."
+    },
+    {
+      "name": "constraint_change",
+      "type": "ConstraintChange",
+      "description": "Written only after an explicit patient decision, carrying decided_by and the presented_options."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code is no_candidate_matched, hard_constraint_unsatisfiable, no_slot_available or ok."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/constraint-taxonomy.md",
+      "purpose": "Field-by-field table of hard versus soft defaults and which AlternativeOption kind applies to each."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "provider_matching.negotiate_constraints",
+  "tags": ["constraints", "alternatives", "consent", "matching"]
+}

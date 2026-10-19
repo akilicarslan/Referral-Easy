@@ -1,0 +1,68 @@
+{
+  "manifest_version": "1",
+  "name": "directory-grounding",
+  "version": "1.0.0",
+  "title": "Directory Grounding",
+  "owner_agent": "provider_matching",
+  "summary": "Answer provider and facility questions from retrieved directory material only, attribute every claim, and surface the retrieval degradation level.",
+  "when_to_use": [
+    "A question about a provider, hospital, specialty, address or accepted plan needs an answer",
+    "A candidate list is about to be shown to a patient and needs its provenance stated",
+    "Retrieval ran below full strength and the answer's reliability must be characterised",
+    "A patient asks whether a specific practice exists in the directory or is taking new patients"
+  ],
+  "inputs": [
+    {
+      "name": "query",
+      "type": "AvailabilityQuery | free-text question",
+      "description": "What is being asked, in the patient's terms."
+    },
+    {
+      "name": "retrieved_material",
+      "type": "directory records | ProviderCandidate[] | Hospital[]",
+      "description": "The directory material actually retrieved. Answers are constructed only from this."
+    },
+    {
+      "name": "degraded",
+      "type": "DegradationLevel",
+      "description": "full | rerank_down | embeddings_down | opensearch_down | static_seed | no_source. Anything below full must be surfaced."
+    },
+    {
+      "name": "release_manifest_id",
+      "type": "ReleaseManifestId",
+      "description": "The pinned release the retrieved content belongs to, cited so an answer is reproducible."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "answer",
+      "type": "structured claims with evidence_ids",
+      "description": "One evidence reference per claim, not one per response."
+    },
+    {
+      "name": "degradation_notice",
+      "type": "{degraded: DegradationLevel, effect: string}",
+      "description": "Present whenever the level is below full, stating what the level means for this answer."
+    },
+    {
+      "name": "candidates",
+      "type": "ProviderCandidate[]",
+      "description": "With provenance and evidence_ids so a ranked list can be read for what it is."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code is ok, upstream_unavailable, stale_evidence or other with reason_detail."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/degradation-ladder.md",
+      "purpose": "Each DegradationLevel with what it permits saying, what must be labelled, and when it escalates."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "provider_matching.ground_directory_answers",
+  "tags": ["retrieval", "grounding", "attribution", "degradation"]
+}

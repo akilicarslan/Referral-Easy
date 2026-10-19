@@ -1,0 +1,346 @@
+/**
+ * Base reset, layout primitives and the shared honest-state vocabulary.
+ *
+ * Every element that carries meaning about *certainty* uses one of the four
+ * state classes below. They are defined once here so no component can quietly
+ * invent its own notion of what "confirmed" looks like.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--re-bg);
+  color: var(--re-ink);
+  font-family: var(--re-font);
+  font-size: var(--re-t-body);
+  line-height: var(--re-lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The reading column. Mobile-first: full width on a phone, capped and centred
+   once there is room to spare. */
+.re-column {
+  width: 100%;
+  max-width: var(--re-maxw);
+  margin: 0 auto;
+  padding: 0 var(--re-gutter);
+}
+
+/* ── Focus ──────────────────────────────────────────────────────────────── */
+/* Visible, consistent, and never removed. Keyboard navigation is a
+   requirement, not a nicety. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible,
+.re-focusable:focus-visible {
+  outline: 2px solid var(--re-accent);
+  outline-offset: 2px;
+  border-radius: var(--re-r-sm);
+}
+
+/* ── Typography scale ──────────────────────────────────────────────────── */
+.re-display {
+  font-size: var(--re-t-display);
+  line-height: var(--re-lh-tight);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.re-title {
+  font-size: var(--re-t-title);
+  line-height: var(--re-lh-tight);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.re-lead {
+  font-size: var(--re-t-lead);
+  line-height: var(--re-lh-tight);
+  font-weight: 600;
+  margin: 0;
+}
+
+.re-body {
+  font-size: var(--re-t-body);
+  margin: 0;
+}
+
+.re-meta {
+  font-size: var(--re-t-meta);
+  line-height: var(--re-lh-body);
+  color: var(--re-ink-3);
+  margin: 0;
+}
+
+/* Counts, sample sizes and timings align down a column. */
+.re-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.re-eyebrow {
+  font-size: var(--re-t-meta);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--re-ink-3);
+  margin: 0;
+}
+
+.re-muted {
+  color: var(--re-ink-2);
+}
+
+.re-subtle {
+  color: var(--re-ink-3);
+}
+
+.re-divider {
+  border: 0;
+  border-top: 1px solid var(--re-line);
+  margin: 0;
+}
+
+.re-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Surfaces ──────────────────────────────────────────────────────────── */
+.re-card {
+  background: var(--re-surface);
+  border: 1px solid var(--re-line);
+  border-radius: var(--re-r);
+  padding: var(--re-s4);
+}
+
+.re-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--re-s4);
+}
+
+.re-row {
+  display: flex;
+  align-items: center;
+  gap: var(--re-s3);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.re-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--re-s2);
+  min-height: var(--re-tap);
+  padding: 0 var(--re-s5);
+  border-radius: var(--re-r);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: var(--re-t-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--re-dur) var(--re-ease),
+    border-color var(--re-dur) var(--re-ease), color var(--re-dur) var(--re-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.re-btn--primary {
+  background: var(--re-accent);
+  color: var(--re-accent-ink);
+}
+.re-btn--primary:hover:not(:disabled) {
+  background: var(--re-accent-hover);
+}
+.re-btn--primary:active:not(:disabled) {
+  background: var(--re-accent-active);
+}
+
+.re-btn--secondary {
+  background: var(--re-surface);
+  color: var(--re-ink);
+  border-color: var(--re-line-strong);
+}
+.re-btn--secondary:hover:not(:disabled) {
+  background: var(--re-surface-sunken);
+}
+.re-btn--secondary:active:not(:disabled) {
+  background: var(--re-bg);
+}
+
+.re-btn--quiet {
+  background: transparent;
+  color: var(--re-accent);
+  padding: 0 var(--re-s3);
+}
+.re-btn--quiet:hover:not(:disabled) {
+  background: var(--re-accent-soft);
+}
+
+/* Disabled is a real state with a real reason — the reason is always written
+   next to the control, never encoded in the grey. */
+.re-btn:disabled {
+  background: var(--re-bg);
+  color: var(--re-ink-3);
+  border-color: var(--re-line);
+  cursor: not-allowed;
+}
+
+.re-btn--block {
+  width: 100%;
+}
+
+/* ── Chips ─────────────────────────────────────────────────────────────── */
+/* A chip is always `glyph + word`. Colour is reinforcement, never the message. */
+.re-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--re-s1);
+  padding: 2px var(--re-s2);
+  border-radius: var(--re-r-pill);
+  border: 1px solid;
+  font-size: var(--re-t-meta);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.re-chip--ok {
+  background: var(--re-ok-bg);
+  color: var(--re-ok);
+  border-color: var(--re-ok-line);
+}
+.re-chip--requested {
+  background: var(--re-requested-bg);
+  color: var(--re-requested);
+  border-color: var(--re-requested-line);
+}
+.re-chip--unknown {
+  background: var(--re-unknown-bg);
+  color: var(--re-unknown);
+  border-color: var(--re-unknown-line);
+}
+.re-chip--degraded {
+  background: var(--re-degraded-bg);
+  color: var(--re-degraded);
+  border-color: var(--re-degraded-line);
+}
+.re-chip--error {
+  background: var(--re-error-bg);
+  color: var(--re-error);
+  border-color: var(--re-error-line);
+}
+.re-chip--synthetic {
+  background: var(--re-synthetic-bg);
+  color: var(--re-synthetic);
+  border-color: var(--re-synthetic-line);
+}
+.re-chip--neutral {
+  background: var(--re-surface-sunken);
+  color: var(--re-ink-2);
+  border-color: var(--re-line);
+}
+
+/* ── Notices ───────────────────────────────────────────────────────────── */
+/* Inline explanations: why an option is unavailable, what could not be
+   verified, what the reduced pipeline means. Never dismissible. */
+.re-notice {
+  display: flex;
+  gap: var(--re-s2);
+  padding: var(--re-s3);
+  border-radius: var(--re-r-sm);
+  border: 1px solid;
+  font-size: var(--re-t-label);
+  line-height: var(--re-lh-body);
+}
+
+.re-notice--unknown {
+  background: var(--re-unknown-bg);
+  border-color: var(--re-unknown-line);
+  color: var(--re-unknown);
+}
+.re-notice--degraded {
+  background: var(--re-degraded-bg);
+  border-color: var(--re-degraded-line);
+  color: var(--re-degraded);
+}
+.re-notice--error {
+  background: var(--re-error-bg);
+  border-color: var(--re-error-line);
+  color: var(--re-error);
+}
+.re-notice--info {
+  background: var(--re-surface-sunken);
+  border-color: var(--re-line);
+  color: var(--re-ink-2);
+}
+
+/* ── Sticky action bar — the primary action lives in the thumb zone ────── */
+.re-actionbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: var(--re-surface);
+  border-top: 1px solid var(--re-line);
+  padding: var(--re-s3) var(--re-gutter)
+    calc(var(--re-s3) + env(safe-area-inset-bottom, 0px));
+  box-shadow: var(--re-shadow-bar);
+}
+
+.re-actionbar__inner {
+  width: 100%;
+  max-width: var(--re-maxw);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--re-s3);
+}
+
+/* ── Skeleton — perceived speed while the first surface lands ──────────── */
+.re-skeleton {
+  background: linear-gradient(90deg, var(--re-line) 0%, var(--re-bg) 50%, var(--re-line) 100%);
+  background-size: 200% 100%;
+  border-radius: var(--re-r-sm);
+  animation: re-shimmer 1.4s linear infinite;
+}
+
+@keyframes re-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .re-skeleton {
+    animation: none;
+    background: var(--re-line);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --re-line: #b9c0c6;
+    --re-ink-3: #5a6672;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "a2a_card_hash": "c8219d522ca9ffcc0b62560588b7173accf51c6f679280a9e5cb075b084c9a94",
+  "agent_hash": "a85c28163ca68314fb4f9d6b4dfdd83be44d86e9acd53697f516b2baf4f5bea4",
+  "agent_name": "recovery-handoff",
+  "instruction_hash": "b2a745996655decd10d369feba984b6925dbd2cfc11b3ff8e9d5bee2b3d9b666",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "recovery_handoff",
+  "service": "agent-recovery_handoff",
+  "skill_hashes": {
+    "recovery_handoff.triage_handoff_reason": "b473a5f074f98bf4368aa2893c6dcc092851276d8d859d4bdd52db06b813bcd5"
+  },
+  "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+  "tool_description_hashes": {
+    "classify_error": "9adeef8ac692789d652ba070270097eccaae8c1cced272d332f8e7f5a9bb488b",
+    "create_handoff": "b135aa2219d79f24d59e8edbd23ab38b8720c27d1e38c12d2a20c043b3724709",
+    "search_directory": "afa4f2c1a7f5ba4d88a067539b1239390ad8ce9eefa7cd0cf205469eaf445562"
+  },
+  "version": "1.0.0"
+}

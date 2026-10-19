@@ -1,0 +1,68 @@
+{
+  "manifest_version": "1",
+  "name": "uncertain-booking-reconciliation",
+  "version": "1.0.0",
+  "title": "Uncertain Booking Reconciliation",
+  "owner_agent": "scheduling",
+  "summary": "Resolve a booking whose outcome is unknown by looking up the original idempotency key, never minting a second key and never re-booking.",
+  "when_to_use": [
+    "The workflow is in BOOKING_UNVERIFIED after a booking attempt whose outcome is unknown",
+    "A create_booking attempt returned timeout_before_commit, timeout_after_commit, malformed_response or rate_limited",
+    "A reconciliation is still pending and another lookup against the original key is due",
+    "A patient or operator asks whether an unverified booking went through"
+  ],
+  "inputs": [
+    {
+      "name": "booking_attempt",
+      "type": "BookingAttempt",
+      "description": "The original attempt with its idempotency_key, result, http_status and raw_response_ref. The key is the only identifier used for lookups."
+    },
+    {
+      "name": "reconciliation",
+      "type": "ReconciliationState",
+      "description": "status, started_at, lookup_attempts, last_lookup_at, escalation_reason."
+    },
+    {
+      "name": "workflow_id",
+      "type": "WorkflowId",
+      "description": "The workflow the unresolved booking belongs to."
+    },
+    {
+      "name": "slot_id",
+      "type": "SlotId",
+      "description": "The slot the original attempt was for. Context only: it is not evidence about whether the write landed."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "reconciliation",
+      "type": "ReconciliationState",
+      "description": "pending, resolved_booked, resolved_not_booked or escalated, with lookup_attempts and escalation_reason."
+    },
+    {
+      "name": "lookup_evidence",
+      "type": "{idempotency_key, looked_up_at, response_ref}",
+      "description": "What was asked and what came back, recorded so the resolution is reproducible."
+    },
+    {
+      "name": "patient_message",
+      "type": "string",
+      "description": "States that the outcome is being checked. Never asserts either outcome while unresolved."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code is booking_outcome_unknown while unresolved, ok once resolved, deadline_exceeded when the budget is spent."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/attempt-outcome-matrix.json",
+      "purpose": "Every BookingAttempt result and lookup outcome mapped to a resolution or an escalation, with the key rule stated once."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "scheduling.reconcile_uncertain_booking",
+  "tags": ["booking", "reconciliation", "idempotency", "unknown-handling"]
+}

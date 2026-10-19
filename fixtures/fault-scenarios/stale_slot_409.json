@@ -1,0 +1,19 @@
+{
+  "scenario_id": "standard_booking",
+  "description": "The booking request is submitted against a slot version that has moved on. The hospital answers 409: the slot the patient approved is no longer the slot on the books. The workflow must re-fetch and re-present the slot instead of moving the appointment silently.",
+  "fault_seed": 46,
+  "default_fault": "stale_slot_409",
+  "steps": [
+    {
+      "match": { "method": "POST", "path": "/appointments" },
+      "occurrence": 1,
+      "fault": {
+        "type": "stale_slot_409",
+        "slot_id": "40000000-0000-4000-8000-000000000013",
+        "presented_version": 2,
+        "current_version": 3,
+        "http_status": 409
+      }
+    }
+  ]
+}

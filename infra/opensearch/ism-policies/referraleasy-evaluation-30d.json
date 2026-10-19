@@ -1,0 +1,51 @@
+{
+  "policy": {
+    "description": "ReferralEasy EVALUATION retention: 30 days. Applies to referraleasy-evaluation-* (sampled turns with judge scores - the agent-quality regression baseline). Kept 4x longer than telemetry because EVAL_SAMPLE_RATE (1%) makes it tiny, and because a quality baseline is only useful if it spans longer than the telemetry it was derived from.",
+    "default_state": "hot",
+    "states": [
+      {
+        "name": "hot",
+        "actions": [],
+        "transitions": [
+          {
+            "state_name": "warm",
+            "conditions": {
+              "min_index_age": "7d"
+            }
+          }
+        ]
+      },
+      {
+        "name": "warm",
+        "actions": [
+          {
+            "read_only": {}
+          }
+        ],
+        "transitions": [
+          {
+            "state_name": "delete",
+            "conditions": {
+              "min_index_age": "30d"
+            }
+          }
+        ]
+      },
+      {
+        "name": "delete",
+        "actions": [
+          {
+            "delete": {}
+          }
+        ],
+        "transitions": []
+      }
+    ],
+    "ism_template": [
+      {
+        "index_patterns": ["referraleasy-evaluation-*"],
+        "priority": 500
+      }
+    ]
+  }
+}

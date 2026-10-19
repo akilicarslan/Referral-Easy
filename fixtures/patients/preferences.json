@@ -1,0 +1,504 @@
+[
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000001",
+    "patient_id": "b0000000-0000-4000-8000-000000000001",
+    "search_origin": { "latitude": 41.8955, "longitude": -87.635 },
+    "search_radius_miles": 25,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000011",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "cardiology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-13T14:00:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000012",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000001",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-13T14:00:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000013",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-13T14:00:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000014",
+        "field": "max_distance_miles",
+        "kind": "soft",
+        "value": 25,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-13T14:00:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000002",
+    "patient_id": "b0000000-0000-4000-8000-000000000002",
+    "search_origin": { "latitude": 41.77, "longitude": -88.153 },
+    "search_radius_miles": 30,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000021",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "cardiology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T07:35:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000022",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000001",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T07:35:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000023",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T07:35:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000024",
+        "field": "max_distance_miles",
+        "kind": "soft",
+        "value": 30,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T07:35:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000003",
+    "patient_id": "b0000000-0000-4000-8000-000000000003",
+    "search_origin": { "latitude": 41.9088, "longitude": -87.6796 },
+    "search_radius_miles": 15,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000001",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "cardiology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000002",
+        "field": "max_distance_miles",
+        "kind": "hard",
+        "value": 15,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000003",
+        "field": "provider_language",
+        "kind": "hard",
+        "value": "es",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000004",
+        "field": "preferred_day",
+        "kind": "hard",
+        "value": "friday",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000005",
+        "field": "preferred_time_of_day",
+        "kind": "hard",
+        "value": "morning",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000006",
+        "field": "accepts_new_patients",
+        "kind": "hard",
+        "value": true,
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000007",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000001",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000008",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000003",
+    "patient_id": "b0000000-0000-4000-8000-000000000003",
+    "search_origin": { "latitude": 41.9088, "longitude": -87.6796 },
+    "search_radius_miles": 15,
+    "version": 2,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000001",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "cardiology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000002",
+        "field": "max_distance_miles",
+        "kind": "hard",
+        "value": 15,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000003",
+        "field": "provider_language",
+        "kind": "hard",
+        "value": "es",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000004",
+        "field": "preferred_day",
+        "kind": "hard",
+        "value": "friday",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": "e0000000-0000-4000-8000-000000000009"
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000009",
+        "field": "preferred_day",
+        "kind": "hard",
+        "value": "tuesday",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:41:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000005",
+        "field": "preferred_time_of_day",
+        "kind": "hard",
+        "value": "morning",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000006",
+        "field": "accepts_new_patients",
+        "kind": "hard",
+        "value": true,
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000007",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000001",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000008",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:05:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000004",
+    "patient_id": "b0000000-0000-4000-8000-000000000004",
+    "search_origin": { "latitude": 41.885, "longitude": -87.789 },
+    "search_radius_miles": 15,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000031",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "neurology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:10:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000032",
+        "field": "provider_language",
+        "kind": "hard",
+        "value": "tr",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:10:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000033",
+        "field": "preferred_day",
+        "kind": "soft",
+        "value": "friday",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:10:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000034",
+        "field": "max_distance_miles",
+        "kind": "hard",
+        "value": 15,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T09:10:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000035",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000005",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:10:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000036",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T09:10:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000005",
+    "patient_id": "b0000000-0000-4000-8000-000000000005",
+    "search_origin": { "latitude": 42.045, "longitude": -88.035 },
+    "search_radius_miles": 20,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000041",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "cardiology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T08:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000042",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000004",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T08:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000043",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T08:05:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000044",
+        "field": "max_distance_miles",
+        "kind": "hard",
+        "value": 20,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T08:05:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000006",
+    "patient_id": "b0000000-0000-4000-8000-000000000006",
+    "search_origin": { "latitude": 41.922, "longitude": -87.648 },
+    "search_radius_miles": 25,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000051",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "functional neurosurgery",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-13T15:20:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000052",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000003",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-13T15:20:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000053",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-13T15:20:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000054",
+        "field": "max_distance_miles",
+        "kind": "soft",
+        "value": 25,
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-13T15:20:00Z",
+        "superseded_by": null
+      }
+    ]
+  },
+  {
+    "workflow_id": "f0000000-0000-4000-8000-000000000007",
+    "patient_id": "b0000000-0000-4000-8000-000000000007",
+    "search_origin": { "latitude": 41.925, "longitude": -87.639 },
+    "search_radius_miles": 15,
+    "version": 1,
+    "constraints": [
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000061",
+        "field": "specialty",
+        "kind": "hard",
+        "value": "dermatology",
+        "source": "system_mandatory",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T08:30:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000062",
+        "field": "insurance_plan",
+        "kind": "hard",
+        "value": "60000000-0000-4000-8000-000000000006",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T08:30:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000063",
+        "field": "visit_type",
+        "kind": "hard",
+        "value": "first_visit",
+        "source": "referral_document",
+        "relaxable": false,
+        "recorded_at": "2026-10-14T08:30:00Z",
+        "superseded_by": null
+      },
+      {
+        "constraint_id": "e0000000-0000-4000-8000-000000000064",
+        "field": "preferred_day",
+        "kind": "soft",
+        "value": "friday",
+        "source": "patient_stated",
+        "relaxable": true,
+        "recorded_at": "2026-10-14T08:30:00Z",
+        "superseded_by": null
+      }
+    ]
+  }
+]

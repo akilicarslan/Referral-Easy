@@ -1,0 +1,32 @@
+{
+  "release": "0.2.0",
+  "schema": "v1",
+  "agents": {
+    "care_coordinator": "2.0.0",
+    "referral_intake": "2.0.0",
+    "coverage_network": "2.0.0",
+    "provider_matching": "2.0.0",
+    "referral_readiness": "2.0.0",
+    "scheduling": "2.0.0",
+    "recovery_handoff": "2.0.0"
+  },
+  "prompts": {
+    "care_coordinator": "1.0.0",
+    "referral_intake": "1.0.0",
+    "coverage_network": "1.0.0",
+    "provider_matching": "1.0.0",
+    "referral_readiness": "1.0.0",
+    "scheduling": "1.0.0",
+    "recovery_handoff": "1.0.0"
+  },
+  "skills": {
+    "booking-confirmation": "1.0.0",
+    "constraint-negotiation": "1.0.0",
+    "coverage-interpretation": "1.0.0",
+    "directory-grounding": "1.0.0",
+    "handoff-triage": "1.0.0",
+    "referral-intake": "1.0.0",
+    "referral-readiness": "1.0.0",
+    "uncertain-booking-reconciliation": "1.0.0"
+  }
+}

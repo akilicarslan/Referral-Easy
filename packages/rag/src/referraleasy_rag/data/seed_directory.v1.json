@@ -1,0 +1,1243 @@
+{
+  "chunker_version": "directory-chunker-1",
+  "document_count": 28,
+  "documents": [
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking",
+        "sign_language_interpreter",
+        "hearing_loop"
+      ],
+      "adapter_type": "instant_confirm",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000001:0:429945fb27b446d5",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Lakeview Regional Medical Center",
+      "entity_id": "20000000-0000-4000-8000-000000000001",
+      "entity_type": "hospital",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center"
+      ],
+      "knowledge_version": "kv-hosp-0001-2026-09-01",
+      "languages": [
+        "en",
+        "es",
+        "pl"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000001",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000001",
+      "specialties": [
+        "cardiology",
+        "dermatology",
+        "neurology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Lakeview Regional Medical Center is at 675 North Fairbanks Court, Physician Pavilion, Suite 1200, Chicago, IL 60611 (time zone America/Chicago). Specialist clinics at Lakeview Regional Medical Center cover: cardiology, dermatology and neurology. Lakeview Regional Medical Center supports these languages: English, Spanish and Polish. Accessibility at Lakeview Regional Medical Center: wheelchair accessible, accessible parking, sign language interpreter and hearing loop. Lakeview Regional Medical Center is a 480-bed academic medical centre on Chicago's Near North Side. Cardiology, neurology and dermatology clinics operate Monday to Friday. Appointment requests placed before 15:00 Central are confirmed by the scheduling desk the same business day.",
+      "updated_at": "2026-09-01T09:00:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking",
+        "service_animal_friendly"
+      ],
+      "adapter_type": "review_required",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000002:0:dd13dcd6fad6c74d",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Ravenswood Specialty Surgical Center",
+      "entity_id": "20000000-0000-4000-8000-000000000002",
+      "entity_type": "hospital",
+      "geo_lat": 41.9735,
+      "geo_lon": -87.662,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000002"
+      ],
+      "hospital_names": [
+        "Ravenswood Specialty Surgical Center"
+      ],
+      "knowledge_version": "kv-hosp-0002-2026-08-15",
+      "languages": [
+        "en",
+        "tr"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000002",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000002",
+      "specialties": [
+        "cardiology",
+        "neurology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Ravenswood Specialty Surgical Center is at 4417 North Ravenswood Avenue, Chicago, IL 60640 (time zone America/Chicago). Specialist clinics at Ravenswood Specialty Surgical Center cover: cardiology and neurology. Ravenswood Specialty Surgical Center supports these languages: English and Turkish. Accessibility at Ravenswood Specialty Surgical Center: wheelchair accessible, accessible parking and service animals welcome. Ravenswood Specialty Surgical Center runs a neurology and neurosurgery clinic. Every referral is reviewed by the intake physician before a slot is offered, so requests are returned as pending review rather than confirmed at the point of request.",
+      "updated_at": "2026-08-15T14:20:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "large_print_materials",
+        "accessible_parking"
+      ],
+      "adapter_type": "instant_confirm",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000003:0:d5b9ea0c05de1a9a",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Evanston"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Prairie Ridge Memorial Hospital",
+      "entity_id": "20000000-0000-4000-8000-000000000003",
+      "entity_type": "hospital",
+      "geo_lat": 42.0485,
+      "geo_lon": -87.687,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "hospital_names": [
+        "Prairie Ridge Memorial Hospital"
+      ],
+      "knowledge_version": "kv-hosp-0003-2026-09-10",
+      "languages": [
+        "en",
+        "es",
+        "tr"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000003",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000003",
+      "specialties": [
+        "cardiology",
+        "internal medicine"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Prairie Ridge Memorial Hospital is at 2210 Ridge Avenue, East Wing, Level 2, Evanston, IL 60201 (time zone America/Chicago). Specialist clinics at Prairie Ridge Memorial Hospital cover: cardiology and internal medicine. Prairie Ridge Memorial Hospital supports these languages: English, Spanish and Turkish. Accessibility at Prairie Ridge Memorial Hospital: wheelchair accessible, large print materials and accessible parking. Prairie Ridge Memorial Hospital serves Evanston and the northern suburbs. Outpatient clinics include cardiology, internal medicine and dermatology. Interpretation is available in Spanish and Turkish with two business days' notice.",
+      "updated_at": "2026-09-10T11:45:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking"
+      ],
+      "adapter_type": "review_required",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000004:0:335138c089c8349f",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Naperville"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Des Plaines Valley General Hospital",
+      "entity_id": "20000000-0000-4000-8000-000000000004",
+      "entity_type": "hospital",
+      "geo_lat": 41.772,
+      "geo_lon": -88.149,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000004"
+      ],
+      "hospital_names": [
+        "Des Plaines Valley General Hospital"
+      ],
+      "knowledge_version": "kv-hosp-0004-2025-11-02",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000004",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000004",
+      "specialties": [
+        "cardiology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Des Plaines Valley General Hospital is at 825 South Washington Street, Naperville, IL 60540 (time zone America/Chicago). Specialist clinics at Des Plaines Valley General Hospital cover: cardiology. Des Plaines Valley General Hospital supports these languages: English and Spanish. Accessibility at Des Plaines Valley General Hospital: wheelchair accessible and accessible parking. Des Plaines Valley General Hospital is in-network with every major plan, including Meridian HMO Select and Summit HDHP Saver. We do not require prior authorisation for specialist visits and can confirm same-day appointments. Our cardiology clinic has the broadest Spanish-language coverage in the western suburbs.",
+      "updated_at": "2025-11-02T08:00:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "sign_language_interpreter",
+        "accessible_parking",
+        "hearing_loop"
+      ],
+      "adapter_type": "instant_confirm",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000005:0:8ce240c6af772fa3",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "New York"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Hudson Park Orthopedic Hospital",
+      "entity_id": "20000000-0000-4000-8000-000000000005",
+      "entity_type": "hospital",
+      "geo_lat": 40.7465,
+      "geo_lon": -73.9775,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000005"
+      ],
+      "hospital_names": [
+        "Hudson Park Orthopedic Hospital"
+      ],
+      "knowledge_version": "kv-hosp-0005-2026-07-20",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000005",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000005",
+      "specialties": [
+        "cardiology"
+      ],
+      "states": [
+        "NY"
+      ],
+      "synthetic": true,
+      "text": "Hudson Park Orthopedic Hospital is at 310 East 34th Street, Murray Hill Medical Arts Building, New York, NY 10016 (time zone America/New_York). Specialist clinics at Hudson Park Orthopedic Hospital cover: cardiology. Hudson Park Orthopedic Hospital supports these languages: English and Spanish. Accessibility at Hudson Park Orthopedic Hospital: wheelchair accessible, sign language interpreter, accessible parking and hearing loop. Hudson Park Orthopedic Hospital is a Manhattan specialty hospital. Its cardiology consult service operates on Eastern time and closes at 16:00 on Fridays.",
+      "updated_at": "2026-07-20T16:30:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "service_animal_friendly",
+        "large_print_materials"
+      ],
+      "adapter_type": "review_required",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000006:0:ce5ea935c6b059c7",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Denver"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Front Range Neurology Center",
+      "entity_id": "20000000-0000-4000-8000-000000000006",
+      "entity_type": "hospital",
+      "geo_lat": 39.737,
+      "geo_lon": -104.975,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000006"
+      ],
+      "hospital_names": [
+        "Front Range Neurology Center"
+      ],
+      "knowledge_version": "kv-hosp-0006-2026-06-05",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000006",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000006",
+      "specialties": [
+        "neurology"
+      ],
+      "states": [
+        "CO"
+      ],
+      "synthetic": true,
+      "text": "Front Range Neurology Center is at 1721 East 19th Avenue, South Tower, Level 4, Denver, CO 80218 (time zone America/Denver). Specialist clinics at Front Range Neurology Center cover: neurology. Front Range Neurology Center supports these languages: English and Spanish. Accessibility at Front Range Neurology Center: wheelchair accessible, service animals welcome and large print materials. Front Range Neurology Center covers the Denver metropolitan area and keeps its own Mountain-time outpatient calendar. Neuromuscular referrals require a prior report before the intake physician reviews them.",
+      "updated_at": "2026-06-05T10:10:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking",
+        "hearing_loop"
+      ],
+      "adapter_type": "review_required",
+      "chunk_id": "hospital:20000000-0000-4000-8000-000000000007:0:8de6256429b19227",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Downers Grove"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Midvale Cardiology Institute",
+      "entity_id": "20000000-0000-4000-8000-000000000007",
+      "entity_type": "hospital",
+      "geo_lat": 41.794,
+      "geo_lon": -88.01,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000007"
+      ],
+      "hospital_names": [
+        "Midvale Cardiology Institute"
+      ],
+      "knowledge_version": "kv-hosp-0007-2026-09-18",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "location_id": "10000000-0000-4000-8000-000000000007",
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "hospital_directory:20000000-0000-4000-8000-000000000007",
+      "specialties": [
+        "cardiology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Midvale Cardiology Institute is at 1200 Ogden Avenue, Medical Office Building B, Downers Grove, IL 60515 (time zone America/Chicago). Specialist clinics at Midvale Cardiology Institute cover: cardiology. Midvale Cardiology Institute supports these languages: English and Spanish. Accessibility at Midvale Cardiology Institute: wheelchair accessible, accessible parking and hearing loop. Midvale Cardiology Institute is a single-specialty outpatient cardiology practice in Downers Grove. It runs a Friday arrhythmia clinic and offers Spanish-language consultations on Tuesdays and Fridays.",
+      "updated_at": "2026-09-18T09:30:00Z"
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000001:0:a85765e825c43e5b",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Chicago, IL",
+      "entity_id": "10000000-0000-4000-8000-000000000001",
+      "entity_type": "location",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center"
+      ],
+      "knowledge_version": "kv-hosp-0001-2026-09-01",
+      "ordinal": 0,
+      "postal_code": "60611",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000001",
+      "specialties": [
+        "cardiology",
+        "dermatology",
+        "neurology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Chicago, IL (Lakeview Regional Medical Center): 675 North Fairbanks Court, Physician Pavilion, Suite 1200, Chicago, IL 60611. Time zone America/Chicago. Hospitals at 675 North Fairbanks Court, Physician Pavilion, Suite 1200: Lakeview Regional Medical Center. Specialties available at this location: cardiology, dermatology and neurology.",
+      "updated_at": ""
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000002:0:66d9b0ba050966e2",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Chicago, IL",
+      "entity_id": "10000000-0000-4000-8000-000000000002",
+      "entity_type": "location",
+      "geo_lat": 41.9735,
+      "geo_lon": -87.662,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000002"
+      ],
+      "hospital_names": [
+        "Ravenswood Specialty Surgical Center"
+      ],
+      "knowledge_version": "kv-hosp-0002-2026-08-15",
+      "ordinal": 0,
+      "postal_code": "60640",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000002",
+      "specialties": [
+        "cardiology",
+        "neurology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Chicago, IL (Ravenswood Specialty Surgical Center): 4417 North Ravenswood Avenue, Chicago, IL 60640. Time zone America/Chicago. Hospitals at 4417 North Ravenswood Avenue: Ravenswood Specialty Surgical Center. Specialties available at this location: cardiology and neurology.",
+      "updated_at": ""
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000003:0:cacc6d8175a85cf2",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Evanston"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Evanston, IL",
+      "entity_id": "10000000-0000-4000-8000-000000000003",
+      "entity_type": "location",
+      "geo_lat": 42.0485,
+      "geo_lon": -87.687,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "hospital_names": [
+        "Prairie Ridge Memorial Hospital"
+      ],
+      "knowledge_version": "kv-hosp-0003-2026-09-10",
+      "ordinal": 0,
+      "postal_code": "60201",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000003",
+      "specialties": [
+        "cardiology",
+        "internal medicine"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Evanston, IL (Prairie Ridge Memorial Hospital): 2210 Ridge Avenue, East Wing, Level 2, Evanston, IL 60201. Time zone America/Chicago. Hospitals at 2210 Ridge Avenue, East Wing, Level 2: Prairie Ridge Memorial Hospital. Specialties available at this location: cardiology and internal medicine.",
+      "updated_at": ""
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000004:0:2f157bb4474b296a",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Naperville"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Naperville, IL",
+      "entity_id": "10000000-0000-4000-8000-000000000004",
+      "entity_type": "location",
+      "geo_lat": 41.772,
+      "geo_lon": -88.149,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000004"
+      ],
+      "hospital_names": [
+        "Des Plaines Valley General Hospital"
+      ],
+      "knowledge_version": "kv-hosp-0004-2025-11-02",
+      "ordinal": 0,
+      "postal_code": "60540",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000004",
+      "specialties": [
+        "cardiology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Naperville, IL (Des Plaines Valley General Hospital): 825 South Washington Street, Naperville, IL 60540. Time zone America/Chicago. Hospitals at 825 South Washington Street: Des Plaines Valley General Hospital. Specialties available at this location: cardiology.",
+      "updated_at": ""
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000005:0:7d2157c07bce1af3",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "New York"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "New York, NY",
+      "entity_id": "10000000-0000-4000-8000-000000000005",
+      "entity_type": "location",
+      "geo_lat": 40.7465,
+      "geo_lon": -73.9775,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000005"
+      ],
+      "hospital_names": [
+        "Hudson Park Orthopedic Hospital"
+      ],
+      "knowledge_version": "kv-hosp-0005-2026-07-20",
+      "ordinal": 0,
+      "postal_code": "10016",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000005",
+      "specialties": [
+        "cardiology"
+      ],
+      "states": [
+        "NY"
+      ],
+      "synthetic": true,
+      "text": "New York, NY (Hudson Park Orthopedic Hospital): 310 East 34th Street, Murray Hill Medical Arts Building, New York, NY 10016. Time zone America/New_York. Hospitals at 310 East 34th Street, Murray Hill Medical Arts Building: Hudson Park Orthopedic Hospital. Specialties available at this location: cardiology.",
+      "updated_at": ""
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000006:0:7907da535bb3f408",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Denver"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Denver, CO",
+      "entity_id": "10000000-0000-4000-8000-000000000006",
+      "entity_type": "location",
+      "geo_lat": 39.737,
+      "geo_lon": -104.975,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000006"
+      ],
+      "hospital_names": [
+        "Front Range Neurology Center"
+      ],
+      "knowledge_version": "kv-hosp-0006-2026-06-05",
+      "ordinal": 0,
+      "postal_code": "80218",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000006",
+      "specialties": [
+        "neurology"
+      ],
+      "states": [
+        "CO"
+      ],
+      "synthetic": true,
+      "text": "Denver, CO (Front Range Neurology Center): 1721 East 19th Avenue, South Tower, Level 4, Denver, CO 80218. Time zone America/Denver. Hospitals at 1721 East 19th Avenue, South Tower, Level 4: Front Range Neurology Center. Specialties available at this location: neurology.",
+      "updated_at": ""
+    },
+    {
+      "chunk_id": "location:10000000-0000-4000-8000-000000000007:0:7c1019ef69a9cc95",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Downers Grove"
+      ],
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "display_name": "Downers Grove, IL",
+      "entity_id": "10000000-0000-4000-8000-000000000007",
+      "entity_type": "location",
+      "geo_lat": 41.794,
+      "geo_lon": -88.01,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000007"
+      ],
+      "hospital_names": [
+        "Midvale Cardiology Institute"
+      ],
+      "knowledge_version": "kv-hosp-0007-2026-09-18",
+      "ordinal": 0,
+      "postal_code": "60515",
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "location_directory:10000000-0000-4000-8000-000000000007",
+      "specialties": [
+        "cardiology"
+      ],
+      "states": [
+        "IL"
+      ],
+      "synthetic": true,
+      "text": "Downers Grove, IL (Midvale Cardiology Institute): 1200 Ogden Avenue, Medical Office Building B, Downers Grove, IL 60515. Time zone America/Chicago. Hospitals at 1200 Ogden Avenue, Medical Office Building B: Midvale Cardiology Institute. Specialties available at this location: cardiology.",
+      "updated_at": ""
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "sign_language_interpreter"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000001:0:b8d709897887aeff",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago",
+        "Evanston"
+      ],
+      "contact_phone": "+13125550110",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD, FACC",
+      "display_name": "Elena Marquez",
+      "entity_id": "30000000-0000-4000-8000-000000000001",
+      "entity_type": "provider",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001",
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center",
+        "Prairie Ridge Memorial Hospital"
+      ],
+      "knowledge_version": "kv-prov-0001-2026-09-01",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000001",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "heart failure",
+        "echocardiography"
+      ],
+      "synthetic": true,
+      "text": "Elena Marquez, MD, FACC is a cardiology specialist at Lakeview Regional Medical Center (Chicago, IL) and Prairie Ridge Memorial Hospital (Evanston, IL). To reach Elena Marquez, MD, FACC, call +13125550110. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000001. Elena Marquez's subspecialties: heart failure and echocardiography. Elena Marquez consults in English (native) and Spanish (native). Elena Marquez is accepting new patients. Accessibility at Elena Marquez's clinic: wheelchair accessible and sign language interpreter. Appointments with Elena Marquez: first visit about 60 minutes, follow-up about 20 minutes. Elena Marquez accepts these insurance plans: Northbridge Health, Summit Care and SilverCare. Dr. Elena Marquez is a cardiologist at Lakeview Regional Medical Center and Prairie Ridge Memorial Hospital. She runs heart-failure and echocardiography clinics. Tuesday and Thursday sessions only; there is no Friday clinic.",
+      "updated_at": "2026-09-01T09:05:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000002:0:346faad139d33e12",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Evanston"
+      ],
+      "contact_phone": "+18475550111",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Camila Restrepo",
+      "entity_id": "30000000-0000-4000-8000-000000000002",
+      "entity_type": "provider",
+      "geo_lat": 42.0485,
+      "geo_lon": -87.687,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "hospital_names": [
+        "Prairie Ridge Memorial Hospital"
+      ],
+      "knowledge_version": "kv-prov-0002-2026-08-20",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000002",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "preventive cardiology"
+      ],
+      "synthetic": true,
+      "text": "Camila Restrepo, MD is a cardiology specialist at Prairie Ridge Memorial Hospital (Evanston, IL). To reach Camila Restrepo, MD, call +18475550111. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000002. Camila Restrepo's subspecialties: preventive cardiology. Camila Restrepo consults in English (fluent) and Spanish (native). Camila Restrepo is accepting new patients. Accessibility at Camila Restrepo's clinic: wheelchair accessible. Appointments with Camila Restrepo: first visit about 50 minutes, follow-up about 20 minutes. Camila Restrepo accepts these insurance plans: Northbridge Health and Prairie State Health. Dr. Camila Restrepo practises preventive cardiology at Prairie Ridge Memorial Hospital. She consults in Spanish and English. Her clinic days are Monday, Tuesday and Wednesday; she does not hold a Friday clinic.",
+      "updated_at": "2026-08-20T12:00:00Z"
+    },
+    {
+      "accepts_new_patients": false,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "hearing_loop"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000003:0:9c293d39340ffa12",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "contact_phone": "+13125550112",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD, PhD",
+      "display_name": "Raymond Osei",
+      "entity_id": "30000000-0000-4000-8000-000000000003",
+      "entity_type": "provider",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center"
+      ],
+      "knowledge_version": "kv-prov-0003-2026-09-12",
+      "languages": [
+        "en"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000003",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "electrophysiology"
+      ],
+      "synthetic": true,
+      "text": "Raymond Osei, MD, PhD is a cardiology specialist at Lakeview Regional Medical Center (Chicago, IL). To reach Raymond Osei, MD, PhD, call +13125550112. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000003. Raymond Osei's subspecialties: electrophysiology. Raymond Osei consults in English (native). Raymond Osei is not accepting new patients. Accessibility at Raymond Osei's clinic: wheelchair accessible and hearing loop. Appointments with Raymond Osei: first visit about 45 minutes, follow-up about 15 minutes. Raymond Osei accepts these insurance plans: Northbridge Health and Meridian Health Plans. Dr. Raymond Osei is an electrophysiologist at Lakeview Regional Medical Center. His panel is closed and he is not accepting new patient referrals for the current calendar year; existing patients only.",
+      "updated_at": "2026-09-12T08:00:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000004:0:5ea46b8dad5cc0c2",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "contact_phone": "+13125550113",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Samuel Whitaker",
+      "entity_id": "30000000-0000-4000-8000-000000000004",
+      "entity_type": "provider",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center"
+      ],
+      "knowledge_version": "kv-prov-0004-2026-09-01",
+      "languages": [
+        "en"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000004",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "general cardiology"
+      ],
+      "synthetic": true,
+      "text": "Samuel Whitaker, MD is a cardiology specialist at Lakeview Regional Medical Center (Chicago, IL). To reach Samuel Whitaker, MD, call +13125550113. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000004. Samuel Whitaker's subspecialties: general cardiology. Samuel Whitaker consults in English (native). Samuel Whitaker is accepting new patients. Accessibility at Samuel Whitaker's clinic: wheelchair accessible and accessible parking. Appointments with Samuel Whitaker: first visit about 40 minutes, follow-up about 20 minutes. Samuel Whitaker accepts these insurance plans: Northbridge Health and Great Lakes Mutual. Dr. Samuel Whitaker is a general cardiologist at Lakeview Regional Medical Center. He holds Monday and Friday clinics and consults in English only.",
+      "updated_at": "2026-09-01T09:30:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "hearing_loop",
+        "accessible_parking",
+        "large_print_materials"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000005:0:3a5c6e8652e45ca6",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Evanston"
+      ],
+      "contact_phone": "+18475550114",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Rachel Fischbach",
+      "entity_id": "30000000-0000-4000-8000-000000000005",
+      "entity_type": "provider",
+      "geo_lat": 42.0485,
+      "geo_lon": -87.687,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "hospital_names": [
+        "Prairie Ridge Memorial Hospital"
+      ],
+      "knowledge_version": "kv-prov-0005-2026-08-28",
+      "languages": [
+        "en"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000005",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "cardiac imaging"
+      ],
+      "synthetic": true,
+      "text": "Rachel Fischbach, MD is a cardiology specialist at Prairie Ridge Memorial Hospital (Evanston, IL). To reach Rachel Fischbach, MD, call +18475550114. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000005. Rachel Fischbach's subspecialties: cardiac imaging. Rachel Fischbach consults in English (native). Rachel Fischbach is accepting new patients. Accessibility at Rachel Fischbach's clinic: wheelchair accessible, hearing loop, accessible parking and large print materials. Appointments with Rachel Fischbach: first visit about 55 minutes, follow-up about 25 minutes. Rachel Fischbach accepts these insurance plans: Northbridge Health and Prairie State Health. Dr. Rachel Fischbach is a cardiac imaging specialist at Prairie Ridge Memorial Hospital. Her clinic is equipped with a hearing loop and large-print patient materials. She holds Monday and Wednesday clinics only.",
+      "updated_at": "2026-08-28T15:00:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000006:0:8965d8ebceb242b9",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Downers Grove"
+      ],
+      "contact_phone": "+16305550115",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Priya Nadkarni",
+      "entity_id": "30000000-0000-4000-8000-000000000006",
+      "entity_type": "provider",
+      "geo_lat": 41.794,
+      "geo_lon": -88.01,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000007"
+      ],
+      "hospital_names": [
+        "Midvale Cardiology Institute"
+      ],
+      "knowledge_version": "kv-prov-0006-2026-09-18",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000006",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "arrhythmia"
+      ],
+      "synthetic": true,
+      "text": "Priya Nadkarni, MD is a cardiology specialist at Midvale Cardiology Institute (Downers Grove, IL). To reach Priya Nadkarni, MD, call +16305550115. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000006. Priya Nadkarni's subspecialties: arrhythmia. Priya Nadkarni consults in English (native) and Spanish (fluent). Priya Nadkarni is accepting new patients. Accessibility at Priya Nadkarni's clinic: wheelchair accessible and accessible parking. Appointments with Priya Nadkarni: first visit about 50 minutes, follow-up about 20 minutes. Priya Nadkarni accepts these insurance plans: Northbridge Health and Summit Care. Dr. Priya Nadkarni runs the Friday arrhythmia clinic at Midvale Cardiology Institute in Downers Grove. She consults in English and fluent Spanish. The site is roughly nineteen miles west of downtown Chicago.",
+      "updated_at": "2026-09-18T09:35:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000007:0:2b09c91b84a3185a",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Naperville"
+      ],
+      "contact_phone": "+16305550116",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Omar Haddad",
+      "entity_id": "30000000-0000-4000-8000-000000000007",
+      "entity_type": "provider",
+      "geo_lat": 41.772,
+      "geo_lon": -88.149,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000004"
+      ],
+      "hospital_names": [
+        "Des Plaines Valley General Hospital"
+      ],
+      "knowledge_version": "kv-prov-0007-2026-09-05",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000007",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "interventional cardiology"
+      ],
+      "synthetic": true,
+      "text": "Omar Haddad, MD is a cardiology specialist at Des Plaines Valley General Hospital (Naperville, IL). To reach Omar Haddad, MD, call +16305550116. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000007. Omar Haddad's subspecialties: interventional cardiology. Omar Haddad consults in English (native) and Spanish (native). Omar Haddad is accepting new patients. Accessibility at Omar Haddad's clinic: wheelchair accessible and accessible parking. Appointments with Omar Haddad: first visit about 60 minutes, follow-up about 20 minutes. Omar Haddad accepts these insurance plans: Northbridge Health, Prairie State Health and Summit Care. Dr. Omar Haddad is an interventional cardiologist at Des Plaines Valley General Hospital in Naperville, approximately twenty-six miles west of downtown Chicago. Friday and Tuesday clinics; Spanish and English consultations.",
+      "updated_at": "2026-09-05T13:00:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "service_animal_friendly"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000008:0:ab106a80d3c3f28d",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "contact_phone": "+17735550117",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Ahmet Kilic",
+      "entity_id": "30000000-0000-4000-8000-000000000008",
+      "entity_type": "provider",
+      "geo_lat": 41.9735,
+      "geo_lon": -87.662,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000002"
+      ],
+      "hospital_names": [
+        "Ravenswood Specialty Surgical Center"
+      ],
+      "knowledge_version": "kv-prov-0008-2026-08-15",
+      "languages": [
+        "en",
+        "tr"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000008",
+      "specialties": [
+        "neurology"
+      ],
+      "specialty": "neurology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "epilepsy",
+        "headache medicine"
+      ],
+      "synthetic": true,
+      "text": "Ahmet Kilic, MD is a neurology specialist at Ravenswood Specialty Surgical Center (Chicago, IL). To reach Ahmet Kilic, MD, call +17735550117. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000008. Ahmet Kilic's subspecialties: epilepsy and headache medicine. Ahmet Kilic consults in English (fluent) and Turkish (native). Ahmet Kilic is accepting new patients. Accessibility at Ahmet Kilic's clinic: wheelchair accessible and service animals welcome. Appointments with Ahmet Kilic: first visit about 75 minutes, follow-up about 30 minutes. Ahmet Kilic accepts these insurance plans: Northbridge Health and Great Lakes Mutual. Dr. Ahmet Kilic is a neurologist at Ravenswood Specialty Surgical Center, specialising in epilepsy and headache medicine. He consults in Turkish and English and holds Wednesday and Friday clinics.",
+      "updated_at": "2026-08-15T14:25:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "large_print_materials"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000009:0:cf0b0bb318ade5a1",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Evanston"
+      ],
+      "contact_phone": "+18475550118",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Selin Aydin",
+      "entity_id": "30000000-0000-4000-8000-000000000009",
+      "entity_type": "provider",
+      "geo_lat": 42.0485,
+      "geo_lon": -87.687,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000003"
+      ],
+      "hospital_names": [
+        "Prairie Ridge Memorial Hospital"
+      ],
+      "knowledge_version": "kv-prov-0009-2026-08-28",
+      "languages": [
+        "en",
+        "tr"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000009",
+      "specialties": [
+        "internal medicine"
+      ],
+      "specialty": "internal medicine",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "primary care",
+        "hypertension"
+      ],
+      "synthetic": true,
+      "text": "Selin Aydin, MD is a internal medicine specialist at Prairie Ridge Memorial Hospital (Evanston, IL). To reach Selin Aydin, MD, call +18475550118. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000009. Selin Aydin's subspecialties: primary care and hypertension. Selin Aydin consults in English (fluent) and Turkish (native). Selin Aydin is accepting new patients. Accessibility at Selin Aydin's clinic: wheelchair accessible and large print materials. Appointments with Selin Aydin: first visit about 40 minutes, follow-up about 20 minutes. Selin Aydin accepts these insurance plans: Northbridge Health, Prairie State Health and Great Lakes Mutual. Dr. Selin Aydin is an internist at Prairie Ridge Memorial Hospital. She consults in Turkish and English and holds Tuesday and Thursday clinics.",
+      "updated_at": "2026-08-28T15:10:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000010:0:e6b28fe8f27b6f48",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "contact_phone": "+13125550119",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Melanie Cross",
+      "entity_id": "30000000-0000-4000-8000-000000000010",
+      "entity_type": "provider",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center"
+      ],
+      "knowledge_version": "kv-prov-0010-2026-09-01",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000010",
+      "specialties": [
+        "dermatology"
+      ],
+      "specialty": "dermatology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "medical dermatology"
+      ],
+      "synthetic": true,
+      "text": "Melanie Cross, MD is a dermatology specialist at Lakeview Regional Medical Center (Chicago, IL). To reach Melanie Cross, MD, call +13125550119. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000010. Melanie Cross's subspecialties: medical dermatology. Melanie Cross consults in English (native) and Spanish (fluent). Melanie Cross is accepting new patients. Accessibility at Melanie Cross's clinic: wheelchair accessible. Appointments with Melanie Cross: first visit about 30 minutes, follow-up about 15 minutes. Melanie Cross accepts these insurance plans: Northbridge Health and Meridian Health Plans. Dr. Melanie Cross is a dermatologist at Lakeview Regional Medical Center. She holds Friday clinics and consults in English and Spanish.",
+      "updated_at": "2026-09-01T09:40:00Z"
+    },
+    {
+      "accepts_new_patients": false,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000011:0:0193d981c46c86c4",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "contact_phone": "+13125550120",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Jonas Petersen",
+      "entity_id": "30000000-0000-4000-8000-000000000011",
+      "entity_type": "provider",
+      "geo_lat": 41.8955,
+      "geo_lon": -87.621,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000001"
+      ],
+      "hospital_names": [
+        "Lakeview Regional Medical Center"
+      ],
+      "knowledge_version": "kv-prov-0011-2026-09-12",
+      "languages": [
+        "en"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000011",
+      "specialties": [
+        "neurology"
+      ],
+      "specialty": "neurology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "movement disorders"
+      ],
+      "synthetic": true,
+      "text": "Jonas Petersen, MD is a neurology specialist at Lakeview Regional Medical Center (Chicago, IL). To reach Jonas Petersen, MD, call +13125550120. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000011. Jonas Petersen's subspecialties: movement disorders. Jonas Petersen consults in English (native). Jonas Petersen is not accepting new patients. Accessibility at Jonas Petersen's clinic: wheelchair accessible and accessible parking. Appointments with Jonas Petersen: first visit about 60 minutes, follow-up about 30 minutes. Jonas Petersen accepts these insurance plans: Northbridge Health and Prairie State Health. Dr. Jonas Petersen is a movement-disorders neurologist at Lakeview Regional Medical Center. His panel is closed to new referrals until further notice.",
+      "updated_at": "2026-09-12T08:10:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "accessible_parking",
+        "hearing_loop"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000012:0:675dfbc4f5216488",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Chicago"
+      ],
+      "contact_phone": "+17735550121",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Adebayo Ogunlesi",
+      "entity_id": "30000000-0000-4000-8000-000000000012",
+      "entity_type": "provider",
+      "geo_lat": 41.9735,
+      "geo_lon": -87.662,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000002"
+      ],
+      "hospital_names": [
+        "Ravenswood Specialty Surgical Center"
+      ],
+      "knowledge_version": "kv-prov-0012-2026-08-15",
+      "languages": [
+        "en"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000012",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "IL"
+      ],
+      "subspecialties": [
+        "nuclear cardiology"
+      ],
+      "synthetic": true,
+      "text": "Adebayo Ogunlesi, MD is a cardiology specialist at Ravenswood Specialty Surgical Center (Chicago, IL). To reach Adebayo Ogunlesi, MD, call +17735550121. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000012. Adebayo Ogunlesi's subspecialties: nuclear cardiology. Adebayo Ogunlesi consults in English (native). Adebayo Ogunlesi is accepting new patients. Accessibility at Adebayo Ogunlesi's clinic: wheelchair accessible, accessible parking and hearing loop. Appointments with Adebayo Ogunlesi: first visit about 45 minutes, follow-up about 20 minutes. Adebayo Ogunlesi accepts these insurance plans: Northbridge Health and Summit Care. Dr. Adebayo Ogunlesi is a nuclear cardiologist at Ravenswood Specialty Surgical Center. He holds Friday clinics and consults in English.",
+      "updated_at": "2026-08-15T14:35:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "sign_language_interpreter"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000013:0:ac2bf2b241f58366",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "New York"
+      ],
+      "contact_phone": "+12125550122",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Alicia Bergstrom",
+      "entity_id": "30000000-0000-4000-8000-000000000013",
+      "entity_type": "provider",
+      "geo_lat": 40.7465,
+      "geo_lon": -73.9775,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000005"
+      ],
+      "hospital_names": [
+        "Hudson Park Orthopedic Hospital"
+      ],
+      "knowledge_version": "kv-prov-0013-2026-07-20",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000013",
+      "specialties": [
+        "cardiology"
+      ],
+      "specialty": "cardiology",
+      "states": [
+        "NY"
+      ],
+      "subspecialties": [
+        "cardiac rehabilitation"
+      ],
+      "synthetic": true,
+      "text": "Alicia Bergstrom, MD is a cardiology specialist at Hudson Park Orthopedic Hospital (New York, NY). To reach Alicia Bergstrom, MD, call +12125550122. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000013. Alicia Bergstrom's subspecialties: cardiac rehabilitation. Alicia Bergstrom consults in English (native) and Spanish (conversational). Alicia Bergstrom is accepting new patients. Accessibility at Alicia Bergstrom's clinic: wheelchair accessible and sign language interpreter. Appointments with Alicia Bergstrom: first visit about 60 minutes, follow-up about 20 minutes. Alicia Bergstrom accepts these insurance plans: Northbridge Health and SilverCare. Dr. Alicia Bergstrom runs cardiac rehabilitation at Hudson Park Orthopedic Hospital in Manhattan. All clinics are billed on Eastern time and finish by 16:00.",
+      "updated_at": "2026-07-20T16:35:00Z"
+    },
+    {
+      "accepts_new_patients": true,
+      "accessibility_features": [
+        "wheelchair_accessible",
+        "service_animal_friendly",
+        "large_print_materials"
+      ],
+      "chunk_id": "provider:30000000-0000-4000-8000-000000000014:0:0bd701a5b63d54b2",
+      "chunker_version": "directory-chunker-1",
+      "cities": [
+        "Denver"
+      ],
+      "contact_phone": "+13035550123",
+      "corpus_version": "directory-chunker-1+21v+6cefb9624388",
+      "credentials": "MD",
+      "display_name": "Marcus Chen",
+      "entity_id": "30000000-0000-4000-8000-000000000014",
+      "entity_type": "provider",
+      "geo_lat": 39.737,
+      "geo_lon": -104.975,
+      "hospital_ids": [
+        "20000000-0000-4000-8000-000000000006"
+      ],
+      "hospital_names": [
+        "Front Range Neurology Center"
+      ],
+      "knowledge_version": "kv-prov-0014-2026-06-05",
+      "languages": [
+        "en",
+        "es"
+      ],
+      "ordinal": 0,
+      "run_id": "directory-chunker-1+21v+6cefb9624388",
+      "source_id": "provider_directory:30000000-0000-4000-8000-000000000014",
+      "specialties": [
+        "neurology"
+      ],
+      "specialty": "neurology",
+      "states": [
+        "CO"
+      ],
+      "subspecialties": [
+        "neuromuscular medicine"
+      ],
+      "synthetic": true,
+      "text": "Marcus Chen, MD is a neurology specialist at Front Range Neurology Center (Denver, CO). To reach Marcus Chen, MD, call +13035550123. The number is published in the provider directory as provider_directory:30000000-0000-4000-8000-000000000014. Marcus Chen's subspecialties: neuromuscular medicine. Marcus Chen consults in English (native) and Spanish (conversational). Marcus Chen is accepting new patients. Accessibility at Marcus Chen's clinic: wheelchair accessible, service animals welcome and large print materials. Appointments with Marcus Chen: first visit about 70 minutes, follow-up about 30 minutes. Marcus Chen accepts these insurance plans: Prairie State Health and Great Lakes Mutual. Dr. Marcus Chen practises neuromuscular medicine at Front Range Neurology Center in Denver. His outpatient calendar is kept in Mountain time and is entirely separate from the Chicago sites.",
+      "updated_at": "2026-06-05T10:15:00Z"
+    }
+  ],
+  "entity_knowledge_versions": [
+    "kv-hosp-0001-2026-09-01",
+    "kv-hosp-0002-2026-08-15",
+    "kv-hosp-0003-2026-09-10",
+    "kv-hosp-0004-2025-11-02",
+    "kv-hosp-0005-2026-07-20",
+    "kv-hosp-0006-2026-06-05",
+    "kv-hosp-0007-2026-09-18",
+    "kv-prov-0001-2026-09-01",
+    "kv-prov-0002-2026-08-20",
+    "kv-prov-0003-2026-09-12",
+    "kv-prov-0004-2026-09-01",
+    "kv-prov-0005-2026-08-28",
+    "kv-prov-0006-2026-09-18",
+    "kv-prov-0007-2026-09-05",
+    "kv-prov-0008-2026-08-15",
+    "kv-prov-0009-2026-08-28",
+    "kv-prov-0010-2026-09-01",
+    "kv-prov-0011-2026-09-12",
+    "kv-prov-0012-2026-08-15",
+    "kv-prov-0013-2026-07-20",
+    "kv-prov-0014-2026-06-05"
+  ],
+  "generated_from": "fixtures/directory/{providers,hospitals,locations}.json",
+  "knowledge_version": "directory-chunker-1+21v+6cefb9624388",
+  "seed_format_version": 1
+}

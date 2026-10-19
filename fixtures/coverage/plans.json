@@ -1,0 +1,62 @@
+[
+  {
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "payer_name": "Northbridge Health",
+    "plan_name": "Northbridge Choice PPO 1500",
+    "plan_type": "PPO",
+    "network_name": "Northbridge Preferred Network",
+    "requires_referral": true,
+    "requires_prior_auth_for_specialist": false,
+    "synthetic": true
+  },
+  {
+    "plan_id": "60000000-0000-4000-8000-000000000002",
+    "payer_name": "Meridian Health Plans",
+    "plan_name": "Meridian HMO Select",
+    "plan_type": "HMO",
+    "network_name": "Meridian Select Network",
+    "requires_referral": true,
+    "requires_prior_auth_for_specialist": true,
+    "synthetic": true
+  },
+  {
+    "plan_id": "60000000-0000-4000-8000-000000000003",
+    "payer_name": "Prairie State Health",
+    "plan_name": "Prairie State EPO Plus",
+    "plan_type": "EPO",
+    "network_name": "Prairie State Plus Network",
+    "requires_referral": false,
+    "requires_prior_auth_for_specialist": true,
+    "synthetic": true
+  },
+  {
+    "plan_id": "60000000-0000-4000-8000-000000000004",
+    "payer_name": "Summit Care",
+    "plan_name": "Summit HDHP Saver",
+    "plan_type": "HDHP",
+    "network_name": "Summit Saver Network",
+    "requires_referral": true,
+    "requires_prior_auth_for_specialist": true,
+    "synthetic": true
+  },
+  {
+    "plan_id": "60000000-0000-4000-8000-000000000005",
+    "payer_name": "Great Lakes Mutual",
+    "plan_name": "Great Lakes POS Standard",
+    "plan_type": "POS",
+    "network_name": "Great Lakes Standard Network",
+    "requires_referral": true,
+    "requires_prior_auth_for_specialist": false,
+    "synthetic": true
+  },
+  {
+    "plan_id": "60000000-0000-4000-8000-000000000006",
+    "payer_name": "SilverCare",
+    "plan_name": "SilverCare Advantage Complete",
+    "plan_type": "medicare_advantage",
+    "network_name": "SilverCare Complete Network",
+    "requires_referral": true,
+    "requires_prior_auth_for_specialist": false,
+    "synthetic": true
+  }
+]

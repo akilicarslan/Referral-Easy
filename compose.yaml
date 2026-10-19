@@ -1,0 +1,689 @@
+# ════════════════════════════════════════════════════════════════════════════
+# ReferralEasy — local demo topology
+# ADR: docs/adr/ADR-0023-compose-topology.md
+# Operations guide: infra/compose/README.md
+#
+# DRIVEN BY (root Makefile, do not change the contract):
+#   make up     -> docker compose --profile core up -d --wait
+#   make down   -> docker compose --profile core --profile showcase \
+#                                 --profile dashboards down --remove-orphans
+#
+# PROFILES (four; showcase and dashboards are additive to core, `pending` is not part
+# of any normal run at all):
+#   core        the platform: postgres, opensearch, otel-collector, data-prepper,
+#               mock-api, gateway, worker and the seven specialist agents (§3, §18)
+#   showcase    the demo surface on top of core: web
+#   dashboards  the ops view: opensearch-dashboards (opensearch carries this
+#               profile too, so `--profile dashboards` alone is coherent)
+#   pending     declared, and unbootable today: scheduler, local-guardrail. Neither
+#               has an implementation in this repository (ADR-0036), so neither can
+#               ever become healthy — and one service that cannot become healthy makes
+#               `docker compose up --wait` fail for a reason that has nothing to do
+#               with the platform. They keep their declared interface here, behind a
+#               profile `make up` never activates, so the gap is stated rather than
+#               hidden. `make down` does not name this profile: nothing in it can be
+#               running, so there is nothing for it to stop.
+#
+# Full demo:   docker compose --profile core --profile showcase up -d --wait
+#              (or: make up PROFILE="core --profile showcase")
+#
+# GUARANTEES THIS FILE MAKES
+#   * Offline-first: zero credentials, zero calls to model providers.
+#     MODEL_BACKEND/EMBEDDING_BACKEND/RERANK_BACKEND default to `offline`.
+#     (`.env` may raise MODEL_BACKEND to `live`; when it does, that is the
+#     operator's choice and this file says which containers would then spend money.)
+#   * Published ports bind to host loopback. This demo has no public login.
+#   * Every image is pinned. No `latest` anywhere.
+#   * Every service that keeps state has a named volume (postgres, opensearch), and
+#     every service runs under a REAL health probe — `pgrep` for the one container
+#     that has no port to probe (worker), and a statement of exactly what the probe
+#     observes wherever it is weaker than an HTTP probe. Never `CMD true`.
+#   * ONE OpenSearch cluster is both the vector store and the telemetry store.
+#     There is no separate vector database and no Prometheus container.
+#   * There is NO message broker: the work queue is a PostgreSQL table read
+#     with SELECT ... FOR UPDATE SKIP LOCKED.
+# ════════════════════════════════════════════════════════════════════════════
+
+name: referraleasy
+
+# ── shared building blocks ──────────────────────────────────────────────────
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"      # a demo must not fill the laptop's disk with logs
+    max-file: "3"
+
+# Environment every application container shares. The values that differ from
+# .env.example are the ones that must differ INSIDE the compose network:
+# .env.example is written for processes running on the host (localhost:5432,
+# localhost:4010), containers address each other by service name.
+x-app-env: &app-env
+  APP_ENV: ${APP_ENV:-demo}
+  DATABASE_URL: postgresql://referraleasy:referraleasy@postgres:5432/referraleasy
+  OPENSEARCH_URL: http://opensearch:9200
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+  MOCK_API_URL: http://mock-api:4010
+  # Read by the specialist agents only (the coordinator's delegation port), and harmless
+  # to the rest. `{role}` is substituted at call time by the runtime with the *role
+  # code* the target service carries, so `agent-{role}` here expands to the service name
+  # below — one variable for the whole peer map, rather than seven URLs that can
+  # disagree with the service names they point at.
+  A2A_BASE_URL: http://agent-{role}:8080
+  # Offline fixture profile: canned model/embedding/rerank responses, no
+  # network, no credentials. Any artefact produced is flagged `synthetic`.
+  MODEL_BACKEND: ${MODEL_BACKEND:-offline}
+  EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-offline}
+  RERANK_BACKEND: ${RERANK_BACKEND:-offline}
+  MOCK_FAULT_SEED: ${MOCK_FAULT_SEED:-42}
+
+# Values from .env are layered in when the file exists (Makefile `env` target
+# creates it). `required: false` keeps `docker compose config` working on a
+# fresh clone before `make env` has run.
+x-app-env-file: &app-env-file
+  - path: .env
+    required: false
+
+x-healthcheck-defaults: &hc-defaults
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 20s
+
+# ── the seven specialist agents (§3, §5, §18) ───────────────────────────────
+#
+# ONE IMAGE, SEVEN SERVICES. The image is built once from services/agents/Dockerfile
+# and the role is chosen at run time by AGENT_ROLE, which is §18's rule ("Tek agent
+# image AGENT_ROLE ile ... servisleri açar") and the reason there are seven entries
+# below rather than seven Dockerfiles. Everything that differs between them is
+# therefore deployment data: the role, the service name, and the host port.
+#
+# Each service is named `agent-<role code>`, which is `service_name(role)` in the
+# runtime — the same string it puts in logs, traces and the release manifest — so a
+# trace entry, a `docker compose ps` line and a `A2A_BASE_URL` both name the same
+# thing. The role code goes on the wire, so it is the service name too.
+x-agent-service: &agent-service
+  build:
+    context: .
+    dockerfile: services/agents/Dockerfile
+  image: referraleasy/agents:dev
+  profiles: [core]
+  restart: unless-stopped
+  env_file: *app-env-file
+  healthcheck:
+    # `GET /healthz` is the A2A app's one unauthenticated route
+    # (packages/agent-runtime/.../app.py): a probe holding a service token would
+    # report "unhealthy" whenever the token was the broken thing. curl is in the
+    # image for this line, and it is a real probe — it fails on a process that is
+    # not answering, not on one that is merely young.
+    test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/healthz > /dev/null || exit 1"]
+    <<: *hc-defaults
+  deploy:
+    resources:
+      limits: { cpus: "1.0", memory: 768m }
+  logging: *default-logging
+  networks: [referraleasy]
+
+# What every specialist needs before it can serve. Postgres is the policy authority:
+# without it `policy_assert` cannot answer, and the runtime's gate then refuses every
+# tool call by default rather than acting on a guess. mock-api is where retrieval
+# lands. opensearch is deliberately NOT here — no role reads OPENSEARCH_URL today (the
+# directory RAG that will is Phase 6), and a dependency nothing needs is a startup
+# order that claims something untrue.
+x-agent-depends-on: &agent-depends-on
+  postgres: { condition: service_healthy }
+  mock-api: { condition: service_started }
+  otel-collector: { condition: service_started }
+
+services:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # STORAGE
+  # ══════════════════════════════════════════════════════════════════════════
+
+  postgres:
+    image: postgres:18.6-alpine
+    profiles: [core]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: referraleasy
+      POSTGRES_PASSWORD: referraleasy   # local fixture, not a secret: the demo
+      POSTGRES_DB: referraleasy         # must come up with zero credentials.
+      # Postgres 18 keeps its data under /var/lib/postgresql/18/docker and
+      # declares the volume mount point as /var/lib/postgresql (verified with
+      # `docker image inspect postgres:18.6-alpine`). Mounting the old
+      # /var/lib/postgresql/data path would silently NOT persist data.
+      PGDATA: /var/lib/postgresql/18/docker
+    volumes:
+      - pg-data:/var/lib/postgresql
+      # NOTE: infra/postgres/** is owned by the schema/migration phase. If it
+      # grows an init directory (e.g. the SKIP LOCKED queue bootstrap), mount
+      # it here — nothing is mounted today so an empty bind mount cannot
+      # silently shadow the data directory.
+    ports:
+      # Host scripts and tests connect through DATABASE_URL from .env.example
+      # (localhost:5432), so 5432 is the default and the contract. It is
+      # parameterised only because 5432 is the single most contested port on a
+      # developer machine: if something else already listens there, set
+      # POSTGRES_HOST_PORT and point DATABASE_URL at the same port instead of
+      # stopping the other project.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U referraleasy -d referraleasy"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+    logging: *default-logging
+    networks: [referraleasy]
+
+  opensearch:
+    image: opensearchproject/opensearch:3.9.0
+    # Present in `dashboards` as well so that `--profile dashboards` alone
+    # brings up a cluster to look at, without the whole platform.
+    profiles: [core, dashboards]
+    restart: unless-stopped
+    environment:
+      cluster.name: referraleasy-local
+      node.name: opensearch-node-1
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"   # 50% of the 2g container limit
+      # Local demo: security plugin off => the stack needs NO credentials at
+      # all and never generates demo certificates or an admin password.
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }   # pairs with bootstrap.memory_lock
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+      - ./infra/opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+      # Index templates + ISM policies are NOT applied at boot (OpenSearch has
+      # no init hooks). Run them explicitly, apply-index-templates.sh is
+      # idempotent:  OPENSEARCH_URL=http://localhost:9200 \
+      #              infra/opensearch/apply-index-templates.sh
+      # Index templates live in infra/opensearch/index-templates/ and encode
+      # the retention split: 7 days telemetry, 30 days evaluation.
+    ports:
+      - "127.0.0.1:9200:9200"
+    healthcheck:
+      # Real probe: asks the cluster itself for a usable (yellow-or-green)
+      # state. A TCP check would report healthy long before the cluster can
+      # answer a query, which is exactly the state Data Prepper must not see.
+      test: ["CMD-SHELL", "curl -fsS 'http://127.0.0.1:9200/_cluster/health?wait_for_status=yellow&timeout=5s' > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 60s
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+    logging: *default-logging
+    networks: [referraleasy]
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # TELEMETRY PIPELINE  (collector -> Data Prepper -> OpenSearch)
+  # ══════════════════════════════════════════════════════════════════════════
+
+  otel-collector:
+    # Thin wrapper over the pinned upstream image: the upstream is FROM scratch
+    # (no shell, no HTTP client), so it cannot carry a real healthcheck.
+    # See infra/otel/Dockerfile — the collector binary is copied unchanged.
+    build:
+      context: ./infra/otel
+      dockerfile: Dockerfile
+    image: referraleasy/otel-collector:dev
+    profiles: [core]
+    restart: unless-stopped
+    volumes:
+      - ./infra/otel/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "127.0.0.1:4317:4317"     # OTLP gRPC
+      - "127.0.0.1:4318:4318"     # OTLP HTTP — matches OTEL_EXPORTER_OTLP_ENDPOINT
+      - "127.0.0.1:13133:13133"   # health_check extension (used by the probe below)
+      - "127.0.0.1:8888:8888"     # collector's own metrics: otelcol_processor_refused_*
+    depends_on:
+      data-prepper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:13133/health/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m    # memory_limiter in the config is bounded at 320 MiB
+    logging: *default-logging
+    networks: [referraleasy]
+
+  data-prepper:
+    image: opensearchproject/data-prepper:2.16.0
+    profiles: [core]
+    restart: unless-stopped
+    environment:
+      # Bounded JVM: honours the 1g container limit without thrashing.
+      JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes:
+      - ./infra/data-prepper/pipelines.yaml:/usr/share/data-prepper/pipelines/pipelines.yaml:ro
+      - ./infra/data-prepper/data-prepper-config.yaml:/usr/share/data-prepper/config/data-prepper-config.yaml:ro
+    ports:
+      - "127.0.0.1:21890:21890"   # OTLP trace source (collector -> here)
+      - "127.0.0.1:21892:21892"   # OTLP log/event source (collector -> here)
+      - "127.0.0.1:4900:4900"     # Data Prepper API — the health probe below
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4900/metrics/prometheus > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1g
+    logging: *default-logging
+    networks: [referraleasy]
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:3.9.0
+    profiles: [dashboards]
+    restart: unless-stopped
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      # Matches the cluster: security plugin off, so no credentials anywhere.
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: "true"
+    ports:
+      - "127.0.0.1:5601:5601"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5601/api/status > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+    logging: *default-logging
+    networks: [referraleasy]
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # APPLICATION SERVICES
+  #
+  # Every image below is built from a Dockerfile that exists, and every entry carries
+  # the build context, ports, env, probe and limits that service needs. Where a probe
+  # is weaker than "ask the service itself", the entry says what it observes and what
+  # it cannot — see `worker`, and see the `otel-collector` note above.
+  #
+  # Every entry in `core` builds. That was not true until now: `gateway`'s Dockerfile
+  # carried a hand-written list of workspace members, and each member added to the
+  # workspace after it — `services/workers`, then `packages/eval`, `packages/alerts` and
+  # `packages/release-registry` — broke the build until someone remembered to append it.
+  # ADR-0036 recorded the first of those and the fix, which was to append; appending is
+  # what broke it again. The lists are now complete *and* guarded:
+  # `tests/test_docker_member_lists.py` fails if a workspace member's manifest is missing
+  # from any Dockerfile that runs `uv sync`, if a member in an image's dependency closure
+  # has no source copied, or if a Vite entry point never reaches the web image. It found
+  # a third instance of the same defect the first time it ran.
+  # ══════════════════════════════════════════════════════════════════════════
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    image: referraleasy/gateway:dev
+    profiles: [core]
+    restart: unless-stopped
+    env_file: *app-env-file
+    environment:
+      <<: *app-env
+      PORT: "8080"
+      # §7: PostgreSQL is the primary store for workflow, approval, booking request and handoff.
+      # The gateway defaults to its in-memory backend when this is unset, which is right for the
+      # unit suite (it runs with no database) and wrong for the demo — an unset variable would leave
+      # every §7 guarantee enforced by a dictionary while the database sat there unused.
+      GATEWAY_CONTROL_BACKEND: ${GATEWAY_CONTROL_BACKEND:-postgres}
+      # Identifies this replica in the owner/lease columns. Compose gives each container a stable
+      # hostname, so the default is already unique per service; it is settable for a second replica.
+      GATEWAY_WORKER_ID: ${GATEWAY_WORKER_ID:-gateway-compose}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres: { condition: service_healthy }
+      # Read by the admin API (§12's nine pages, ADR-0039). The dependency is ordering, not a
+      # requirement: `build_reads` returns None when OPENSEARCH_URL is unset and the admin pages
+      # answer "no source", which is what lets the unit suite and a Cloud Run profile run without a
+      # telemetry cluster. Here the cluster is part of the demo, so the gateway waits for it.
+      opensearch: { condition: service_healthy }
+      otel-collector: { condition: service_started }
+      mock-api: { condition: service_started }
+    healthcheck:
+      # Requires curl in the service image. If the image is built on a
+      # distroless base, change this probe to whatever client it does ship —
+      # do NOT replace it with `CMD true`.
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/healthz > /dev/null || exit 1"]
+      <<: *hc-defaults
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m }
+    logging: *default-logging
+    networks: [referraleasy]
+
+  mock-api:
+    build:
+      context: .
+      dockerfile: services/mock-api/Dockerfile
+    image: referraleasy/mock-api:dev
+    profiles: [core]
+    restart: unless-stopped
+    env_file: *app-env-file
+    environment:
+      <<: *app-env
+      PORT: "4010"
+      # Deterministic fault injection (§17): the seed is fixed so a demo run is
+      # reproducible, and it is the same seed the fixtures were generated with.
+      MOCK_FAULT_SEED: ${MOCK_FAULT_SEED:-42}
+    ports:
+      - "127.0.0.1:4010:4010"     # matches MOCK_API_URL in .env.example
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4010/healthz > /dev/null || exit 1"]
+      <<: *hc-defaults
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256m }
+    logging: *default-logging
+    networks: [referraleasy]
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/workers/Dockerfile
+    image: referraleasy/worker:dev
+    profiles: [core]
+    restart: unless-stopped
+    env_file: *app-env-file
+    environment:
+      <<: *app-env
+      SERVICE_ROLE: worker
+      # The two endpoints the drain loop calls, and the reason this entry sets
+      # variables that .env.example does not: `outbox` refuses to start without
+      # NOTIFICATION_URL, `reconcile` refuses without BOOKING_API_URL
+      # (referraleasy_workers.settings, the require_* methods). Both point at mock-api,
+      # which is the §17 stand-in for the booking API and the notification sink alike.
+      NOTIFICATION_URL: http://mock-api:4010
+      BOOKING_API_URL: http://mock-api:4010
+    depends_on:
+      # Postgres, because the queue IS a table (`SELECT ... FOR UPDATE SKIP LOCKED`,
+      # no broker) and the lease is claimed in it — the one hard dependency. mock-api,
+      # because the delivery targets above live there. opensearch and otel-collector
+      # are deliberately absent: this package reads no OPENSEARCH_URL and no OTEL_*,
+      # so requiring them would be a startup order that claims something untrue.
+      postgres: { condition: service_healthy }
+      mock-api: { condition: service_started }
+    healthcheck:
+      # This container has no port. `python -m referraleasy_workers outbox --watch`
+      # opens no listener — there is no server in the package — so no probe can ask it
+      # anything over HTTP, and the Phase 0 entry's 8081/healthz endpoint described a
+      # service that was never written. What is probed instead are the two things that
+      # decide whether the container is doing its job at all: PID 1 is still the drain
+      # loop, and the database it drains is reachable from inside the container.
+      #
+      # /proc/1/cmdline and NOT `pgrep -f "referraleasy_workers outbox"`. pgrep matches
+      # any process whose command line contains the pattern — including the shell that
+      # runs THIS string, which carries the pattern as an argument. That is measured,
+      # not reasoned about: a container started with the probe's own test string and no
+      # loop at all still reports a match, so the pgrep form could never fail. PID 1's
+      # cmdline is the process the CMD exec'd: the loop, or whatever replaced it.
+      #
+      # What this still does NOT establish is progress — a loop blocked on an
+      # unreachable notification endpoint passes it. The loop itself is the cover for
+      # that case: a failed delivery is recorded on the row with its backoff and the
+      # pass ends, so it fails visibly rather than idling silently, and the
+      # `outbox: batches=...` line it logs on every pass is the evidence of progress
+      # (`docker compose logs worker`). Do NOT "simplify" this to `CMD true`.
+      test:
+        - CMD-SHELL
+        - >-
+          tr '\0' ' ' < /proc/1/cmdline | grep -q "referraleasy_workers outbox" &&
+          python -c "import os, psycopg; psycopg.connect(os.environ['DATABASE_URL'], connect_timeout=3).close()"
+      <<: *hc-defaults
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m }
+    logging: *default-logging
+    networks: [referraleasy]
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DECLARED BUT UNBOOTABLE — profile `pending`
+  #
+  # These two are what this file used to describe as if they existed: a `scheduler` on
+  # 8082 and a `local-guardrail` on 8090, both behind alarms about a missing
+  # Dockerfile. What is actually missing is the service. They keep the interface they
+  # were written against, behind a profile `make up` never activates, so the gap is
+  # stated in the topology instead of being papered over by a probe that could only
+  # ever answer "unhealthy". ADR-0036 has the measurements.
+  # ══════════════════════════════════════════════════════════════════════════
+
+  scheduler:
+    # This image is real and builds: services/workers/Dockerfile serves both `worker`
+    # and `scheduler` by SERVICE_ROLE. This role's arm of its CMD is a refusal — reason
+    # on stderr, exit 64 — because there is no evaluation or sampling job in this
+    # repository: nothing reads EVAL_CRON or EVAL_TIMEZONE (they appear in this file,
+    # in .env.example, and nowhere in the code), `referraleasy_eval` does not exist as
+    # a package, and the one loop that does exist must not be run twice — a second
+    # owner of the same SKIP LOCKED rows is worse than a service that never starts.
+    build:
+      context: .
+      dockerfile: services/workers/Dockerfile
+    image: referraleasy/worker:dev    # the same artefact as `worker`: one image, two roles
+    profiles: [pending]
+    restart: unless-stopped
+    env_file: *app-env-file
+    environment:
+      <<: *app-env
+      SERVICE_ROLE: scheduler
+      # Declared, and read by nothing yet. Kept so the interface this entry was
+      # written against stays visible rather than quietly disappearing.
+      EVAL_CRON: ${EVAL_CRON:-0 0,12 * * *}
+      EVAL_TIMEZONE: ${EVAL_TIMEZONE:-America/Chicago}
+    # No `depends_on`, and no healthcheck. A container whose command exits 64 has
+    # nothing to wait for, and an entry that depended on the `core` profile's services
+    # would make `--profile pending` on its own an invalid project ("depends on
+    # undefined service") — an error about the profile rather than about the gap.
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256m }
+    logging: *default-logging
+    networks: [referraleasy]
+
+  local-guardrail:
+    # NOT AN AGENT, and not servable by the agents image. §18 lists local-guardrail
+    # beside the seven roles as an *addition*, and §9's layer 3 is a local ONNX sentence
+    # classifier (ADR-0005): it publishes no Agent Card, holds no tool allowlist, and
+    # answers no task envelope. This service used to be built from
+    # services/agents/Dockerfile — the Phase 0 guess that the agents image would host
+    # it. That image refuses it (its CMD knows the seven role codes and nothing else)
+    # and no eighth role exists to add.
+    #
+    # The Dockerfile named below does not exist, and naming it is the point: it is what
+    # this service needs — a small HTTP wrapper over packages/guardrails listening on
+    # PORT with /healthz beside it. Three facts belong here rather than in a comment
+    # nobody reads: packages/guardrails is a library and not a workspace member (it is
+    # not in uv.lock), it has no __main__ and no HTTP app, and the gateway consumes the
+    # three-layer pipeline IN-PROCESS (its own config reads GUARDRAIL_MODE), so nothing
+    # in this stack opens a socket to 8090 today. ADR-0005 also leaves layer 3's
+    # threshold unmeasured, which makes the stage announce itself inert. Hence: declared
+    # interface, `pending` profile, and no probe pretending to watch it.
+    build:
+      context: .
+      dockerfile: services/guardrails/Dockerfile     # does not exist — see above
+    image: referraleasy/local-guardrail:dev
+    profiles: [pending]
+    restart: unless-stopped
+    env_file: *app-env-file
+    environment:
+      <<: *app-env
+      SERVICE_ROLE: local-guardrail
+      PORT: "8090"
+      GUARDRAIL_MODE: ${GUARDRAIL_MODE:-three_stage}
+      GUARDRAIL_TOTAL_TIMEOUT_MS: ${GUARDRAIL_TOTAL_TIMEOUT_MS:-3000}
+    ports:
+      - "127.0.0.1:8090:8090"
+    # No `depends_on` either, for the reason given on `scheduler`: the classifier would
+    # read its model from disk and answer in process, so it has nothing to wait for,
+    # and a dependency on a `core` service would make `--profile pending` alone an
+    # invalid project rather than a stated gap.
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1g }
+    logging: *default-logging
+    networks: [referraleasy]
+
+  # ── the seven specialist agents (§3, §5, §18) ───────────────────────────────
+  #
+  # `<<: *agent-service` carries everything they have in common — build, image,
+  # profile, restart, probe, limits, logging, network — so each entry below states
+  # only the three facts that are genuinely per-role: the service name, AGENT_ROLE,
+  # and the host port. Adding an eighth role is one of these blocks and nothing else.
+  #
+  # The published ports are the demo's, not the runtime's. Inside the network every
+  # agent listens on 8080 and is reached by service name (A2A_BASE_URL, resolved
+  # through `url_for` -> `http://agent-<role code>:8080`); the host mapping exists so
+  # a person can call one agent's Agent Card or task route by hand —
+  # `curl -s localhost:8102/.well-known/agent-card.json`. Nothing outside this file
+  # depends on these numbers.
+  agent-care_coordinator:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: care_coordinator
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8101:8080"
+    depends_on: *agent-depends-on
+
+  agent-referral_intake:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: referral_intake
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8102:8080"
+    depends_on: *agent-depends-on
+
+  agent-coverage_network:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: coverage_network
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8103:8080"
+    depends_on: *agent-depends-on
+
+  agent-provider_matching:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: provider_matching
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8104:8080"
+    depends_on: *agent-depends-on
+
+  agent-referral_readiness:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: referral_readiness
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8105:8080"
+    depends_on: *agent-depends-on
+
+  agent-scheduling:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: scheduling
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8106:8080"
+    depends_on: *agent-depends-on
+
+  agent-recovery_handoff:
+    <<: *agent-service
+    environment:
+      <<: *app-env
+      AGENT_ROLE: recovery_handoff
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8107:8080"
+    depends_on: *agent-depends-on
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: referraleasy/web:dev
+    profiles: [showcase]
+    restart: unless-stopped
+    env_file: *app-env-file
+    environment:
+      <<: *app-env
+      PORT: "3000"
+      # The offline profile is always labelled in the UI (§18): no admin chart
+      # may present canned output as a real measurement.
+      OFFLINE_PROFILE_LABEL: ${OFFLINE_PROFILE_LABEL:-OFFLINE FIXTURE PROFILE}
+      # The gateway URL is NOT set here. The web app is a Vite static bundle, so its API base is
+      # baked in at BUILD time and a runtime `environment:` value cannot reach it. The bundle
+      # defaults to same-origin and nginx proxies /v1/* to the gateway (apps/web/nginx.conf), which
+      # is why no variable is needed. To point the bundle elsewhere, pass a build arg:
+      #   build: { args: { VITE_GATEWAY_URL: ... } }
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      gateway: { condition: service_started }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/ > /dev/null || exit 1"]
+      <<: *hc-defaults
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512m }
+    logging: *default-logging
+    networks: [referraleasy]
+
+# ════════════════════════════════════════════════════════════════════════════
+# VOLUMES — one per service that keeps state. `make down` stops the stack but
+# never deletes these; `make clean` intentionally does not touch them either.
+# ════════════════════════════════════════════════════════════════════════════
+volumes:
+  pg-data:
+    name: referraleasy-pg-data
+  opensearch-data:
+    name: referraleasy-opensearch-data
+
+networks:
+  referraleasy:
+    name: referraleasy
+    driver: bridge

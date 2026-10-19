@@ -1,0 +1,42 @@
+{
+  "index_patterns": ["referraleasy-evaluation-*"],
+  "priority": 500,
+  "version": 1,
+  "_meta": {
+    "referraleasy.data_class": "evaluation",
+    "referraleasy.retention_days": 30,
+    "referraleasy.retention_ism_policy": "referraleasy-evaluation-30d",
+    "referraleasy.written_by": "evaluation CLI / scheduler (sampled turns + judge scores)",
+    "referraleasy.never_joined_with": "referraleasy-directory-* (vector / RAG retrieval text)",
+    "referraleasy.why_longer_than_telemetry": "Evaluation records are the regression baseline for agent quality. They are sampled at EVAL_SAMPLE_RATE (1%) so the volume is two orders of magnitude smaller than raw telemetry, which is why 30 days of retention still costs less than 7 days of traces.",
+    "referraleasy.note": "A reader should be able to see the 30d vs 7d difference here and in otel-telemetry-traces.json."
+  },
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "30s",
+      "plugins.index_state_management.policy_id": "referraleasy-evaluation-30d"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "evaluated_at": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "turn_id": { "type": "keyword" },
+        "trace_id": { "type": "keyword" },
+        "release_id": { "type": "keyword" },
+        "dataset_id": { "type": "keyword" },
+        "judge_model_id": { "type": "keyword" },
+        "score": { "type": "float" },
+        "passed": { "type": "boolean" },
+        "synthetic": {
+          "type": "boolean",
+          "doc_values": true
+        }
+      }
+    }
+  }
+}

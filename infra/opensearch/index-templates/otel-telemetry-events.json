@@ -1,0 +1,56 @@
+{
+  "index_patterns": ["otel-events-*"],
+  "priority": 500,
+  "version": 1,
+  "_meta": {
+    "referraleasy.data_class": "telemetry",
+    "referraleasy.retention_days": 7,
+    "referraleasy.retention_ism_policy": "referraleasy-telemetry-7d",
+    "referraleasy.written_by": "data-prepper: event pipeline (OTLP logs/events -> opensearch sink)",
+    "referraleasy.never_joined_with": "referraleasy-directory-* (vector / RAG retrieval text)",
+    "referraleasy.note": "Structured operational events (state transitions, guardrail decisions, tool calls). 7 day retention. These are the records a reader must never allow retrieved directory text to override."
+  },
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "10s",
+      "plugins.index_state_management.policy_id": "referraleasy-telemetry-7d"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "time": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis",
+          "ignore_malformed": true
+        },
+        "observedTime": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis",
+          "ignore_malformed": true
+        },
+        "timestamp": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis",
+          "ignore_malformed": true
+        },
+        "observedTimestamp": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis",
+          "ignore_malformed": true
+        },
+        "traceId": { "type": "keyword" },
+        "spanId": { "type": "keyword" },
+        "serviceName": { "type": "keyword" },
+        "severityText": { "type": "keyword" },
+        "severityNumber": { "type": "integer" },
+        "body": {
+          "type": "text",
+          "fields": { "keyword": { "type": "keyword", "ignore_above": 1024 } }
+        },
+        "synthetic": { "type": "boolean" }
+      }
+    }
+  }
+}

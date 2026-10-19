@@ -1,0 +1,29 @@
+[project]
+name = "referraleasy-eval"
+version = "0.1.0"
+description = "§14's offline evaluation: a versioned dataset, deterministic rules, an injectable judge seam, and a report that stamps the versions it ran under"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  # The result envelope, the workflow states and the evidence kinds the cases are written against.
+  # An evaluation that restated them would be a second contract.
+  "referraleasy-contracts",
+  # §15's evaluation events. Scores are emitted through `TelemetryEmitter.eval_score`, which is the
+  # one place §14's "N/A and eval_error are not zero" rule is enforced — a second emitter would be a
+  # second answer to whether an unscoreable case is a zero.
+  "referraleasy-telemetry",
+  "pydantic>=2.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/referraleasy_eval"]
+
+[tool.uv.sources]
+referraleasy-contracts = { workspace = true }
+referraleasy-telemetry = { workspace = true }

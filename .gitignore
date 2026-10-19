@@ -1,0 +1,70 @@
+# ─── secrets ────────────────────────────────────────────────────────────────
+# §19: secrets never enter the repo. .env.example is the only env file tracked.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.aws/
+.ssh/
+.agents/
+.codex/
+
+# ─── python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.coverage
+.coverage.*
+htmlcov/
+junit*.xml
+# NOTE: uv.lock is NOT ignored — §0.1 requires lockfiles committed.
+
+# ─── node ───────────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.next/
+.turbo/
+*.tsbuildinfo
+# JavaScript test output. Domain coverage data and its agent are source.
+/coverage/
+/apps/*/coverage/
+/packages/*/coverage/
+/services/*/coverage/
+!/services/agents/coverage/
+# NOTE: pnpm-lock.yaml is NOT ignored — §0.1 requires lockfiles committed.
+
+# ─── build output ───────────────────────────────────────────────────────────
+dist/
+build/
+out/
+
+# ─── local service data (docker volumes) ────────────────────────────────────
+volumes/
+.pgdata/
+.opensearch/
+# the mock API's SQLite file and its WAL sidecars
+.data/
+
+# ─── runtime artefacts ──────────────────────────────────────────────────────
+logs/
+*.log
+.argent/
+playwright-report/
+.playwright-mcp/
+test-results/
+# Local assistant working memory must not enter public source.
+/MEMORY.md
+
+# ─── os / ide ───────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,22 @@
+{
+  "a2a_card_hash": "8a4624b02d15c51091cef5ff77a14450485ab919915295b8a69a6a1a4154baec",
+  "agent_hash": "9459de25b1a74cb206205496caafcd600d1b3771561c8d9c42182499a14fc697",
+  "agent_name": "scheduling",
+  "instruction_hash": "4d6aa36a7b6c1678195d80fcbb7afc50e11f717ab325bc95f968b8af3c93ae8c",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "scheduling",
+  "service": "agent-scheduling",
+  "skill_hashes": {
+    "scheduling.confirm_booking_with_consent": "b18458ec21d7a3a83db0a53c400e535458c1cff2af2bd300a7032db6deb755c7",
+    "scheduling.reconcile_uncertain_booking": "8f1f379241cefe4e2de0f9b43a72a6bc59109b894098c67e5ec7c7dcfee6f315"
+  },
+  "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+  "tool_description_hashes": {
+    "cancel_booking": "088fdc531bd1dff1cbb656aafa1d112fda6e68129e462c579749b880b220a234",
+    "create_booking": "bcd56e0f1a247e7b0dc4130d764ac51cc31526df2d63300dbe2c9299f9db0ee2",
+    "list_slots": "18dd9f0a6a48ba7b758ee4aee51d9ff417263f8f6c80965e1542d9a7dcf91383",
+    "lookup_request": "f9d8d2f1fe50362810ddd4989ec086325e19c85db9c9bfb34f13de6b87a512ef",
+    "reschedule_booking": "0128c3f36c9464fd544469b0b1c6ccec51fb7874cc5cf4e66e266ae720145fbe"
+  },
+  "version": "1.0.0"
+}

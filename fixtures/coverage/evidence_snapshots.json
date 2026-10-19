@@ -1,0 +1,16 @@
+[
+  {
+    "snapshot_id": "95000000-0000-4000-8000-000000000001",
+    "captured_at": "2026-06-30T21:15:00Z",
+    "authoritative": false,
+    "payload_hash": "f510188d74309f561b0d5cf2579058501fca2ccb61aeae8b6f6c4c46ec5b6276",
+    "stale": true
+  },
+  {
+    "snapshot_id": "95000000-0000-4000-8000-000000000002",
+    "captured_at": "2026-10-14T09:30:00Z",
+    "authoritative": true,
+    "payload_hash": "3b1f9c2e5a7d04c8819f6e2b4d7a3c509e18b7f2a6d4c3805e9b1f7a2d6c4083",
+    "stale": false
+  }
+]

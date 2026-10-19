@@ -1,0 +1,32 @@
+[
+  {
+    "field": "prior_report",
+    "reason_code": "document_missing",
+    "question": "The referral cover sheet lists a prior echocardiogram, but no report arrived with the referral. Can you ask the imaging centre to send it?",
+    "mandatory": true
+  },
+  {
+    "field": "referred_by_provider",
+    "reason_code": "missing_mandatory_field",
+    "question": "The fax cover sheet for this referral does not name the referring clinician. Which practice sent it?",
+    "mandatory": true
+  },
+  {
+    "field": "specialty",
+    "reason_code": "ambiguous_input",
+    "question": "The referral letter names cardiology in the first paragraph, and an earlier transcription of the same letter names endocrinology. Which specialty should be booked?",
+    "mandatory": true
+  },
+  {
+    "field": "referral_expires_at",
+    "reason_code": "ambiguous_input",
+    "question": "This referral carries no expiry date. Should it be treated as valid for twelve months from the date of issue?",
+    "mandatory": false
+  },
+  {
+    "field": "visit_type",
+    "reason_code": "ambiguous_input",
+    "question": "The letter does not say whether this is a first visit or a follow-up to an earlier cardiology consultation in 2025. Which is it?",
+    "mandatory": false
+  }
+]

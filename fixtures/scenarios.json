@@ -1,0 +1,492 @@
+{
+  "synthetic": true,
+  "description": "Machine-readable index of which fixture records each of the eight demo scenarios depends on. The contract test asserts that every id listed here exists in the file it is listed under, and that every fault scenario file referenced here exists. Ids are the real fixture ids, not placeholders.",
+  "scenarios": [
+    {
+      "scenario_id": "standard_booking",
+      "number": 1,
+      "title": "Standard booking",
+      "summary": "Patient picks hospital, then doctor, then a slot, then approves. One receipt. The straight-through path with no conflicts and no faults except the ones injected deliberately.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000001", "b0000000-0000-4000-8000-000000000007"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000001", "c0000000-0000-4000-8000-000000000007"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000001", "d0000000-0000-4000-8000-000000000007"],
+        "preferences": ["f0000000-0000-4000-8000-000000000001", "f0000000-0000-4000-8000-000000000007"],
+        "hospitals": [
+          "20000000-0000-4000-8000-000000000001",
+          "20000000-0000-4000-8000-000000000002",
+          "20000000-0000-4000-8000-000000000005"
+        ],
+        "providers": [
+          "30000000-0000-4000-8000-000000000001",
+          "30000000-0000-4000-8000-000000000004",
+          "30000000-0000-4000-8000-000000000010",
+          "30000000-0000-4000-8000-000000000012"
+        ],
+        "slots": [
+          "40000000-0000-4000-8000-000000000001",
+          "40000000-0000-4000-8000-000000000003",
+          "40000000-0000-4000-8000-000000000004",
+          "40000000-0000-4000-8000-000000000011",
+          "40000000-0000-4000-8000-000000000013",
+          "40000000-0000-4000-8000-000000000025",
+          "40000000-0000-4000-8000-000000000032"
+        ],
+        "plans": ["60000000-0000-4000-8000-000000000001", "60000000-0000-4000-8000-000000000006"],
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000001",
+          "80000000-0000-4000-8000-000000000006",
+          "80000000-0000-4000-8000-000000000010"
+        ],
+        "network_records": [
+          "70000000-0000-4000-8000-000000000001",
+          "70000000-0000-4000-8000-000000000004",
+          "70000000-0000-4000-8000-000000000011"
+        ],
+        "referral_requirements": [
+          "90000000-0000-4000-8000-000000000001",
+          "90000000-0000-4000-8000-000000000002",
+          "90000000-0000-4000-8000-000000000003"
+        ],
+        "documents": [
+          "a0000000-0000-4000-8000-000000000001",
+          "a0000000-0000-4000-8000-000000000002",
+          "a0000000-0000-4000-8000-000000000003",
+          "a0000000-0000-4000-8000-000000000010"
+        ],
+        "patient_choices": [],
+        "handoffs": [],
+        "human_queue_tickets": []
+      },
+      "fault_scenarios": ["notification_failure.json", "stale_slot_409.json"],
+      "expected_result_kinds": ["slots_found"],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "The chosen hospital Lakeview Regional Medical Center uses the instant_confirm adapter, so a CONFIRMED appointment is reachable.",
+        "Ravenswood Specialty Surgical Center uses the review_required adapter, so a PENDING_REVIEW appointment is reachable instead of a false confirmation.",
+        "Avery Thompson's plan requires a referral letter at Lakeview Regional Medical Center and the document is present.",
+        "Every slot referenced by the golden path is status available with a version, so the patient can approve a slot that still exists."
+      ]
+    },
+    {
+      "scenario_id": "multi_constraint_search",
+      "number": 2,
+      "title": "Multi-constraint search with no result",
+      "summary": "Language and weekday and a 15 mile radius together yield no bookable slot. Alternatives are offered with evidence, and the hard distance constraint is never widened automatically.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000003", "b0000000-0000-4000-8000-000000000004"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000003", "c0000000-0000-4000-8000-000000000004"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000003", "d0000000-0000-4000-8000-000000000004"],
+        "preferences": ["f0000000-0000-4000-8000-000000000003", "f0000000-0000-4000-8000-000000000004"],
+        "constraints": [
+          "e0000000-0000-4000-8000-000000000001",
+          "e0000000-0000-4000-8000-000000000002",
+          "e0000000-0000-4000-8000-000000000003",
+          "e0000000-0000-4000-8000-000000000004",
+          "e0000000-0000-4000-8000-000000000005",
+          "e0000000-0000-4000-8000-000000000006",
+          "e0000000-0000-4000-8000-000000000007",
+          "e0000000-0000-4000-8000-000000000008",
+          "e0000000-0000-4000-8000-000000000009",
+          "e0000000-0000-4000-8000-000000000031",
+          "e0000000-0000-4000-8000-000000000032",
+          "e0000000-0000-4000-8000-000000000033",
+          "e0000000-0000-4000-8000-000000000034",
+          "e0000000-0000-4000-8000-000000000035",
+          "e0000000-0000-4000-8000-000000000036"
+        ],
+        "hospitals": [
+          "20000000-0000-4000-8000-000000000001",
+          "20000000-0000-4000-8000-000000000002",
+          "20000000-0000-4000-8000-000000000003",
+          "20000000-0000-4000-8000-000000000004",
+          "20000000-0000-4000-8000-000000000007"
+        ],
+        "providers": [
+          "30000000-0000-4000-8000-000000000001",
+          "30000000-0000-4000-8000-000000000002",
+          "30000000-0000-4000-8000-000000000003",
+          "30000000-0000-4000-8000-000000000004",
+          "30000000-0000-4000-8000-000000000005",
+          "30000000-0000-4000-8000-000000000006",
+          "30000000-0000-4000-8000-000000000007",
+          "30000000-0000-4000-8000-000000000008",
+          "30000000-0000-4000-8000-000000000010",
+          "30000000-0000-4000-8000-000000000012"
+        ],
+        "slots": [
+          "40000000-0000-4000-8000-000000000001",
+          "40000000-0000-4000-8000-000000000006",
+          "40000000-0000-4000-8000-000000000008",
+          "40000000-0000-4000-8000-000000000011",
+          "40000000-0000-4000-8000-000000000014",
+          "40000000-0000-4000-8000-000000000016",
+          "40000000-0000-4000-8000-000000000017",
+          "40000000-0000-4000-8000-000000000018",
+          "40000000-0000-4000-8000-000000000020",
+          "40000000-0000-4000-8000-000000000029"
+        ],
+        "plans": [
+          "60000000-0000-4000-8000-000000000001",
+          "60000000-0000-4000-8000-000000000005"
+        ],
+        "documents": ["a0000000-0000-4000-8000-000000000006", "a0000000-0000-4000-8000-000000000008"],
+        "alternative_options": [
+          "a1000000-0000-4000-8000-000000000001",
+          "a1000000-0000-4000-8000-000000000002",
+          "a1000000-0000-4000-8000-000000000003",
+          "a1000000-0000-4000-8000-000000000004"
+        ],
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000001",
+          "80000000-0000-4000-8000-000000000006",
+          "80000000-0000-4000-8000-000000000007",
+          "80000000-0000-4000-8000-000000000008",
+          "80000000-0000-4000-8000-000000000015",
+          "80000000-0000-4000-8000-000000000016"
+        ],
+        "evidence": [
+          "50000000-0000-4000-8000-000000000012",
+          "50000000-0000-4000-8000-000000000014",
+          "50000000-0000-4000-8000-000000000015",
+          "50000000-0000-4000-8000-000000000016",
+          "50000000-0000-4000-8000-000000000017",
+          "50000000-0000-4000-8000-000000000019",
+          "50000000-0000-4000-8000-000000000020",
+          "50000000-0000-4000-8000-000000000045"
+        ],
+        "patient_choices": [],
+        "handoffs": [],
+        "human_queue_tickets": []
+      },
+      "fault_scenarios": ["empty_valid_result.json"],
+      "expected_result_kinds": ["no_slots_for_constraints", "no_matching_provider", "slots_found"],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "Maria Delgado's constraint set is entirely hard, so no relaxation is permissible without an explicit decision.",
+        "No provider in the directory satisfies provider_language es AND preferred_day friday AND max_distance_miles 15 AND accepts_new_patients true at once.",
+        "Every alternative option carries relaxes_constraint_id null, because every constraint it addresses is hard.",
+        "The Spanish-speaking providers who do consult on Fridays are at 18.8 and 25.9 miles, outside the 15 mile limit, so the distance constraint is genuinely broken and not merely unreported.",
+        "The candidate list contains at least one constraint with satisfied null, so unknown is scored as unknown rather than as satisfied."
+      ]
+    },
+    {
+      "scenario_id": "network_conflict",
+      "number": 3,
+      "title": "Network conflict shown as unknown",
+      "summary": "The provider accepts the insurance in general while the plan-level network record says unknown, and a hospital's public description contradicts its own structured record. Both are shown as unknown with freshness, never resolved into a confident answer.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000005"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000005"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000005"],
+        "preferences": ["f0000000-0000-4000-8000-000000000005"],
+        "constraints": [
+          "e0000000-0000-4000-8000-000000000041",
+          "e0000000-0000-4000-8000-000000000042",
+          "e0000000-0000-4000-8000-000000000043",
+          "e0000000-0000-4000-8000-000000000044"
+        ],
+        "hospitals": [
+          "20000000-0000-4000-8000-000000000001",
+          "20000000-0000-4000-8000-000000000002",
+          "20000000-0000-4000-8000-000000000004",
+          "20000000-0000-4000-8000-000000000007"
+        ],
+        "providers": [
+          "30000000-0000-4000-8000-000000000001",
+          "30000000-0000-4000-8000-000000000006",
+          "30000000-0000-4000-8000-000000000007",
+          "30000000-0000-4000-8000-000000000012"
+        ],
+        "plans": ["60000000-0000-4000-8000-000000000002", "60000000-0000-4000-8000-000000000004"],
+        "network_records": [
+          "70000000-0000-4000-8000-000000000002",
+          "70000000-0000-4000-8000-000000000003",
+          "70000000-0000-4000-8000-000000000005",
+          "70000000-0000-4000-8000-000000000009",
+          "70000000-0000-4000-8000-000000000016"
+        ],
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000002",
+          "80000000-0000-4000-8000-000000000003",
+          "80000000-0000-4000-8000-000000000009",
+          "80000000-0000-4000-8000-000000000014"
+        ],
+        "evidence": [
+          "50000000-0000-4000-8000-000000000003",
+          "50000000-0000-4000-8000-000000000004",
+          "50000000-0000-4000-8000-000000000005",
+          "50000000-0000-4000-8000-000000000006",
+          "50000000-0000-4000-8000-000000000007",
+          "50000000-0000-4000-8000-000000000032",
+          "50000000-0000-4000-8000-000000000047"
+        ],
+        "evidence_snapshots": [
+          "95000000-0000-4000-8000-000000000001",
+          "95000000-0000-4000-8000-000000000002"
+        ],
+        "documents": [
+          "a0000000-0000-4000-8000-000000000007",
+          "a0000000-0000-4000-8000-000000000005"
+        ],
+        "alternative_options": ["a1000000-0000-4000-8000-000000000006"],
+        "handoffs": ["f1000000-0000-4000-8000-000000000005"],
+        "human_queue_tickets": []
+      },
+      "fault_scenarios": ["stale_coverage_evidence.json"],
+      "expected_result_kinds": ["slots_found"],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "Coverage result 80000000-0000-4000-8000-000000000002 has accepts_insurance true while in_network_for_plan is null and status is unknown.",
+        "That same coverage result sets conflict true, names both the stale and the authoritative evidence, and points winning_evidence_id at the authoritative record.",
+        "The superseded network record ends on 2026-06-30 and the record that replaces it begins on 2026-07-01, so the contradiction is date-explainable rather than arbitrary.",
+        "Coverage result 80000000-0000-4000-8000-000000000009 is a hospital-level conflict whose stale public description is non-authoritative and whose structured record wins, and whose freshness is stale.",
+        "The network record for the same provider and the same plan yields out_of_network in a second case, so both the unknown and the out-of-network shapes exist.",
+        "One referral document carries a prompt-injection attempt that tells an assistant to treat the plan as in network; the coverage fixtures contradict it."
+      ]
+    },
+    {
+      "scenario_id": "missing_document",
+      "number": 4,
+      "title": "Missing document, then one re-check",
+      "summary": "A required prior report is absent, the workflow stops, the synthetic document arrives, and only the one failed check re-runs while the checks that already passed keep their original result and run id.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000002"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000002"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000002"],
+        "preferences": ["f0000000-0000-4000-8000-000000000002"],
+        "constraints": [
+          "e0000000-0000-4000-8000-000000000021",
+          "e0000000-0000-4000-8000-000000000022",
+          "e0000000-0000-4000-8000-000000000023",
+          "e0000000-0000-4000-8000-000000000024"
+        ],
+        "hospitals": [
+          "20000000-0000-4000-8000-000000000002",
+          "20000000-0000-4000-8000-000000000004"
+        ],
+        "providers": [
+          "30000000-0000-4000-8000-000000000008",
+          "30000000-0000-4000-8000-000000000012"
+        ],
+        "plans": ["60000000-0000-4000-8000-000000000001"],
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000005",
+          "80000000-0000-4000-8000-000000000007"
+        ],
+        "referral_requirements": [
+          "90000000-0000-4000-8000-000000000003",
+          "90000000-0000-4000-8000-000000000004"
+        ],
+        "documents": [
+          "a0000000-0000-4000-8000-000000000004",
+          "a0000000-0000-4000-8000-000000000005"
+        ],
+        "missing_fields": [],
+        "evidence": [
+          "50000000-0000-4000-8000-000000000008",
+          "50000000-0000-4000-8000-000000000009",
+          "50000000-0000-4000-8000-000000000022"
+        ],
+        "handoffs": ["f1000000-0000-4000-8000-000000000004"],
+        "human_queue_tickets": ["f2000000-0000-4000-8000-000000000003"],
+        "patient_choices": []
+      },
+      "fault_scenarios": [],
+      "expected_result_kinds": [],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "Daniel Okafor's intake lists exactly one document and it is not a prior report, so the check fails for absence rather than for unreadability.",
+        "A prior report for the same patient exists as a separate fixture with a later issue date, and can be attached without inventing a document.",
+        "Ravenswood Specialty Surgical Center requires both a referral letter and a prior report for a first visit, and the referral letter is present.",
+        "The referral letter is itself contradictory: it lists an enclosed report that did not arrive and names two different specialties, which is what the missing-field fixtures capture.",
+        "The operator ticket records that only the failed check was re-run and that final approval is still required."
+      ]
+    },
+    {
+      "scenario_id": "timeout_after_commit",
+      "number": 5,
+      "title": "Timeout after commit",
+      "summary": "The hospital commits the booking and the response is lost. The outcome is unknown, so no second booking may be created and reconciliation must be explicit.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000007"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000007"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000007"],
+        "preferences": ["f0000000-0000-4000-8000-000000000007"],
+        "constraints": [
+          "e0000000-0000-4000-8000-000000000061",
+          "e0000000-0000-4000-8000-000000000062",
+          "e0000000-0000-4000-8000-000000000063",
+          "e0000000-0000-4000-8000-000000000064"
+        ],
+        "hospitals": ["20000000-0000-4000-8000-000000000001"],
+        "providers": ["30000000-0000-4000-8000-000000000010"],
+        "slots": ["40000000-0000-4000-8000-000000000025", "40000000-0000-4000-8000-000000000026"],
+        "plans": ["60000000-0000-4000-8000-000000000006"],
+        "coverage_results": ["80000000-0000-4000-8000-000000000010"],
+        "referral_requirements": [
+          "90000000-0000-4000-8000-000000000001",
+          "90000000-0000-4000-8000-000000000002"
+        ],
+        "documents": ["a0000000-0000-4000-8000-000000000010"],
+        "evidence": ["50000000-0000-4000-8000-000000000034", "50000000-0000-4000-8000-000000000042"],
+        "handoffs": ["f1000000-0000-4000-8000-000000000002"],
+        "human_queue_tickets": ["f2000000-0000-4000-8000-000000000002"],
+        "patient_choices": []
+      },
+      "fault_scenarios": [
+        "timeout_after_commit.json",
+        "timeout_before_commit.json",
+        "duplicate_event.json"
+      ],
+      "expected_result_kinds": ["slots_found"],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "The timeout_after_commit fault describes a booking that the hospital committed while the response was lost, so the booking exists and the caller cannot see it.",
+        "The companion timeout_before_commit fault describes a booking that was not committed, so the two cases can be told apart and only the safe one may be retried.",
+        "The duplicate_event fault delivers the confirmation of a single commit twice, so deduplication by booking identity is exercised rather than assumed.",
+        "A queue ticket exists for this workflow whose return state is BOOKING_UNVERIFIED and which still requires final approval, so the unknown outcome is handed off rather than guessed.",
+        "No second booking fixture exists for this workflow, which is the invariant the demo asserts."
+      ]
+    },
+    {
+      "scenario_id": "three_transient_errors",
+      "number": 6,
+      "title": "Three transient errors",
+      "summary": "A timeout, a 429 and a 503 in a row. Retries are bounded, the directory falls back to its static seed copy, and an upstream failure is reported as a failure rather than as an empty result.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000004"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000004"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000004"],
+        "preferences": ["f0000000-0000-4000-8000-000000000004"],
+        "hospitals": ["20000000-0000-4000-8000-000000000001", "20000000-0000-4000-8000-000000000002"],
+        "providers": [
+          "30000000-0000-4000-8000-000000000001",
+          "30000000-0000-4000-8000-000000000008"
+        ],
+        "plans": [
+          "60000000-0000-4000-8000-000000000001",
+          "60000000-0000-4000-8000-000000000005"
+        ],
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000005",
+          "80000000-0000-4000-8000-000000000012"
+        ],
+        "evidence": [
+          "50000000-0000-4000-8000-000000000010",
+          "50000000-0000-4000-8000-000000000012",
+          "50000000-0000-4000-8000-000000000013",
+          "50000000-0000-4000-8000-000000000044"
+        ],
+        "handoffs": ["f1000000-0000-4000-8000-000000000003"],
+        "human_queue_tickets": [],
+        "patient_choices": [],
+        "missing_fields": []
+      },
+      "fault_scenarios": [
+        "latency.json",
+        "rate_limit_429.json",
+        "service_unavailable_503.json",
+        "malformed_schema.json"
+      ],
+      "expected_result_kinds": ["upstream_error", "slots_found"],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "Three distinct fault files carry the three transient fault types latency, rate_limit_429 and service_unavailable_503, each with its own deterministic seed.",
+        "A malformed but technically valid JSON response is injected as a fourth case, to show that garbage is not silently retried into an empty candidate list.",
+        "An availability fixture exists whose result_kind is upstream_error and whose partial flag is true, alongside one whose result_kind is no_slots_for_constraints, so a fault cannot be presented to the patient as no specialist.",
+        "The recovery handoff records that the retry eventually succeeded and was withdrawn, so the outage did not become a permanent failure."
+      ]
+    },
+    {
+      "scenario_id": "no_specialist_found",
+      "number": 7,
+      "title": "No specialist found",
+      "summary": "The requested specialty does not exist anywhere in the directory. The workflow offers a human queue with evidence, an operator claims the ticket, and the patient returns to the same state with final approval still required.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000006"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000006"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000006"],
+        "preferences": ["f0000000-0000-4000-8000-000000000006"],
+        "constraints": [
+          "e0000000-0000-4000-8000-000000000051",
+          "e0000000-0000-4000-8000-000000000052",
+          "e0000000-0000-4000-8000-000000000053",
+          "e0000000-0000-4000-8000-000000000054"
+        ],
+        "hospitals": ["20000000-0000-4000-8000-000000000001"],
+        "providers": [
+          "30000000-0000-4000-8000-000000000008",
+          "30000000-0000-4000-8000-000000000011"
+        ],
+        "plans": ["60000000-0000-4000-8000-000000000003"],
+        "coverage_results": ["80000000-0000-4000-8000-000000000004"],
+        "documents": ["a0000000-0000-4000-8000-000000000009"],
+        "evidence": ["50000000-0000-4000-8000-000000000018", "50000000-0000-4000-8000-000000000050"],
+        "alternative_options": ["a1000000-0000-4000-8000-000000000005"],
+        "constraint_changes": [],
+        "handoffs": ["f1000000-0000-4000-8000-000000000001"],
+        "human_queue_tickets": ["f2000000-0000-4000-8000-000000000001"],
+        "patient_choices": []
+      },
+      "fault_scenarios": [],
+      "expected_result_kinds": ["no_matching_provider"],
+      "non_fixture_dependencies": [],
+      "assertions": [
+        "No provider in the directory lists the requested specialty, so the empty result is a genuine gap and not a filter artefact.",
+        "The handoff reason class is no_match and the queue ticket is claimed by a named operator with a claim generation.",
+        "The ticket's return state is a real workflow state and final_approval_still_required is true, so a safe return cannot skip the patient.",
+        "An availability fixture records no_matching_provider, distinguishing a directory gap from a transient upstream error.",
+        "The offered alternative is a human handoff with a candidate and evidence, not an invented clinic."
+      ]
+    },
+    {
+      "scenario_id": "version_regression",
+      "number": 8,
+      "title": "Version regression",
+      "summary": "A change to an agent description or skill must be caught by a version check in CI and shown on an old-versus-new evaluation chart. This scenario owns no clinical fixtures; its fixture contribution is a pinned, deterministic input set so that two runs are comparable.",
+      "reproducible_from_fixtures": true,
+      "references": {
+        "patients": ["b0000000-0000-4000-8000-000000000001"],
+        "patient_details": ["c0000000-0000-4000-8000-000000000001"],
+        "referral_intakes": ["d0000000-0000-4000-8000-000000000001"],
+        "preferences": ["f0000000-0000-4000-8000-000000000001"],
+        "hospitals": ["20000000-0000-4000-8000-000000000001"],
+        "providers": ["30000000-0000-4000-8000-000000000001"],
+        "plans": ["60000000-0000-4000-8000-000000000001"]
+      },
+      "fault_scenarios": [],
+      "expected_result_kinds": [],
+      "non_fixture_dependencies": [
+        "evaluations/ - the agent description or skill version being compared and the chart that plots old against new.",
+        "The pinned knowledge versions below are the only fixture-side determinism this scenario needs."
+      ],
+      "pinned_inputs": {
+        "patient_id": "b0000000-0000-4000-8000-000000000001",
+        "specialty": "cardiology",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "provider_id": "30000000-0000-4000-8000-000000000001",
+        "plan_id": "60000000-0000-4000-8000-000000000001",
+        "visit_type": "first_visit",
+        "fault_seed": 42
+      },
+      "knowledge_version_pins": [
+        { "record": "20000000-0000-4000-8000-000000000001", "knowledge_version": "kv-hosp-0001-2026-09-01" },
+        { "record": "30000000-0000-4000-8000-000000000001", "knowledge_version": "kv-prov-0001-2026-09-01" }
+      ],
+      "assertions": [
+        "A single pinned input tuple exists, with a patient, a hospital, a provider, a plan and a fault seed, so two evaluation runs start from byte-identical ground.",
+        "Every fault scenario in the fixture set carries an integer fault_seed, so a faulted run is replayable rather than random.",
+        "The pinned hospital and provider expose a knowledge_version string, which is the value a version check compares between releases.",
+        "The scenario states its non-fixture dependency instead of pretending the fixture set alone can reproduce it."
+      ]
+    }
+  ]
+}

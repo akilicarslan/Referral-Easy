@@ -1,0 +1,22 @@
+{
+  "file": "referraleasy-showcase-enterprise.mp4",
+  "bytes": 4081169,
+  "size_mb": 4.08,
+  "duration_seconds": 60.011,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "frames": 1800,
+  "video_codec": "h264",
+  "pixel_format": "yuvj420p",
+  "audio_codec": "aac",
+  "audio_channels": 2,
+  "fast_start": true,
+  "music": "Signal Path \u2014 futuristic techno, 128 BPM",
+  "music_gain": 0.2,
+  "music_gain_automation": false,
+  "ducking": false,
+  "narration": "Conversational product demo; natural speed",
+  "opening": "Product name, purpose, problem, guided usage",
+  "demo_note": "Stationary, larger type; no blink across 324 encoded frames"
+}

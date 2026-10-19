@@ -1,0 +1,68 @@
+{
+  "manifest_version": "1",
+  "name": "handoff-triage",
+  "version": "1.0.0",
+  "title": "Handoff Triage",
+  "owner_agent": "recovery_handoff",
+  "summary": "Classify the reason for a human handoff, write the summary the patient consents to share, and declare the return path the resolution must respect.",
+  "when_to_use": [
+    "The workflow has reached HUMAN_HANDOFF and a person must take it over",
+    "An agent returned terminal_error, or exhausted its retry budget on retryable_error, or could not resolve an outcome_unknown",
+    "A patient explicitly asked to speak to a person",
+    "Another skill called for escalation with technical_outage, no_match, missing_document, conflicting_sources, prolonged_unknown_booking or no_reliable_recovery"
+  ],
+  "inputs": [
+    {
+      "name": "trigger",
+      "type": "{reason_code: ReasonCode, evidence_ids: EvidenceId[], raised_by: string}",
+      "description": "What failed and which agent raised it, with the evidence that supports it."
+    },
+    {
+      "name": "workflow_id",
+      "type": "WorkflowId",
+      "description": "The workflow entering HUMAN_HANDOFF."
+    },
+    {
+      "name": "state_version",
+      "type": "StateVersion",
+      "description": "The version the workflow is at when the handoff is raised."
+    },
+    {
+      "name": "patient_context",
+      "type": "structured summary of the workflow",
+      "description": "What was being done, what was decided, and what remains open - the raw material for the patient-visible summary."
+    },
+    {
+      "name": "mandatory_conditions",
+      "type": "MandatoryConditions",
+      "description": "Which of specialty_identified, approval_present, slot_valid held, plus blocking_reasons."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "handoff",
+      "type": "Handoff",
+      "description": "reason_class, reason_detail, patient_visible_summary, consent_given_at, response_deadline_at, status."
+    },
+    {
+      "name": "ticket",
+      "type": "HumanQueueTicket",
+      "description": "Queued ticket carrying return_state and final_approval_still_required: true."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code from the trigger, then human_owned once the ticket is claimed."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/reason-class-playbook.md",
+      "purpose": "Per reason class: what it means, what the summary must contain, and what the resolution may and may not do."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "recovery_handoff.triage_handoff_reason",
+  "tags": ["handoff", "escalation", "consent", "human-in-the-loop"]
+}

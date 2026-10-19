@@ -1,0 +1,21 @@
+{
+  "scenario_id": "network_conflict",
+  "description": "The coverage lookup returns an expired network file that still says in_network, while the current file says unknown. The stale record must be shown as stale with its age, must not be allowed to override the authoritative structured result, and must not be collapsed into a confident 'in network'.",
+  "fault_seed": 49,
+  "default_fault": "stale_coverage_evidence",
+  "steps": [
+    {
+      "match": { "method": "GET", "path": "/coverage" },
+      "occurrence": 1,
+      "fault": {
+        "type": "stale_coverage_evidence",
+        "record_id": "70000000-0000-4000-8000-000000000002",
+        "superseded_by_record_id": "70000000-0000-4000-8000-000000000003",
+        "claimed_status": "in_network",
+        "effective_to": "2026-06-30",
+        "age_days": 116,
+        "authoritative": false
+      }
+    }
+  ]
+}

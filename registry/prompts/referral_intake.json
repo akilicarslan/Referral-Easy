@@ -1,0 +1,7 @@
+{
+  "agent_name": "referral-intake",
+  "instruction_hash": "75bee4891d6c63ec1dff6139f9ed3f7c9eae6ff8a9ea255c160469fdb5a612fd",
+  "prompt_version": "1.0.0",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "referral_intake"
+}

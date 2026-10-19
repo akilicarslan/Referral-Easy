@@ -1,0 +1,40 @@
+[project]
+name = "referraleasy-guardrails"
+version = "0.1.0"
+description = "The three-layer input guardrail (§9) behind the gateway's seam, plus the output guardrail"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  # The frozen contract types: the two enums (`GuardrailDecision`, `GuardrailCategory`,
+  # `GuardrailLayer`) and the A2UI component envelope the output guardrail validates against.
+  # Reusing these rather than declaring local look-alikes is what lets a verdict produced here be
+  # handed to the gateway's pipeline unchanged.
+  "referraleasy-contracts",
+  # The HTTP client for layer 2's OpenRouter call. Present in the base environment because the
+  # client itself is what a test drives through `httpx.MockTransport`; no request leaves the
+  # process unless a real transport is selected and a credential is configured.
+  "httpx>=0.28.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3.0"]
+
+[project.optional-dependencies]
+# Layer 3's encoder rung (ADR-0005). Deliberately an extra rather than a base dependency: the
+# artifact is ~23 MB and is never committed, so a checkout without it is the normal state, and a
+# layer whose runtime is absent must be *closed* rather than silently replaced by something weaker.
+# The versions are the ones ADR-0005 pinned.
+onnx = [
+  "onnxruntime==1.31.0",
+  "tokenizers==0.23.3",
+  "numpy>=1.26",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/referraleasy_guardrails"]
+
+[tool.uv.sources]
+referraleasy-contracts = { workspace = true }

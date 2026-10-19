@@ -1,0 +1,628 @@
+name: CI
+
+# What this workflow is
+# ---------------------
+# The Python quality gates mirror `make ci` (lint, typecheck, test) so a local run
+# and CI cannot disagree, plus four gates that exist because of Phase 0's rules:
+#
+#   * unit-tests    - the spike tests (tests/contracts/spikes/**) must NEVER run here.
+#                     They need real credentials and a network, and a green CI run that
+#                     silently skipped them would be a lie in the other direction. The
+#                     deselect lives in pyproject's `addopts`, so this job also asserts
+#                     the deselect is still in force and still has something to deselect.
+#   * contracts-drift - generated bindings must equal a fresh generation from the schemas.
+#   * env-guard     - the default (offline) profile must validate, AND a `live` profile
+#                     with unresolved CHANGEME pins must still be refused non-zero.
+#   * phase0-stubs  - the Phase 0 stubs that are STILL stubs must exit non-zero. A stub that exits 0
+#                     is a lie. Two scripts have left this list as their phases landed and are
+#                     checked by their own suites instead: `index_directory.py` (tests/rag) and
+#                     `health.py` (which cannot be in the loop at all — a service being down makes
+#                     it exit 2, and 2 is neither 3 nor 1). The job body names both with reasons;
+#                     this line is kept in step with it deliberately, because a stale comment about
+#                     a safety gate is how the gate gets deleted by someone who trusts the comment.
+#   * secrets       - gitleaks over the full history. `.pre-commit-config.yaml` runs it too, but a
+#                     pre-commit hook only exists on a machine where `pre-commit install` was run;
+#                     this job is what actually holds when someone clones and pushes. This repo is
+#                     public, so the gate has to live on the server side, not in a local hook.
+#
+# Every action is pinned to a release tag. `@main` would let an upstream change alter
+# this build without a commit here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
+  # uv is pinned so CI resolves dependencies with the same resolver the repo was
+  # locked with; an unpinned `latest` would let a new uv change the lock result.
+  UV_VERSION: "0.13.1"
+
+jobs:
+  secrets:
+    name: No secrets in the tree or the history
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # fetch-depth: 0 - gitleaks scans the whole history, not just the tip. A secret deleted in a
+      # later commit is still readable by anyone who clones, so a shallow clone would report a
+      # clean repo while the credential sits in an earlier commit.
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v3.0.0
+        env:
+          GITLEAKS_CONFIG: .gitleaks.toml
+          # Pinned to the same gitleaks as `.pre-commit-config.yaml`. Unset, the action runs its own
+          # hard-coded default (8.24.3 in v3.0.0), which predates the `[[allowlists]]` table and so
+          # ignores every allowlist in .gitleaks.toml: measured, it reports 12 findings over this
+          # history where 8.30.1 reports none.
+          GITLEAKS_VERSION: "8.30.1"
+          # GITLEAKS_LICENSE is required only for organisation-owned repos. Set it as a repo secret
+          # if this is ever moved under an org; the action fails loudly without it, which is the
+          # right failure — a silent skip would read as a passing scan.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      - name: No private files or machine paths
+        run: python3 scripts/check_public_release.py --tracked-only
+
+  python-lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the workspace
+        run: uv sync --all-packages --frozen
+      - name: ruff check
+        run: uv run ruff check .
+      - name: ruff format --check
+        run: uv run ruff format --check .
+
+  python-typecheck:
+    name: Type-check (mypy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the workspace
+        run: uv sync --all-packages --frozen
+      # NOT `uv run mypy .`. Whole-tree mypy has never worked in this repository and cannot: every
+      # test directory has a `conftest.py`, mypy names modules by walking up to the first directory
+      # without an `__init__.py`, and they all collide on the name `conftest` — "errors prevented
+      # further checking", so nothing was checked at all. The long note under [tool.mypy] in
+      # pyproject.toml records why each fix for that is worse than the problem. The shipped source
+      # roots are named instead, and the list lives in one place in the Makefile.
+      - name: mypy
+        run: make typecheck-python
+
+  unit-tests:
+    name: Tests (unit + contract, no spikes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the workspace
+        run: uv sync --all-packages --frozen
+
+      # Guard 1: the default invocation must not collect a single spike module.
+      # pyproject sets `addopts = "... -m 'not spike'"`; if that marker expression
+      # is renamed, dropped, or typo'd, the spikes would quietly join CI.
+      - name: Spikes must not be collected by the default run
+        run: |
+          set -eu
+          collected="${RUNNER_TEMP:-/tmp}/collected-nodeids.txt"
+          uv run pytest --collect-only -q > "$collected"
+          if grep -q 'tests/contracts/spikes/' "$collected"; then
+            echo "::error::The default pytest run collected files under tests/contracts/spikes/."
+            echo "Spike tests need credentials and network access and must stay deselected."
+            echo "Check the marker expression in pyproject.toml addopts and the pytestmark in the spike modules."
+            grep 'tests/contracts/spikes/' "$collected" || true
+            exit 1
+          fi
+          echo "Collected $(wc -l < "$collected") line(s) of node ids; no spike modules among them."
+
+      # Guard 2 (anti-vacuity): the spikes must still be collectible AS spikes.
+      # Without this, deleting `pytestmark = pytest.mark.spike` would make guard 1
+      # pass by collecting nothing, and the Phase 0 evidence set would silently empty out.
+      - name: Spike modules must stay collectible under the spike marker
+        run: |
+          set -eu
+          spikes="${RUNNER_TEMP:-/tmp}/spike-nodeids.txt"
+          uv run pytest tests/contracts/spikes --collect-only -q -m spike > "$spikes"
+          count="$(grep -c '::' "$spikes" || true)"
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No test collected under '-m spike'. Either the tests/contracts/spikes modules lost their pytestmark, or the spike marker was removed from pyproject."
+            exit 1
+          fi
+          echo "Collected $count spike test(s) - they are deselected here and run only via 'make spike'."
+
+      # Guard 3: `e2e` must stay deselected here too, and for a different reason than the spikes.
+      # `tests/e2e` needs a mock API whose database has not been booked against; there is no reset
+      # endpoint, so against a used database its fixture discovery fails with "no bookable ... slot"
+      # - an error that reads as a product bug and is not one. Only the `e2e` job below arranges the
+      # state it needs. If this job started collecting them, it would fail in a way that points at
+      # the wrong thing, or worse, pass and mean less.
+      - name: End-to-end tests must stay out of this job
+        run: |
+          set -eu
+          collected="${RUNNER_TEMP:-/tmp}/collected-nodeids.txt"
+          if grep -q '^tests/e2e/' "$collected"; then
+            echo "::error::The default pytest run collected tests/e2e/. That suite needs a freshly seeded mock API; it belongs to the 'e2e' job. Check the marker expression in pyproject.toml addopts and the pytestmark in tests/e2e."
+            grep '^tests/e2e/' "$collected" || true
+            exit 1
+          fi
+          echo "OK: no tests/e2e module among the collected node ids."
+
+      - name: Run the test suite
+        run: uv run pytest
+
+  integration-tests:
+    name: Integration tests (real PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The unit-tests job above runs the same files with no database, where every integration test
+    # skips. That is not a lesser run of the same thing - it is a run in which the package's central
+    # claim (that the DATABASE owns the rules and the client only translates its refusals) is never
+    # exercised. This job is what makes those tests evidence.
+    services:
+      postgres:
+        # Same pin as compose.yaml's `postgres` service: a different major version here would let a
+        # migration or a constraint pass in CI and fail locally.
+        image: postgres:18.6-alpine
+        env:
+          POSTGRES_USER: referraleasy
+          POSTGRES_PASSWORD: referraleasy
+          POSTGRES_DB: referraleasy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U referraleasy -d referraleasy"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DATABASE_URL: postgresql://referraleasy:referraleasy@localhost:5432/referraleasy
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the workspace
+        run: uv sync --all-packages --frozen
+      - name: Apply migrations to a virgin database
+        run: uv run python scripts/migrate.py --database-url "$TEST_DATABASE_URL"
+      # Anti-vacuity, and the reason this job exists. `TEST_DATABASE_URL` is exactly the switch that
+      # decides whether these tests run or skip, so a job that sets it wrongly would go green while
+      # testing nothing - which is the state this job was added to end.
+      #
+      # `--ignore=tests/rag`: the `integration` marker spans two different infrastructures. What
+      # this job provides is PostgreSQL; tests/rag needs OpenSearch and is deliberately out of scope
+      # here. The ignore is spelled out rather than folded into a marker expression so that a new
+      # database-backed integration test anywhere else is still covered by the guard below without
+      # anyone remembering to add it.
+      #
+      # That guard did not cover `migrations/tests` until recently, and the reason was collection
+      # rather than policy: the directory was outside `testpaths`, so `pytest -m integration` never
+      # saw its 124 schema-level tests. They also could not have run — their helpers were in a
+      # `conftest` imported by bare name, which resolves to whichever conftest pytest imported last.
+      # Both are fixed; the count this job now guards grew by 104, and the `passed == 0` check below
+      # is what would notice if it silently shrank again.
+      - name: Integration tests must run, not skip
+        run: |
+          set -eu
+          out="$(uv run pytest -m integration -q -rs --ignore=tests/rag 2>&1)" \
+            || { printf '%s\n' "$out"; exit 1; }
+          printf '%s\n' "$out"
+          passed="$(printf '%s' "$out" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true)"
+          skipped="$(printf '%s' "$out" | grep -oE '[0-9]+ skipped' | grep -oE '[0-9]+' || true)"
+          passed="${passed:-0}"; skipped="${skipped:-0}"
+          if [ "$passed" -eq 0 ]; then
+            echo "::error::No integration test ran. They gate on TEST_DATABASE_URL; check the job env and the service health."
+            exit 1
+          fi
+          if [ "$skipped" -ne 0 ]; then
+            echo "::error::${skipped} database-backed integration test(s) skipped even though a database was configured. A skip here means the database the tests reached was not usable."
+            exit 1
+          fi
+          excluded="$(uv run pytest -m integration --collect-only -q 2>/dev/null | grep -c '^tests/rag/' || true)"
+          echo "OK: ${passed} integration test(s) ran against PostgreSQL."
+          echo "NOTE: ${excluded:-0} integration test(s) under tests/rag are out of scope here (they need OpenSearch). TODO: give them their own job once the RAG phase lands."
+
+  e2e:
+    name: Scripted end-to-end booking
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Phase 1's exit criterion: a scripted client with no LLM anywhere drives one booking through
+    # every fault type without violating an invariant. It is not in the default pytest run because
+    # its precondition is a mock API whose database has NOT been booked against yet - the suite
+    # consumes slots and there is no reset endpoint, so a second run fails in fixture discovery
+    # rather than on a real defect. This job starts a clean one, which is the only honest way to
+    # run it. `MOCK_API_DB` points at the runner's temp dir so no repo file is written.
+    env:
+      MOCK_API_DB: ${{ runner.temp }}/mock-api.sqlite
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      # pnpm/action-setup reads the exact version from package.json's `packageManager` field, so
+      # the version here and the version the repo pins cannot drift.
+      - uses: pnpm/action-setup@v6.1.0
+        with:
+          run_install: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install the Python workspace and the Node workspace
+        run: |
+          uv sync --all-packages --frozen
+          pnpm install --frozen-lockfile
+      # `start` runs dist/server.js, so the build has to exist first. Building rather than using
+      # the `dev` script keeps CI on a real compiled artefact with no file watcher running.
+      - name: Build the mock API
+        run: pnpm --filter @referraleasy/mock-api build
+      - name: Start the mock API on a clean database
+        run: |
+          set -eu
+          rm -f "$MOCK_API_DB"
+          nohup pnpm --filter @referraleasy/mock-api start > "$RUNNER_TEMP/mock-api.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:4010/health && break
+            sleep 1
+          done
+          if ! curl -sf -o /dev/null http://localhost:4010/health; then
+            echo "::error::The mock API did not become healthy. Log:"
+            cat "$RUNNER_TEMP/mock-api.log" || true
+            exit 1
+          fi
+          echo "mock API healthy."
+      # Anti-vacuity again: this suite is famous for passing by not running. If `MOCK_API_URL` were
+      # wrong, or the marker were lost, every test would error or be deselected and a bare exit code
+      # of 0 would hide it. Assert the count.
+      - name: Run the e2e suite
+        run: |
+          set -eu
+          # `-m e2e` is required: pyproject's addopts deselects the marker for the default run, and
+          # a command-line -m replaces that expression. Without it every test is deselected, pytest
+          # exits 5, and the run looks clean to anything that only checks for a non-zero... which is
+          # exactly why the count is asserted below rather than the exit code alone.
+          out="$(uv run pytest tests/e2e -m e2e -q -rs -p no:randomly 2>&1)" || { printf '%s\n' "$out"; exit 1; }
+          printf '%s\n' "$out"
+          passed="$(printf '%s' "$out" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true)"
+          if [ "${passed:-0}" -eq 0 ]; then
+            echo "::error::No e2e test ran. Check MOCK_API_URL (tests/e2e defaults to http://localhost:4010), the e2e marker, and that '-m e2e' reached pytest."
+            exit 1
+          fi
+          echo "OK: ${passed} end-to-end test(s) ran against a freshly seeded mock API."
+      - name: Mock API log (on failure only)
+        if: failure()
+        run: cat "$RUNNER_TEMP/mock-api.log" || true
+
+  release-version-gate:
+    name: Version gate (a changed artifact must bump its version)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        # fetch-depth: 0 for the same reason the secrets job needs it, and one more: §13 records the
+        # commit sha in every release manifest, and the gate exits 3 rather than inventing a value
+        # when it cannot read one. A shallow clone has a HEAD, so it would pass here — but the
+        # *comparison* against a baseline release needs history, and a gate that only works on the
+        # tip is not a gate.
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the workspace
+        run: uv sync --all-packages --frozen
+      - name: A changed agent, prompt, tool or skill must advance its version
+        run: |
+          set -eu
+          set +e
+          output="$(uv run --no-sync python scripts/check_release_versions.py 2>&1)"
+          code=$?
+          set -e
+          printf '%s\n' "$output"
+          # 0 = nothing changed, or every changed artifact bumped its version.
+          # 1 = an artifact changed without its version moving. §13 counts even a PATCH.
+          # 2 = the gate itself could not run.
+          # 3 = the environment is wrong — notably, no commit sha is available to record. That must
+          #     fail the build too: an unrecorded release is the thing §13 exists to prevent, and
+          #     treating a broken gate as a pass is how a registry fills with manifests nothing can
+          #     be compared against.
+          case "$code" in
+            0) echo "OK: the version gate is satisfied." ;;
+            1) echo "::error::An artifact changed without its version increasing. Bump the declared version in registry/versions.json and re-run. See §13 and docs/adr/ADR-0037."; exit 1 ;;
+            2) echo "::error::The version gate could not run. Fix its own failure before trusting it."; exit 1 ;;
+            3) echo "::error::The version gate cannot record a release — check the git sha is readable. This is a broken gate, not a clean tree."; exit 1 ;;
+            *) echo "::error::scripts/check_release_versions.py exited ${code}, which is not one of the four documented codes."; exit 1 ;;
+          esac
+
+  contracts-drift:
+    name: Generated bindings match the schemas
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install the workspace
+        run: uv sync --all-packages --frozen
+      # TODO(contracts): root package.json exposes `gen:contracts`, which filters on
+      # `@referraleasy/contracts` - but packages/contracts/package.json does not exist
+      # yet, so that npm wrapper cannot run. This job therefore calls generate.sh
+      # directly, which is the source of truth for both branches. When the contracts
+      # package's package.json lands, either keep using generate.sh --check here (it
+      # already covers the TS branch once packages/contracts/ts is scaffolded) or add a
+      # `pnpm gen:contracts` step and pin pnpm in this job.
+      - name: Regenerate and diff
+        run: |
+          set -eu
+          if [ ! -f packages/contracts/python/pyproject.toml ]; then
+            if [ -d packages/contracts/python/src/referraleasy_contracts/generated ]; then
+              echo "::error::Committed generated bindings exist, but packages/contracts/python/pyproject.toml is gone, so they can no longer be regenerated or verified. Restore the contracts package."
+              exit 1
+            fi
+            echo "::warning::No contracts package and no generated bindings yet - drift cannot be checked. TODO: make this job required once packages/contracts/python/pyproject.toml lands."
+            exit 0
+          fi
+          bash packages/contracts/generate.sh --check
+
+  env-guard:
+    name: Env guard (offline passes, live+CHANGEME fails)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      # Deliberately NO MODEL_BACKEND/EMBEDDING_BACKEND/RERANK_BACKEND in this job's env:
+      # validate_env.py must be judged by the profile the repo itself ships in
+      # .env.example. Pinning the backends here would hide a repo that drifted to `live`.
+      - name: The shipped offline profile must validate
+        run: uv run python scripts/validate_env.py --quiet
+      - name: A live backend with unresolved pins must be refused
+        run: |
+          set +e
+          output="$(MODEL_BACKEND=live uv run python scripts/validate_env.py --quiet 2>&1)"
+          code=$?
+          set -e
+          echo "$output"
+          if [ "$code" -eq 0 ]; then
+            echo "::error::validate_env.py exited 0 with MODEL_BACKEND=live while CHANGEME pins remain. The guard that keeps an unpinned model id out of a live run is broken."
+            exit 1
+          fi
+          if ! printf '%s' "$output" | grep -q 'PHASE 0 INCOMPLETE'; then
+            echo "::error::validate_env.py failed for the wrong reason (exit $code, expected the unresolved-pins error). Fix the failure above before trusting this guard."
+            exit 1
+          fi
+          echo "OK: live + unresolved pins refused with exit $code."
+
+  phase0-stubs:
+    name: The demo scripts never claim work they did not do
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      # Two scripts have LEFT this list as their phases landed, and both are recorded because the
+      # list is only trustworthy if its contents are deliberate:
+      #
+      #   * `scripts/index_directory.py` - implemented by the hybrid-RAG phase. Its behaviour is
+      #     covered by `tests/rag` (13 tests against a real OpenSearch), not here.
+      #   * `scripts/health.py` - implemented, and checked by the two steps below instead. It cannot
+      #     be in this loop: health exits 2 when a service is down, and 2 is neither 3 nor 1, so the
+      #     loop would fail on a script doing exactly what it should.
+      #
+      # The guard is for stubs. A guard that a finished feature trips is a guard someone deletes
+      # rather than fixes, which loses the check for the scripts that are still stubs.
+      #   * `scripts/seed.py` - implemented, and checked by the step below. Its premise turned out
+      #     to be wrong: nothing needed *loading*. The migrations own the reference tables and the
+      #     mock API seeds itself from `fixtures/`, so the script is a verifier with 8 checks and no
+      #     writes. It exits 2 when a dataset is missing, which is neither 3 nor 1.
+      #   * `scripts/demo.py` - implemented last, and the loop this job used to run is GONE with it:
+      #     there are now no stubs left to assert about, and a `for name in; do` loop with an empty
+      #     list iterates zero times and prints "OK", which is a passing check that checks nothing.
+      #     The step below replaces it with the property `demo` shares with the other three: with
+      #     nothing running it must not report that it brought a demo up.
+      - name: demo must not report a stack it did not start
+        env:
+          # Every probe and the migration target point at a closed port, so this is about what the
+          # script claims rather than about what the runner happens to have listening (`ubuntu-latest`
+          # does have docker, which is why --no-up is passed rather than relied on to fail).
+          DATABASE_URL: postgresql://nobody:nobody@localhost:9/nothing
+          MOCK_API_URL: http://localhost:9
+          GATEWAY_URL: http://localhost:9
+          OPENSEARCH_URL: http://localhost:9
+        run: |
+          set -eu
+          set +e
+          output="$(uv run python scripts/demo.py --no-up 2>&1)"
+          code=$?
+          set -e
+          printf '%s\n' "$output"
+          # 2 = a step failed, which is the honest outcome with no database and no stack. Here it is
+          # step 3, the index templates: `apply-index-templates.sh` waits up to two minutes for a
+          # cluster that never answers, which is most of this step's runtime and is the script doing
+          # what it says rather than a hang.
+          # 0 would mean it claimed the demo came up; 1 means validate_env.py failed here, which
+          # would be this job's environment rather than the script's behaviour; 3 is the retired
+          # stub code, and anything still exiting it has not been finished.
+          if [ "$code" -ne 2 ]; then
+            echo "::error::scripts/demo.py exited ${code}; expected 2 (a step failed). 0 claims the demo is up, 3 is the retired stub code."
+            exit 1
+          fi
+          if printf '%s' "$output" | grep -qE '^Done\.'; then
+            echo "::error::scripts/demo.py printed its success line without a stack. That is the fabrication its stub existed to prevent."
+            exit 1
+          fi
+          # And the URL list must never appear without the probe that justified it: `entry points`
+          # is step 7, which is only reachable when every service answered.
+          if printf '%s' "$output" | grep -q 'entry points'; then
+            echo "::error::scripts/demo.py reached the entry-point list with nothing running."
+            exit 1
+          fi
+          echo "OK: demo exited 2, printed no success line and listed no URL."
+
+      # `scripts/health.py` earns its place here rather than in the loop above, and the property
+      # under test is the one that made it a stub in the first place: **with nothing running, it
+      # must not report health.** A health check that prints OK without probing anything is the
+      # most damaging kind of fabricated demo output, because health is the number a viewer trusts
+      # without checking. This job has no services, so a truthful script cannot pass it.
+      - name: health must refuse to claim health when nothing is running
+        env:
+          # Point every probe at a closed port rather than relying on the runner having nothing
+          # bound. The check is about what the script claims, and this makes that independent of
+          # whatever a given runner happens to have listening.
+          DATABASE_URL: postgresql://nobody:nobody@localhost:9/nothing
+          OPENSEARCH_URL: http://localhost:9
+          OTEL_COLLECTOR_HEALTH_URL: http://localhost:9/health/status
+          DATA_PREPPER_HEALTH_URL: http://localhost:9/metrics
+          MOCK_API_URL: http://localhost:9
+        run: |
+          set -eu
+          set +e
+          output="$(uv run python scripts/health.py 2>&1)"
+          code=$?
+          set -e
+          printf '%s\n' "$output"
+          # This job's env validates and runs no services, so a truthful health check exits exactly
+          # 2. Pinning the code rather than accepting "non-zero" is deliberate: 3 is the stub's
+          # "I probed nothing" and 1 is "the environment is invalid" - both would look like a pass
+          # under a looser check while meaning something else entirely.
+          if [ "$code" -ne 2 ]; then
+            echo "::error::scripts/health.py exited ${code}; expected 2 (a service did not answer). 0 means it claimed health, 3 means it is still the stub, 1 means it judged the environment invalid - check scripts/validate_env.py."
+            exit 1
+          fi
+          if printf '%s' "$output" | grep -qE '^  [a-z][a-z0-9-]* +(OK) '; then
+            echo "::error::scripts/health.py printed an OK row while no service is running. That is a fabricated result."
+            exit 1
+          fi
+          echo "OK: health exited 2 and reported no service as OK."
+
+      # `scripts/seed.py` gets the same treatment for the same reason. It is a *verifier*: it writes
+      # nothing and instead reports whether the two real loaders (the migrations, and the mock API
+      # seeding itself from `fixtures/`) are in the state the demo assumes. With no services and no
+      # database it must therefore FAIL - a verifier that passed with nothing to verify would be
+      # exactly the fabrication its Phase 0 stub existed to prevent.
+      - name: seed must refuse to report a dataset it could not check
+        env:
+          DATABASE_URL: postgresql://nobody:nobody@localhost:9/nothing
+          MOCK_API_URL: http://localhost:9
+        run: |
+          set -eu
+          set +e
+          output="$(uv run python scripts/seed.py 2>&1)"
+          code=$?
+          set -e
+          printf '%s\n' "$output"
+          # 0 = it claims every dataset is present and matching; 3 = it reverted to the stub;
+          # 1 = it judged the environment invalid, which would mean validate_env.py failed here.
+          if [ "$code" -ne 2 ]; then
+            echo "::error::scripts/seed.py exited ${code}; expected 2 (a dataset is missing or unreachable). 0 means it verified nothing and passed, 3 means it is still the stub."
+            exit 1
+          fi
+          if printf '%s' "$output" | grep -qE '^  PASS '; then
+            echo "::error::scripts/seed.py printed a PASS row with nothing reachable. That is a fabricated verification."
+            exit 1
+          fi
+          echo "OK: seed exited 2 and reported no check as PASS."
+
+  js-checks:
+    name: JS lint + typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Check for a Node workspace
+        id: workspace
+        run: |
+          set -eu
+          if [ -f package.json ] && [ -f pnpm-lock.yaml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No pnpm workspace yet (package.json or pnpm-lock.yaml missing), so pnpm lint / pnpm typecheck cannot run. TODO: drop this guard and make the steps below unconditional once the Node workspace is bootstrapped."
+          fi
+      # pnpm/action-setup reads the exact version from package.json's `packageManager`
+      # field (pnpm@12.10.1) rather than a version pinned here, so the two cannot drift.
+      - if: steps.workspace.outputs.present == 'true'
+        uses: pnpm/action-setup@v6.1.0
+        with:
+          run_install: false
+      - if: steps.workspace.outputs.present == 'true'
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - if: steps.workspace.outputs.present == 'true'
+        name: Install
+        run: pnpm install --frozen-lockfile
+      - if: steps.workspace.outputs.present == 'true'
+        name: pnpm lint
+        run: pnpm lint
+      - if: steps.workspace.outputs.present == 'true'
+        name: pnpm typecheck
+        run: pnpm typecheck

@@ -1,0 +1,92 @@
+{
+  "engine": "pocket-tts",
+  "version": "3.3.0",
+  "language": "english_2026-09",
+  "voice": "george",
+  "sample_rate": 24000,
+  "unique_weight_bytes": 225273348,
+  "weights": [
+    {
+      "path": ".cache/huggingface/hub/models--kyutai--pocket-tts-without-voice-cloning/snapshots/e7205b6ee50e654a5ea19f0e9df2b0813b05e921/languages/english_2026-09/model.safetensors",
+      "bytes": 219029196,
+      "sha256": "916ccd2686e9311cb40054893a3c4284393d658825ffc714a276f3e9b152344f"
+    },
+    {
+      "path": ".cache/huggingface/hub/models--kyutai--pocket-tts-without-voice-cloning/snapshots/4e1e0a3e611c51c0b4ed8174fc10f32a54644303/languages/english_2026-09/embeddings/george.safetensors",
+      "bytes": 6244152,
+      "sha256": "9cee0daccb0eda1631b73f8b35f6f8cb195885d55d2e1e20fc711f9e4456ceb0"
+    }
+  ],
+  "timing": [
+    {
+      "id": "opening",
+      "start": 0,
+      "end": 6,
+      "text": "Meet Referral Easy, a simpler way to coordinate specialist referrals.",
+      "voice_start": 0.3,
+      "voice_end": 4.497708333333334,
+      "source_duration": 4.201958333333334,
+      "tempo": 1.0
+    },
+    {
+      "id": "journey",
+      "start": 6,
+      "end": 18,
+      "text": "Referrals can mean chasing coverage, paperwork, and appointments. Here, you open your referral, compare providers, choose a time, and approve.",
+      "voice_start": 6.3,
+      "voice_end": 14.198125,
+      "source_duration": 7.903583333333334,
+      "tempo": 1.0
+    },
+    {
+      "id": "architecture",
+      "start": 18,
+      "end": 27,
+      "text": "Seven agents work together behind the scenes. Coverage and provider matching run in parallel, while the gateway enforces permissions.",
+      "voice_start": 18.3,
+      "voice_end": 25.027416666666667,
+      "source_duration": 6.731875,
+      "tempo": 1.0
+    },
+    {
+      "id": "booking",
+      "start": 27,
+      "end": 36,
+      "text": "Your approval covers the exact request. If a booking response is lost, we check the same request key to prevent duplicates.",
+      "voice_start": 27.3,
+      "voice_end": 34.314,
+      "source_duration": 7.019625,
+      "tempo": 1.0
+    },
+    {
+      "id": "continuity",
+      "start": 36,
+      "end": 43,
+      "text": "After a restart, Postgres restores progress. Expired workers can't overwrite newer decisions.",
+      "voice_start": 36.299958333333336,
+      "voice_end": 42.61275,
+      "source_duration": 6.319083333333333,
+      "tempo": 1.0
+    },
+    {
+      "id": "recovery",
+      "start": 43,
+      "end": 53,
+      "text": "When a document is missing or a slot disappears, you get a clear next step. Human handoff includes your summary and permission.",
+      "voice_start": 43.299958333333336,
+      "voice_end": 50.023916666666665,
+      "source_duration": 6.730875,
+      "tempo": 1.0
+    },
+    {
+      "id": "closing",
+      "start": 53,
+      "end": 60,
+      "text": "Open Telemetry connects every step. Referral Easy. A simpler experience, with control built in.",
+      "voice_start": 53.3,
+      "voice_end": 59.240208333333335,
+      "source_duration": 5.944833333333333,
+      "tempo": 1.0
+    }
+  ]
+}

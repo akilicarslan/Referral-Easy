@@ -1,0 +1,21 @@
+# TypeScript/Node side of the monorepo (§22).
+# The Python side is a uv workspace — see the root pyproject.toml.
+packages:
+  - "apps/*"
+  - "services/mock-api"
+  - "packages/contracts/ts"
+
+# pnpm blocks every dependency's install script unless it is allowed here, and exits non-zero with
+# ERR_PNPM_IGNORED_BUILDS when it blocked any. Without this block `pnpm install --frozen-lockfile`
+# — the exact command .github/workflows/ci.yml runs — fails at the install step, so the JS job
+# would report a failure that is about pnpm's default policy rather than about this repo.
+#
+# The key is `allowBuilds` and it takes a map; the older `onlyBuiltDependencies` list is NOT read by
+# pnpm 12 (verified: setting it changed nothing and install still exited 1). This block was written
+# by `pnpm approve-builds esbuild --yes`, which is the command to use when a new build script needs
+# approving — it edits this file correctly instead of relying on the key name being remembered.
+#
+# esbuild is allowed because its postinstall links the platform-specific binary. It is a build-time
+# tool with no network access at runtime.
+allowBuilds:
+  esbuild: true

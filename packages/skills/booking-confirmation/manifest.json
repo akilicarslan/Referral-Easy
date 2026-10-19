@@ -1,0 +1,73 @@
+{
+  "manifest_version": "1",
+  "name": "booking-confirmation",
+  "version": "1.0.0",
+  "title": "Booking Confirmation",
+  "owner_agent": "scheduling",
+  "summary": "Bind the patient's approval to one exact booking payload, submit it once, and describe the outcome by its lifecycle state rather than by the transport response.",
+  "when_to_use": [
+    "The workflow is in AWAITING_FINAL_APPROVAL and the patient is being asked to approve a booking",
+    "The workflow is in BOOKING_IN_FLIGHT and the approved booking request is being submitted",
+    "A booking response arrived and its state must be described to the patient",
+    "A booking-relevant field changed after approval was granted and the consent must be re-established"
+  ],
+  "inputs": [
+    {
+      "name": "booking_payload",
+      "type": "BookingPayload",
+      "description": "patient_id, provider_id, hospital_id, slot_id, visit_type, document_ids, contact_phone. The exact object being approved."
+    },
+    {
+      "name": "workflow_id",
+      "type": "WorkflowId",
+      "description": "The workflow the consent belongs to."
+    },
+    {
+      "name": "state_version",
+      "type": "StateVersion",
+      "description": "The version the workflow is at when consent is taken; moving past it supersedes the approval."
+    },
+    {
+      "name": "approval",
+      "type": "Approval | null",
+      "description": "Existing consent with payload_hash, state_version, expires_at and consumed."
+    },
+    {
+      "name": "readiness",
+      "type": "ReadinessResult",
+      "description": "Must be satisfied for the same hospital, plan and visit type."
+    },
+    {
+      "name": "slot",
+      "type": "Slot",
+      "description": "The slot being booked, with its status and optimistic-concurrency version."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "booking_request",
+      "type": "BookingRequest",
+      "description": "The submitted request with its BookingState, idempotency key and evidence."
+    },
+    {
+      "name": "patient_message",
+      "type": "string",
+      "description": "A description that matches the lifecycle state exactly; REQUESTED and PENDING_REVIEW are never called confirmed."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code is ok, approval_expired, approval_payload_changed, no_slot_available, policy_blocked or booking_outcome_unknown."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/approval-invalidation-matrix.md",
+      "purpose": "Which changes invalidate an approval, the invalidated_reason each maps to, and how each BookingState may be described."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "scheduling.confirm_booking_with_consent",
+  "tags": ["booking", "consent", "approval-binding", "state-vocabulary"]
+}

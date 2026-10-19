@@ -1,0 +1,7 @@
+{
+  "agent_name": "referral-readiness",
+  "instruction_hash": "14398a2147d55f3ea2ae568fc9c92bd5b419ed7a67a00a27f0d0a9ed1e5f156c",
+  "prompt_version": "1.0.0",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "referral_readiness"
+}

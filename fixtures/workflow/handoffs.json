@@ -1,0 +1,57 @@
+[
+  {
+    "handoff_id": "f1000000-0000-4000-8000-000000000001",
+    "workflow_id": "f0000000-0000-4000-8000-000000000006",
+    "reason_class": "no_match",
+    "reason_detail": "The specialty on the referral is functional neurosurgery. No provider in the directory carries that specialty in any hospital, so no candidate list can be produced. The referral is clinically clear; this is a directory gap, not an input problem.",
+    "patient_visible_summary": "We could not find a functional neurosurgery specialist in the directory for your area. A referral coordinator can take over, look outside our directory and queue your request. Nothing has been booked and nothing will be booked until you approve the hospital, the doctor and the appointment.",
+    "consent_given_at": "2026-10-13T15:50:00Z",
+    "response_deadline_at": "2026-10-16T15:50:00Z",
+    "status": "claimed",
+    "created_at": "2026-10-13T15:52:00Z"
+  },
+  {
+    "handoff_id": "f1000000-0000-4000-8000-000000000002",
+    "workflow_id": "f0000000-0000-4000-8000-000000000007",
+    "reason_class": "prolonged_unknown_booking",
+    "reason_detail": "The booking request was sent to the hospital adapter and the connection was cut before a response arrived. The outcome is unknown: the appointment may exist. No second booking request has been created, and none will be.",
+    "patient_visible_summary": "Your appointment request was sent, but we did not receive the hospital's answer. It may already be booked. We have stopped and a coordinator will confirm the true status with the hospital before anything else happens. You have not been booked twice.",
+    "consent_given_at": null,
+    "response_deadline_at": "2026-10-14T13:40:00Z",
+    "status": "queued",
+    "created_at": "2026-10-14T09:40:00Z"
+  },
+  {
+    "handoff_id": "f1000000-0000-4000-8000-000000000003",
+    "workflow_id": "f0000000-0000-4000-8000-000000000004",
+    "reason_class": "technical_outage",
+    "reason_detail": "Slot retrieval failed three times in a row with a timeout, a 429 and a 503. The bounded retry budget was nearly exhausted and the workflow entered the recovery state.",
+    "patient_visible_summary": "The hospital's appointment system did not answer three times in a row. We slowed down and tried again using our older directory copy. The attempt then succeeded, so no coordinator action was needed. Nothing was booked without your approval.",
+    "consent_given_at": null,
+    "response_deadline_at": "2026-10-14T12:00:00Z",
+    "status": "withdrawn",
+    "created_at": "2026-10-14T09:36:00Z"
+  },
+  {
+    "handoff_id": "f1000000-0000-4000-8000-000000000004",
+    "workflow_id": "f0000000-0000-4000-8000-000000000002",
+    "reason_class": "missing_document",
+    "reason_detail": "Ravenswood Specialty Surgical Center requires a prior report for a first visit. The referral cover sheet listed one, but no report arrived. The referral letter itself is present and was accepted.",
+    "patient_visible_summary": "The hospital needs a prior report before it will book this visit. The report was not in the referral we received. Once it arrives we re-check that single item and continue from where we stopped.",
+    "consent_given_at": "2026-10-14T07:52:00Z",
+    "response_deadline_at": "2026-10-17T07:52:00Z",
+    "status": "resolved",
+    "created_at": "2026-10-14T07:50:00Z"
+  },
+  {
+    "handoff_id": "f1000000-0000-4000-8000-000000000005",
+    "workflow_id": "f0000000-0000-4000-8000-000000000005",
+    "reason_class": "conflicting_sources",
+    "reason_detail": "The plan's network file for Summit HDHP Saver records no in-network status for this provider, while a superseded file from June recorded in_network. The public description of Des Plaines Valley General Hospital claims in-network status for plans the hospital's structured record does not list.",
+    "patient_visible_summary": "Two of our sources disagree about whether this doctor and hospital are in your plan's network. We have shown you the plan's own current file and the date it was retrieved, and we have flagged the older, contradictory record. We cannot promise what the plan will pay.",
+    "consent_given_at": null,
+    "response_deadline_at": "2026-10-16T08:20:00Z",
+    "status": "withdrawn",
+    "created_at": "2026-10-14T08:15:00Z"
+  }
+]

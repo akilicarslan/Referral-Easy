@@ -1,0 +1,300 @@
+[
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000001",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": [],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000001",
+        "provider_id": "30000000-0000-4000-8000-000000000001",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "start_at": "2026-10-20T14:00:00Z",
+        "end_at": "2026-10-20T15:00:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 2
+      },
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000003",
+        "provider_id": "30000000-0000-4000-8000-000000000001",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "start_at": "2026-10-22T18:30:00Z",
+        "end_at": "2026-10-22T19:30:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      },
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000004",
+        "provider_id": "30000000-0000-4000-8000-000000000001",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "start_at": "2026-10-27T14:00:00Z",
+        "end_at": "2026-10-27T15:00:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      }
+    ],
+    "result_kind": "slots_found",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000010",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000001",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [],
+    "result_kind": "no_slots_for_constraints",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000012",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000003",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [],
+    "result_kind": "no_matching_provider",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000017",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000004",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000011",
+        "provider_id": "30000000-0000-4000-8000-000000000004",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "start_at": "2026-10-16T16:00:00Z",
+        "end_at": "2026-10-16T16:40:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 3
+      }
+    ],
+    "result_kind": "slots_found",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000045",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000002",
+      "provider_id": "30000000-0000-4000-8000-000000000012",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000029",
+        "provider_id": "30000000-0000-4000-8000-000000000012",
+        "hospital_id": "20000000-0000-4000-8000-000000000002",
+        "start_at": "2026-10-16T19:00:00Z",
+        "end_at": "2026-10-16T19:45:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      },
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000030",
+        "provider_id": "30000000-0000-4000-8000-000000000012",
+        "hospital_id": "20000000-0000-4000-8000-000000000002",
+        "start_at": "2026-10-23T14:30:00Z",
+        "end_at": "2026-10-23T15:15:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      }
+    ],
+    "result_kind": "slots_found",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000046",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000002",
+      "provider_id": "30000000-0000-4000-8000-000000000008",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000020",
+        "provider_id": "30000000-0000-4000-8000-000000000008",
+        "hospital_id": "20000000-0000-4000-8000-000000000002",
+        "start_at": "2026-10-16T14:00:00Z",
+        "end_at": "2026-10-16T15:15:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      },
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000021",
+        "provider_id": "30000000-0000-4000-8000-000000000008",
+        "hospital_id": "20000000-0000-4000-8000-000000000002",
+        "start_at": "2026-10-21T16:00:00Z",
+        "end_at": "2026-10-21T17:15:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      }
+    ],
+    "result_kind": "slots_found",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000044",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000011",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": [],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [],
+    "result_kind": "no_matching_provider",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000050",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000001",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": [],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [],
+    "result_kind": "upstream_error",
+    "partial": true,
+    "evidence_id": "50000000-0000-4000-8000-000000000013",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000001",
+      "provider_id": "30000000-0000-4000-8000-000000000010",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "morning"
+    },
+    "slots": [
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000025",
+        "provider_id": "30000000-0000-4000-8000-000000000010",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "start_at": "2026-10-16T20:30:00Z",
+        "end_at": "2026-10-16T21:00:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      },
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000026",
+        "provider_id": "30000000-0000-4000-8000-000000000010",
+        "hospital_id": "20000000-0000-4000-8000-000000000001",
+        "start_at": "2026-10-30T14:00:00Z",
+        "end_at": "2026-10-30T14:30:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      }
+    ],
+    "result_kind": "slots_found",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000042",
+    "synthetic": true
+  },
+  {
+    "query": {
+      "hospital_id": "20000000-0000-4000-8000-000000000007",
+      "provider_id": "30000000-0000-4000-8000-000000000006",
+      "visit_type": "first_visit",
+      "earliest": "2026-10-15T00:00:00Z",
+      "latest": "2026-11-14T23:59:59Z",
+      "preferred_days": ["friday"],
+      "preferred_time_of_day": "afternoon"
+    },
+    "slots": [
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000016",
+        "provider_id": "30000000-0000-4000-8000-000000000006",
+        "hospital_id": "20000000-0000-4000-8000-000000000007",
+        "start_at": "2026-10-16T18:00:00Z",
+        "end_at": "2026-10-16T18:50:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 4
+      },
+      {
+        "slot_id": "40000000-0000-4000-8000-000000000017",
+        "provider_id": "30000000-0000-4000-8000-000000000006",
+        "hospital_id": "20000000-0000-4000-8000-000000000007",
+        "start_at": "2026-10-30T15:00:00Z",
+        "end_at": "2026-10-30T15:50:00Z",
+        "display_timezone": "America/Chicago",
+        "visit_type": "first_visit",
+        "status": "available",
+        "version": 1
+      }
+    ],
+    "result_kind": "slots_found",
+    "partial": false,
+    "evidence_id": "50000000-0000-4000-8000-000000000015",
+    "synthetic": true
+  }
+]

@@ -1,0 +1,17 @@
+# ════════════════════════════════════════════════════════════════════════════
+# ReferralEasy — Data Prepper server configuration
+#
+# Only two things are set on purpose:
+#   * ssl: false           — local demo, no certificates, no credentials.
+#   * serverPort: 4900     — the API port the compose healthcheck probes.
+#
+# There is no authentication block: this stack must come up with zero
+# credentials, and nothing here is reachable from outside the machine.
+#
+# The shape of this file matches the data-prepper-config.yaml that ships
+# inside opensearchproject/data-prepper:2.16.0 (examples/log-ingestion/),
+# so every key below is valid for the pinned version.
+# ════════════════════════════════════════════════════════════════════════════
+
+ssl: false
+serverPort: 4900

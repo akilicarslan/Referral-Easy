@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <!--
+      `noindex`: the admin app reads the telemetry indices of a demo stack and is not a public page.
+      It is not a security boundary — the reads are behind an admin session — but there is no reason
+      for a crawler to index a dashboard.
+    -->
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="ReferralEasy — admin: telemetry, evaluation and operations" />
+    <title>ReferralEasy · Admin</title>
+    <style>
+      /*
+       * Critical, pre-bundle styling, mirroring index.html.
+       *
+       * The admin bundle is larger than the patient one, so the gap between first paint and first
+       * render is longer — which makes the pre-bundle state *more* load-bearing here, not less.
+       */
+      html,
+      body {
+        margin: 0;
+        background: #f4f6f7;
+        color: #131a1f;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+          Arial, sans-serif;
+      }
+      #admin {
+        min-height: 100dvh;
+      }
+      #boot {
+        padding: 24px;
+      }
+      #boot .card {
+        background: #fff;
+        border: 1px solid #e3e7ea;
+        border-radius: 12px;
+        padding: 16px;
+        max-width: 560px;
+      }
+      #boot h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      #boot p {
+        font-size: 13px;
+        color: #5a6672;
+        margin: 0 0 16px;
+        line-height: 1.5;
+      }
+      #boot .bar {
+        height: 12px;
+        border-radius: 8px;
+        background: #e3e7ea;
+        margin-bottom: 8px;
+      }
+      #boot .bar.wide {
+        height: 44px;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        #boot .bar {
+          animation: pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.55;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 24px">
+        <div
+          style="background: #fff; border: 1px solid #e3e7ea; border-radius: 12px; padding: 16px"
+        >
+          <h1 style="font-size: 20px; margin: 0 0 8px">JavaScript is off</h1>
+          <p style="font-size: 14px; color: #5a6672; margin: 0; line-height: 1.5">
+            The admin dashboard reads the telemetry indices from the browser and cannot render
+            without JavaScript. Nothing has been changed by loading this page.
+          </p>
+        </div>
+      </div>
+    </noscript>
+
+    <div id="admin">
+      <div id="boot" aria-live="polite">
+        <div class="card">
+          <h1>Loading the admin</h1>
+          <p>Opening a session and reading the telemetry indices. Nothing has been read yet.</p>
+          <div class="bar" style="width: 40%"></div>
+          <div class="bar wide"></div>
+          <div class="bar wide"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/admin/main.ts"></script>
+  </body>
+</html>

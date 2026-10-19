@@ -1,0 +1,214 @@
+# Root of the uv workspace. Source of truth for Python tooling.
+# Members are added as the corresponding phases land.
+
+[project]
+name = "referraleasy"
+version = "0.0.0"
+description = "ReferralEasy — portfolio demo: ADK + A2A multi-agent patient referral platform"
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+# The workspace members are declared as real dependencies so `uv sync` INSTALLS them into the
+# virtualenv. Without this they are only workspace *roots*: `uv sync` treats them as absent and
+# removes them from the environment on the next run, which showed up as tests failing to import a
+# package that had just been importable, and as `PYTHONPATH=` being needed in every test command.
+# Members are added here as their phase lands, matching [tool.uv.workspace].members below.
+dependencies = [
+  "referraleasy-contracts",
+  "referraleasy-domain",
+  "referraleasy-rag",
+  "referraleasy-skills",
+  "referraleasy-agent-runtime",
+  "referraleasy-telemetry",
+  "referraleasy-agents",
+  "referraleasy-workers",
+  "referraleasy-release-registry",
+  "referraleasy-guardrails",
+  "referraleasy-eval",
+  "referraleasy-alerts",
+]
+
+[tool.uv]
+package = false
+
+# Required alongside the dependencies above: uv refuses to resolve a bare
+# workspace-member name unless it is told the member lives in this workspace.
+# Without this block `uv sync` fails with "is included as a workspace member, but is
+# missing an entry in tool.uv.sources". Versions stay in each member's own pyproject.
+[tool.uv.sources]
+referraleasy-agent-runtime = { workspace = true }
+referraleasy-contracts = { workspace = true }
+referraleasy-domain = { workspace = true }
+referraleasy-rag = { workspace = true }
+referraleasy-skills = { workspace = true }
+referraleasy-telemetry = { workspace = true }
+referraleasy-agents = { workspace = true }
+referraleasy-alerts = { workspace = true }
+referraleasy-eval = { workspace = true }
+referraleasy-guardrails = { workspace = true }
+referraleasy-release-registry = { workspace = true }
+referraleasy-workers = { workspace = true }
+
+[tool.uv.workspace]
+# Only members that exist are listed: uv errors on a missing member path.
+# Uncomment each as its phase lands.
+members = [
+  "packages/contracts/python",
+  "packages/domain",
+  "packages/rag",
+  "packages/skills",
+  "packages/agent-runtime",
+  "packages/telemetry",
+  "packages/guardrails",
+  "packages/eval",
+  "packages/alerts",
+  "packages/release-registry",
+  "services/gateway",
+  "services/workers",
+  "services/agents",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  # Bounded on purpose. `ruff format`'s output is version-sensitive, so an unbounded formatter turns
+  # the `ruff format --check` gate into one that can fail after a dependency bump with no code change
+  # — and the fix (reformatting the whole tree) then lands in an unrelated commit. `>=0.8.0` also
+  # disagreed with `.pre-commit-config.yaml`, which pinned v0.8.6 while this resolved to 0.17.0: the
+  # hook would format a file one way and CI would reject it the other. Both ends are now 0.17.x.
+  "ruff>=0.17,<0.18",
+  "mypy>=1.13.0",
+  "types-jsonschema>=4.23.0",
+  # Used by migrations/run.py and its integration tests. Migrations are not a uv workspace member,
+  # so the driver has to come from the root dev group for `uv run pytest migrations` to work.
+  "psycopg[binary]>=3.2",
+
+  # ── Phase 0 spike dependencies ────────────────────────────────────────────
+  # the spikes live in tests/contracts/spikes/ and fail loudly when their SDK is
+  # missing (never skip), so these must be in the default environment for
+  # `make spike` to be runnable. Versions are the ones each spike ADR pinned.
+  # Phase 3 needs google-adk and litellm regardless; the rest are spike-only.
+  "a2a-sdk==1.2.2",                                    # ADR-0003
+  "google-adk==2.12.0",                                # ADR-0002
+  "google-genai==2.31.0",                              # ADR-0006
+  "langsmith==0.14.11",                                # ADR-0010
+  "litellm==1.105.1",                                  # ADR-0002
+  "openinference-instrumentation-google-adk==1.0.4",   # ADR-0010
+  "opensearch-py==3.2.0",                              # ADR-0008
+  "opentelemetry-sdk>=1.30.0",
+  "httpx>=0.28.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# Generated bindings are build output, not source: they are produced by
+# packages/contracts/generate.sh and must never be hand-edited, so linting them
+# would only produce noise the drift check already guards against.
+exclude = [
+  "**/generated/**",
+  # Documentation, not code. ruff 0.17 formats Python inside Markdown code fences by default (0.8.6,
+  # which .pre-commit-config.yaml once pinned, does not) and the ADRs carry hand-wrapped illustrative
+  # examples — an `AgentCard(...)` sketch that is meant to read as a shape, not to be reflowed into
+  # twenty lines. Formatting prose examples would churn the docs on every dependency bump.
+  "**/*.md",
+]
+src = [
+  # Every workspace member's source root. Ruff reads this list to decide whether an import is
+  # first-party, so a package missing here has its imports sorted as third-party — which then
+  # disagrees with the same import in a file ruff does classify, and the isort fix fights itself.
+  "packages/contracts/python/src",
+  "packages/domain/src",
+  "packages/rag/src",
+  "packages/skills/src",
+  "packages/agent-runtime/src",
+  "packages/telemetry/src",
+  "packages/guardrails/src",
+  "packages/release-registry/src",
+  "packages/eval/src",
+  "packages/alerts/src",
+  "services/gateway/src",
+  "services/workers/src",
+  "services/agents",
+  "tests",
+  "scripts",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "ASYNC"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Agent Cards, prompts and fixtures are data, not code.
+"**/agent_card.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+
+# ── Why `make typecheck` names source roots instead of running `mypy .` ─────────────────────
+#
+# `mypy .` cannot work in this repository, and never has. It failed on its first error before
+# checking anything: every test directory and `migrations/tests/` has a `conftest.py`, mypy names a
+# module by walking up to the first directory without an `__init__.py`, and all eleven therefore
+# collided on the name `conftest` — "Duplicate module named 'conftest' ... errors prevented further
+# checking". The same shape would then hit the seven `services/agents/*/__main__.py` files.
+#
+# The fixes that make `mypy .` run are each worse than the problem:
+#
+#   * adding `__init__.py` to the test directories breaks `from skills_fixtures import …` and its
+#     siblings, which depend on pytest putting those directories on `sys.path`;
+#   * `explicit_package_bases` fixes the collision but then makes every package importable under
+#     two names (`packages.contracts.python.src.referraleasy_contracts` *and*
+#     `referraleasy_contracts`), which mypy also refuses;
+#   * `exclude`-ing the package `src` directories stops mypy checking them as source and
+#     reclassifies them as untyped installed packages — strictly worse than not running.
+#
+# So the target is the shipped code, named explicitly. That is the code whose types are a contract
+# with anything else; the tests are exercised by pytest, which is a stronger check on them than an
+# annotation requirement. `tests/test_test_layout.py` covers the two collection footguns that made
+# `mypy .` fail, so the class of bug is still guarded — just at runtime, by tests, rather than by a
+# type checker that cannot express it.
+#
+# Every root below is a workspace member's source. Adding a package means adding it here and to
+# `PYTHON_SOURCE_ROOTS` in the Makefile, which is the single place the list lives.
+
+[tool.pyright]
+# Without this, editors report every workspace import as unresolved.
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+# `migrations/tests` is here and was missing until someone checked: 124 schema-level tests
+# (workflow invariants, the policy gate, command dedup, approval/booking binding) that pytest
+# collected only when the directory was named explicitly. `make test-integration` and CI's
+# `integration-tests` job both run `pytest -m integration` with no path, so those 124 tests were
+# never run by anything — a green CI over a suite that silently excluded them, which is the failure
+# the anti-skip guard in the Makefile exists to prevent and did not cover, because the tests were
+# not collected in the first place.
+testpaths = ["tests", "packages", "services", "migrations"]
+python_files = ["test_*.py"]
+markers = [
+  "contract: schema / protocol contract tests (no network)",
+  "integration: needs the compose stack running",
+  "e2e: full scenario playback",
+  "spike: Phase 0 provider smoke tests — require credentials, skipped by default",
+]
+# Two suites are excluded from the default run, for two different reasons, and both are excluded by
+# a marker rather than by path so that `pytest tests/e2e` still works when you mean it.
+#
+#   spike - needs provider credentials and a network. A green CI run that silently skipped them
+#           would be a lie in the other direction, so CI asserts they stay collectible under the
+#           marker while never running them here.
+#   e2e   - needs a mock API whose database has NOT been booked against yet. The suite drives one
+#           booking through twelve fault types and there is no reset endpoint, so the second run
+#           against surviving state fails with "no bookable ... slot" - a fixture-exhaustion error
+#           that looks like a product bug. `make e2e` restarts the mock API on a clean database
+#           first, which is the only way to run it honestly; CI does the same before its e2e job.
+#
+# Excluding e2e here is not a demotion: it is the difference between a suite whose precondition is
+# met and one that passes or fails depending on what ran before it.
+addopts = "-ra --strict-markers -m 'not spike and not e2e'"

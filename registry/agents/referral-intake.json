@@ -1,0 +1,19 @@
+{
+  "a2a_card_hash": "ef9e39b64fd6b223e0415f557a7bef36ba7dd852c9564e189b0ea8cb729e817b",
+  "agent_hash": "6cec8563651a30583a4dbad164de20d92e0e2694c7e11a15500b8b4412273f16",
+  "agent_name": "referral-intake",
+  "instruction_hash": "75bee4891d6c63ec1dff6139f9ed3f7c9eae6ff8a9ea255c160469fdb5a612fd",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "role": "referral_intake",
+  "service": "agent-referral_intake",
+  "skill_hashes": {
+    "referral_intake.extract_referral_fields": "14195962c5a619dadf7a2d9994a2506c9d145af56c9b617a404662153b52c373"
+  },
+  "sub_agent_manifest_hash": "0d4b79da77ad7096fba64501139e437dc29e576a9819c88e051a9a7d556f0763",
+  "tool_description_hashes": {
+    "patient_preferences": "99f5b9d0fd9ad7603e00232c9758fcd91bf6e43e792445d1e13a4004dd0a0ad3",
+    "resolve_location": "0ea3194e1f45e5203b9f8d5702a62eac680271a95712e104ade07b0f4eb2c205",
+    "validate_referral": "54e0612cd46464e5ab7bcb8ae5bf3a261c72916ff6d69d9635b57581f1870d44"
+  },
+  "version": "1.0.0"
+}

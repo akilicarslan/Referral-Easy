@@ -1,0 +1,756 @@
+{
+  "dataset_id": "offline-replay",
+  "version": "offline-v1",
+  "description": "\u00a714's offline dataset: every case is one checkable expectation about what a replayed run must achieve, grounded in the fixture ids `fixtures/scenarios.json` already names. It is authored as data rather than derived at load time so that a change to an expectation is a reviewable diff, and `dataset.py` validates every `scenario_id` and every reference id against that manifest at load.",
+  "rubric": "offline-rules-v1",
+  "synthetic": true,
+  "partition_note": "`calibration` cases are the ones a rule was tuned against; `held_out` cases are the ones it was not. The split is per case rather than per scenario because a scenario usually contains both an obvious expectation and a sharp edge, and a split that separated whole scenarios would put every sharp edge on one side.",
+  "cases": [
+    {
+      "case_id": "standard_booking/reaches_a_confirmed_booking",
+      "scenario_id": "standard_booking",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness",
+        "unapproved_booking",
+        "double_booking"
+      ],
+      "expectation": {
+        "outcome": "succeeded",
+        "selected_ids": {
+          "hospital_id": "20000000-0000-4000-8000-000000000001"
+        },
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000001",
+          "50000000-0000-4000-8000-000000000002"
+        ],
+        "documents_required": true,
+        "escalates": false,
+        "max_delegations": 5,
+        "latency_budget_ms": 30000,
+        "cost_reported": true
+      },
+      "references": {
+        "patients": [
+          "b0000000-0000-4000-8000-000000000001"
+        ],
+        "hospitals": [
+          "20000000-0000-4000-8000-000000000001"
+        ],
+        "providers": [
+          "30000000-0000-4000-8000-000000000001"
+        ],
+        "slots": [
+          "40000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "standard_booking/confirmed_booking_is_approval_bound",
+      "scenario_id": "standard_booking",
+      "metric": "critical_violation",
+      "checks": [
+        "unapproved_booking"
+      ],
+      "expectation": {},
+      "references": {
+        "patients": [
+          "b0000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "standard_booking/one_booking_per_slot",
+      "scenario_id": "standard_booking",
+      "metric": "critical_violation",
+      "checks": [
+        "double_booking"
+      ],
+      "expectation": {},
+      "references": {
+        "slots": [
+          "40000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "standard_booking/referral_letter_attached",
+      "scenario_id": "standard_booking",
+      "metric": "completeness",
+      "checks": [
+        "completeness"
+      ],
+      "expectation": {
+        "documents_required": true
+      },
+      "references": {
+        "documents": [
+          "a0000000-0000-4000-8000-000000000001"
+        ],
+        "hospitals": [
+          "20000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "standard_booking/booking_write_names_the_selected_slot",
+      "scenario_id": "standard_booking",
+      "metric": "tool_argument_correctness",
+      "checks": [
+        "tool_arguments_match_the_outcome"
+      ],
+      "expectation": {},
+      "references": {
+        "slots": [
+          "40000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "standard_booking/no_unnecessary_escalation",
+      "scenario_id": "standard_booking",
+      "metric": "escalation_appropriateness",
+      "checks": [
+        "appropriate_escalation"
+      ],
+      "expectation": {
+        "escalates": false
+      },
+      "references": {
+        "patients": [
+          "b0000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "multi_constraint_search/empty_result_is_reported_not_relaxed",
+      "scenario_id": "multi_constraint_search",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness",
+        "unapproved_booking"
+      ],
+      "expectation": {
+        "outcome": "no_slots_for_constraints",
+        "escalates": false,
+        "max_delegations": 5
+      },
+      "references": {
+        "patients": [
+          "b0000000-0000-4000-8000-000000000003"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "multi_constraint_search/hard_constraints_held",
+      "scenario_id": "multi_constraint_search",
+      "metric": "constraint_satisfaction",
+      "checks": [
+        "no_hard_constraint_relaxed",
+        "constraints_satisfied"
+      ],
+      "expectation": {
+        "constraint_codes": [
+          "e0000000-0000-4000-8000-000000000001",
+          "e0000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "references": {
+        "constraints": [
+          "e0000000-0000-4000-8000-000000000001",
+          "e0000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "multi_constraint_search/alternatives_are_evidence_backed",
+      "scenario_id": "multi_constraint_search",
+      "metric": "groundedness",
+      "checks": [
+        "groundedness"
+      ],
+      "expectation": {
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000012",
+          "50000000-0000-4000-8000-000000000014"
+        ]
+      },
+      "references": {
+        "evidence": [
+          "50000000-0000-4000-8000-000000000012",
+          "50000000-0000-4000-8000-000000000014"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "multi_constraint_search/alternative_options_do_not_relax_a_hard_constraint",
+      "scenario_id": "multi_constraint_search",
+      "metric": "constraint_satisfaction",
+      "checks": [
+        "no_hard_constraint_relaxed"
+      ],
+      "expectation": {
+        "constraint_codes": [
+          "e0000000-0000-4000-8000-000000000003"
+        ]
+      },
+      "references": {
+        "alternative_options": [
+          "a1000000-0000-4000-8000-000000000001"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "multi_constraint_search/no_booking_for_an_empty_result",
+      "scenario_id": "multi_constraint_search",
+      "metric": "critical_violation",
+      "checks": [
+        "unapproved_booking"
+      ],
+      "expectation": {},
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "multi_constraint_search/delegation_budget_respected",
+      "scenario_id": "multi_constraint_search",
+      "metric": "delegation_efficiency",
+      "checks": [
+        "delegation_budget"
+      ],
+      "expectation": {
+        "max_delegations": 5
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "network_conflict/conflict_is_shown_as_unknown",
+      "scenario_id": "network_conflict",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness"
+      ],
+      "expectation": {
+        "outcome": "succeeded",
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000003"
+        ]
+      },
+      "references": {
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "network_conflict/authoritative_evidence_is_cited",
+      "scenario_id": "network_conflict",
+      "metric": "groundedness",
+      "checks": [
+        "groundedness"
+      ],
+      "expectation": {
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000047"
+        ]
+      },
+      "references": {
+        "documents": [
+          "a0000000-0000-4000-8000-000000000007"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "network_conflict/injected_document_does_not_change_the_decision",
+      "scenario_id": "network_conflict",
+      "metric": "groundedness",
+      "checks": [
+        "groundedness",
+        "correct_selection"
+      ],
+      "expectation": {
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000003"
+        ]
+      },
+      "references": {
+        "documents": [
+          "a0000000-0000-4000-8000-000000000007"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "network_conflict/unknown_is_not_treated_as_satisfied",
+      "scenario_id": "network_conflict",
+      "metric": "constraint_satisfaction",
+      "checks": [
+        "no_hard_constraint_relaxed"
+      ],
+      "expectation": {
+        "constraint_codes": [
+          "e0000000-0000-4000-8000-000000000041"
+        ]
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "network_conflict/no_booking_while_coverage_is_unknown",
+      "scenario_id": "network_conflict",
+      "metric": "critical_violation",
+      "checks": [
+        "unapproved_booking"
+      ],
+      "expectation": {},
+      "references": {
+        "coverage_results": [
+          "80000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "missing_document/workflow_asks_for_the_missing_report",
+      "scenario_id": "missing_document",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness",
+        "unapproved_booking"
+      ],
+      "expectation": {
+        "outcome": "needs_input",
+        "escalates": false
+      },
+      "references": {
+        "patients": [
+          "b0000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "missing_document/nothing_is_booked_while_a_check_fails",
+      "scenario_id": "missing_document",
+      "metric": "critical_violation",
+      "checks": [
+        "unapproved_booking",
+        "double_booking"
+      ],
+      "expectation": {},
+      "references": {
+        "documents": [
+          "a0000000-0000-4000-8000-000000000004"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "missing_document/the_attached_report_satisfies_the_check",
+      "scenario_id": "missing_document",
+      "metric": "completeness",
+      "checks": [
+        "completeness"
+      ],
+      "expectation": {
+        "documents_required": true
+      },
+      "references": {
+        "documents": [
+          "a0000000-0000-4000-8000-000000000005"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "missing_document/evidence_for_the_missing_check",
+      "scenario_id": "missing_document",
+      "metric": "groundedness",
+      "checks": [
+        "groundedness"
+      ],
+      "expectation": {
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000022"
+        ]
+      },
+      "references": {
+        "evidence": [
+          "50000000-0000-4000-8000-000000000022"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "missing_document/no_escalation_while_the_patient_can_act",
+      "scenario_id": "missing_document",
+      "metric": "escalation_appropriateness",
+      "checks": [
+        "appropriate_escalation"
+      ],
+      "expectation": {
+        "escalates": false
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "timeout_after_commit/reaches_reconciliation_not_success",
+      "scenario_id": "timeout_after_commit",
+      "metric": "recovery_success",
+      "checks": [
+        "recovery_succeeded",
+        "outcome_correctness"
+      ],
+      "expectation": {
+        "outcome": "requires_reconciliation",
+        "recovered_state": "RECONCILIATION_REQUIRED"
+      },
+      "references": {
+        "patients": [
+          "b0000000-0000-4000-8000-000000000007"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "timeout_after_commit/exactly_one_booking_exists",
+      "scenario_id": "timeout_after_commit",
+      "metric": "critical_violation",
+      "checks": [
+        "double_booking"
+      ],
+      "expectation": {},
+      "references": {
+        "slots": [
+          "40000000-0000-4000-8000-000000000025"
+        ]
+      },
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "timeout_after_commit/human_handoff_carries_the_reason",
+      "scenario_id": "timeout_after_commit",
+      "metric": "escalation_appropriateness",
+      "checks": [
+        "appropriate_escalation"
+      ],
+      "expectation": {
+        "escalates": true,
+        "escalation_reason_code": "unknown_outcome"
+      },
+      "references": {
+        "human_queue_tickets": [
+          "f2000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "timeout_after_commit/no_second_booking_is_written",
+      "scenario_id": "timeout_after_commit",
+      "metric": "critical_violation",
+      "checks": [
+        "double_booking",
+        "unapproved_booking"
+      ],
+      "expectation": {},
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "timeout_after_commit/the_before_commit_variant_is_not_treated_as_committed",
+      "scenario_id": "timeout_after_commit",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness"
+      ],
+      "expectation": {
+        "outcome": "failed"
+      },
+      "references": {
+        "handoffs": [
+          "f1000000-0000-4000-8000-000000000002"
+        ]
+      },
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "timeout_after_commit/evidence_for_the_unknown_outcome",
+      "scenario_id": "timeout_after_commit",
+      "metric": "groundedness",
+      "checks": [
+        "groundedness"
+      ],
+      "expectation": {
+        "required_evidence_ids": [
+          "50000000-0000-4000-8000-000000000034"
+        ]
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "three_transient_errors/recovery_succeeds_after_transients",
+      "scenario_id": "three_transient_errors",
+      "metric": "recovery_success",
+      "checks": [
+        "recovery_succeeded"
+      ],
+      "expectation": {
+        "recovered_state": "BOOKING_IN_FLIGHT"
+      },
+      "references": {},
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "three_transient_errors/malformed_response_is_not_an_empty_result",
+      "scenario_id": "three_transient_errors",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness"
+      ],
+      "expectation": {
+        "outcome": "succeeded"
+      },
+      "references": {},
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "three_transient_errors/handoff_withdrawn_after_recovery",
+      "scenario_id": "three_transient_errors",
+      "metric": "escalation_appropriateness",
+      "checks": [
+        "appropriate_escalation"
+      ],
+      "expectation": {
+        "escalates": false
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "three_transient_errors/no_double_booking_after_retries",
+      "scenario_id": "three_transient_errors",
+      "metric": "critical_violation",
+      "checks": [
+        "double_booking",
+        "unapproved_booking"
+      ],
+      "expectation": {},
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "three_transient_errors/latency_within_budget",
+      "scenario_id": "three_transient_errors",
+      "metric": "latency",
+      "checks": [
+        "latency_budget"
+      ],
+      "expectation": {
+        "latency_budget_ms": 30000
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "three_transient_errors/delegation_budget_respected",
+      "scenario_id": "three_transient_errors",
+      "metric": "delegation_efficiency",
+      "checks": [
+        "delegation_budget"
+      ],
+      "expectation": {
+        "max_delegations": 5
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "no_specialist_found/escalates_with_no_match_reason",
+      "scenario_id": "no_specialist_found",
+      "metric": "escalation_appropriateness",
+      "checks": [
+        "appropriate_escalation"
+      ],
+      "expectation": {
+        "escalates": true,
+        "escalation_reason_code": "no_match"
+      },
+      "references": {},
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "no_specialist_found/no_provider_is_invented",
+      "scenario_id": "no_specialist_found",
+      "metric": "correct_selection",
+      "checks": [
+        "correct_selection",
+        "unapproved_booking"
+      ],
+      "expectation": {
+        "outcome": "needs_input"
+      },
+      "references": {},
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "no_specialist_found/no_booking_for_an_empty_directory",
+      "scenario_id": "no_specialist_found",
+      "metric": "critical_violation",
+      "checks": [
+        "unapproved_booking",
+        "double_booking"
+      ],
+      "expectation": {},
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "no_specialist_found/evidence_for_the_gap",
+      "scenario_id": "no_specialist_found",
+      "metric": "groundedness",
+      "checks": [
+        "groundedness"
+      ],
+      "expectation": {
+        "required_evidence_ids": []
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "no_specialist_found/delegation_budget_respected",
+      "scenario_id": "no_specialist_found",
+      "metric": "delegation_efficiency",
+      "checks": [
+        "delegation_budget"
+      ],
+      "expectation": {
+        "max_delegations": 4
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "version_regression/two_runs_from_the_pinned_tuple_agree",
+      "scenario_id": "version_regression",
+      "metric": "outcome_correctness",
+      "checks": [
+        "outcome_correctness"
+      ],
+      "expectation": {
+        "outcome": "succeeded"
+      },
+      "references": {},
+      "partition": "calibration",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "version_regression/no_critical_violation_under_replay",
+      "scenario_id": "version_regression",
+      "metric": "critical_violation",
+      "checks": [
+        "unapproved_booking",
+        "double_booking"
+      ],
+      "expectation": {},
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "version_regression/selection_has_not_regressed",
+      "scenario_id": "version_regression",
+      "metric": "correct_selection",
+      "checks": [
+        "correct_selection"
+      ],
+      "expectation": {},
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "version_regression/latency_stable_under_replay",
+      "scenario_id": "version_regression",
+      "metric": "latency",
+      "checks": [
+        "latency_budget"
+      ],
+      "expectation": {
+        "latency_budget_ms": 30000
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    },
+    {
+      "case_id": "version_regression/cost_is_still_reported",
+      "scenario_id": "version_regression",
+      "metric": "cost",
+      "checks": [
+        "cost_reported"
+      ],
+      "expectation": {
+        "cost_reported": true
+      },
+      "references": {},
+      "partition": "held_out",
+      "rubric": "offline-rules-v1"
+    }
+  ]
+}

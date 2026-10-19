@@ -1,0 +1,20 @@
+{
+  "scenario_id": "three_transient_errors",
+  "description": "The directory search returns a syntactically valid JSON body that does not satisfy the published contract: the required `candidates` array is absent and `result_kind` carries a value that is not in the enum. Retrying cannot fix a malformed response, so this fault must end in a terminal error and a fallback source, never in a silently empty candidate list.",
+  "fault_seed": 44,
+  "default_fault": "malformed_schema",
+  "steps": [
+    {
+      "match": { "method": "GET", "path": "/directory/search" },
+      "occurrence": 1,
+      "fault": {
+        "type": "malformed_schema",
+        "missing_fields": ["candidates", "evidence_id"],
+        "invalid_enum_field": "result_kind",
+        "invalid_enum_value": "maybe",
+        "body_is_valid_json": true,
+        "http_status": 200
+      }
+    }
+  ]
+}

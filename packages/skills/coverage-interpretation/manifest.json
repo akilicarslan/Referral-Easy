@@ -1,0 +1,68 @@
+{
+  "manifest_version": "1",
+  "name": "coverage-interpretation",
+  "version": "1.0.0",
+  "title": "Coverage and Network Interpretation",
+  "owner_agent": "coverage_network",
+  "summary": "Read coverage evidence into a CoverageResult, keeping 'accepts this insurance' separate from 'in network for this plan' and resolving every gap to unknown.",
+  "when_to_use": [
+    "The workflow is in COVERAGE_CHECK and a CoverageResult is needed for a plan",
+    "A provider or hospital has just been chosen and a provider-level network check is required",
+    "Two coverage sources disagree about network status and the disagreement must be surfaced",
+    "A patient asks whether a visit is covered and the answer must be a network status, not a guarantee"
+  ],
+  "inputs": [
+    {
+      "name": "plan",
+      "type": "InsurancePlan",
+      "description": "The plan being checked. Its plan_type and network_name shape what a network record can mean."
+    },
+    {
+      "name": "plan_id",
+      "type": "PlanId",
+      "description": "Identifier of the plan under check; always required, provider optional."
+    },
+    {
+      "name": "evidence",
+      "type": "EvidenceRef[]",
+      "description": "Structured coverage responses and descriptive text. Structured evidence outranks descriptive."
+    },
+    {
+      "name": "provider_id",
+      "type": "ProviderId | null",
+      "description": "Present only after a provider is known; a provider-level check must not run before then."
+    },
+    {
+      "name": "hospital_id",
+      "type": "HospitalId | null",
+      "description": "Optional facility scope for the network question."
+    }
+  ],
+  "outputs": [
+    {
+      "name": "coverage",
+      "type": "CoverageResult",
+      "description": "accepts_insurance, in_network_for_plan, status, referral_required, prior_auth_required, freshness, evidence."
+    },
+    {
+      "name": "conflict",
+      "type": "{conflict: boolean, conflicting_evidence_ids: EvidenceId[], winning_evidence_id: EvidenceId | null}",
+      "description": "Set when sources disagree: the structured result wins and the disagreement is reported, not smoothed over."
+    },
+    {
+      "name": "decision",
+      "type": "DecisionOutput",
+      "description": "Reason code is ok, coverage_unknown, provider_not_in_network, stale_evidence or conflicting_evidence."
+    }
+  ],
+  "references": [
+    {
+      "path": "references/conflict-worked-example.md",
+      "purpose": "A short worked example of the structured-versus-descriptive conflict, showing what is reported and what is refused."
+    }
+  ],
+  "authority": "instructions_only",
+  "grants_tool_permissions": false,
+  "agent_card_skill_id": "coverage_network.interpret_coverage_evidence",
+  "tags": ["coverage", "network", "unknown-handling", "conflict"]
+}

@@ -1,0 +1,41 @@
+[project]
+name = "referraleasy-agent-runtime"
+version = "0.1.0"
+description = "Shared agent runtime: budgets, deadlines, tool authority, result shaping and A2A transport for the seven ADK specialist agents"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  # The application result -> A2A protocol state adapter lives there and is never duplicated here.
+  "referraleasy-contracts",
+  # PolicyDeniedError: the typed refusal of `policy_assert`, so the translation is shared vocabulary
+  # rather than a second copy of the SQLSTATE table.
+  "referraleasy-domain",
+  # Pinned by ADR-0002; the OpenRouter path is spike-verified against exactly this construction.
+  "google-adk==2.12.0",
+  "litellm==1.105.1",
+  # The A2A client takes *our* httpx client (ClientConfig.httpx_client), which is how SDK-internal
+  # retries are disabled: there is one retry owner and it is this package.
+  "a2a-sdk==1.2.2",
+  # §15's server-span middleware. Every agent service is built by this package, so declaring it here
+  # is what puts tracing in all seven at once rather than in whichever entry point remembered — and
+  # the A2A hop only joins one trace if the callee extracts the caller's `traceparent`.
+  "referraleasy-telemetry",
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "httpx>=0.28.0",
+  "pydantic>=2.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3.0", "pytest-asyncio>=0.24.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/referraleasy_agent_runtime"]
+
+[tool.uv.sources]
+referraleasy-contracts = { workspace = true }
+referraleasy-domain = { workspace = true }
+referraleasy-telemetry = { workspace = true }

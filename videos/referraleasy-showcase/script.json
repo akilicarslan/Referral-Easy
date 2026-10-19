@@ -1,0 +1,44 @@
+[
+  {
+    "id": "opening",
+    "start": 0,
+    "end": 6,
+    "text": "Meet Referral Easy, a simpler way to coordinate specialist referrals."
+  },
+  {
+    "id": "journey",
+    "start": 6,
+    "end": 18,
+    "text": "Referrals can mean chasing coverage, paperwork, and appointments. Here, you open your referral, compare providers, choose a time, and approve."
+  },
+  {
+    "id": "architecture",
+    "start": 18,
+    "end": 27,
+    "text": "Seven agents work together behind the scenes. Coverage and provider matching run in parallel, while the gateway enforces permissions."
+  },
+  {
+    "id": "booking",
+    "start": 27,
+    "end": 36,
+    "text": "Your approval covers the exact request. If a booking response is lost, we check the same request key to prevent duplicates."
+  },
+  {
+    "id": "continuity",
+    "start": 36,
+    "end": 43,
+    "text": "After a restart, Postgres restores progress. Expired workers can't overwrite newer decisions."
+  },
+  {
+    "id": "recovery",
+    "start": 43,
+    "end": 53,
+    "text": "When a document is missing or a slot disappears, you get a clear next step. Human handoff includes your summary and permission."
+  },
+  {
+    "id": "closing",
+    "start": 53,
+    "end": 60,
+    "text": "Open Telemetry connects every step. Referral Easy. A simpler experience, with control built in."
+  }
+]

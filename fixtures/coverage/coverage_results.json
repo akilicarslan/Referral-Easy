@@ -1,0 +1,347 @@
+[
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000001",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64800 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000001",
+      "50000000-0000-4000-8000-000000000007"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000002",
+    "plan_id": "60000000-0000-4000-8000-000000000004",
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": null,
+    "status": "unknown",
+    "referral_required": true,
+    "prior_auth_required": true,
+    "conflict": true,
+    "conflicting_evidence_ids": [
+      "50000000-0000-4000-8000-000000000003",
+      "50000000-0000-4000-8000-000000000004"
+    ],
+    "winning_evidence_id": "50000000-0000-4000-8000-000000000004",
+    "freshness": { "state": "fresh", "age_seconds": 3600 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000003",
+      "50000000-0000-4000-8000-000000000004",
+      "50000000-0000-4000-8000-000000000007",
+      "50000000-0000-4000-8000-000000000047"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000003",
+    "plan_id": "60000000-0000-4000-8000-000000000004",
+    "provider_id": "30000000-0000-4000-8000-000000000012",
+    "hospital_id": "20000000-0000-4000-8000-000000000002",
+    "accepts_insurance": true,
+    "in_network_for_plan": false,
+    "status": "out_of_network",
+    "referral_required": true,
+    "prior_auth_required": true,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64700 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000032",
+      "50000000-0000-4000-8000-000000000046"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000004",
+    "plan_id": "60000000-0000-4000-8000-000000000003",
+    "provider_id": "30000000-0000-4000-8000-000000000011",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": false,
+    "prior_auth_required": true,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64670 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000035",
+      "50000000-0000-4000-8000-000000000018"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000005",
+    "plan_id": "60000000-0000-4000-8000-000000000005",
+    "provider_id": "30000000-0000-4000-8000-000000000008",
+    "hospital_id": "20000000-0000-4000-8000-000000000002",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64710 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000031",
+      "50000000-0000-4000-8000-000000000041"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000006",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000004",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64740 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000028",
+      "50000000-0000-4000-8000-000000000045"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000007",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000012",
+    "hospital_id": "20000000-0000-4000-8000-000000000002",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64720 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000030",
+      "50000000-0000-4000-8000-000000000046"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000008",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000006",
+    "hospital_id": "20000000-0000-4000-8000-000000000007",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 4199 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000015",
+      "50000000-0000-4000-8000-000000000014"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000009",
+    "plan_id": "60000000-0000-4000-8000-000000000004",
+    "provider_id": null,
+    "hospital_id": "20000000-0000-4000-8000-000000000004",
+    "accepts_insurance": null,
+    "in_network_for_plan": null,
+    "status": "unknown",
+    "referral_required": true,
+    "prior_auth_required": null,
+    "conflict": true,
+    "conflicting_evidence_ids": [
+      "50000000-0000-4000-8000-000000000005",
+      "50000000-0000-4000-8000-000000000006"
+    ],
+    "winning_evidence_id": "50000000-0000-4000-8000-000000000006",
+    "freshness": { "state": "stale", "age_seconds": 29376000 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000005",
+      "50000000-0000-4000-8000-000000000006",
+      "50000000-0000-4000-8000-000000000024"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000010",
+    "plan_id": "60000000-0000-4000-8000-000000000006",
+    "provider_id": "30000000-0000-4000-8000-000000000001",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64680 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000034",
+      "50000000-0000-4000-8000-000000000007"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000011",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000010",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64640 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000038",
+      "50000000-0000-4000-8000-000000000042"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000012",
+    "plan_id": "60000000-0000-4000-8000-000000000005",
+    "provider_id": "30000000-0000-4000-8000-000000000009",
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "accepts_insurance": null,
+    "in_network_for_plan": null,
+    "status": "unknown",
+    "referral_required": true,
+    "prior_auth_required": null,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64690 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000033",
+      "50000000-0000-4000-8000-000000000020"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000013",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000003",
+    "hospital_id": "20000000-0000-4000-8000-000000000001",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64630 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000040",
+      "50000000-0000-4000-8000-000000000017"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000014",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000007",
+    "hospital_id": "20000000-0000-4000-8000-000000000004",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64630 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000039",
+      "50000000-0000-4000-8000-000000000016"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000015",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000002",
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64660 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000036",
+      "50000000-0000-4000-8000-000000000019"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  },
+  {
+    "coverage_id": "80000000-0000-4000-8000-000000000016",
+    "plan_id": "60000000-0000-4000-8000-000000000001",
+    "provider_id": "30000000-0000-4000-8000-000000000005",
+    "hospital_id": "20000000-0000-4000-8000-000000000003",
+    "accepts_insurance": true,
+    "in_network_for_plan": true,
+    "status": "in_network",
+    "referral_required": true,
+    "prior_auth_required": false,
+    "conflict": false,
+    "conflicting_evidence_ids": [],
+    "winning_evidence_id": null,
+    "freshness": { "state": "fresh", "age_seconds": 64650 },
+    "evidence_ids": [
+      "50000000-0000-4000-8000-000000000037",
+      "50000000-0000-4000-8000-000000000020"
+    ],
+    "disclaimer_key": "coverage_not_a_guarantee",
+    "synthetic": true
+  }
+]

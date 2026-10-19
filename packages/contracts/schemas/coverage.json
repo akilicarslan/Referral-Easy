@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://referraleasy.local/schemas/v1/coverage.json",
+  "title": "Coverage, Network and Referral Rules",
+  "description": "Synthetic insurance coverage (§2.2). 'Accepts this insurance' and 'in-network for this plan' are separate facts; contradiction or absence resolves to unknown, never to a guess and never to a payment guarantee.",
+  "$defs": {
+    "InsurancePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan_id", "payer_name", "plan_name", "plan_type", "synthetic"],
+      "properties": {
+        "plan_id": { "$ref": "common.json#/$defs/PlanId" },
+        "payer_name": { "type": "string", "minLength": 1 },
+        "plan_name": { "type": "string", "minLength": 1 },
+        "plan_type": {
+          "title": "PlanType",
+          "type": "string",
+          "enum": ["PPO", "HMO", "EPO", "POS", "HDHP", "medicare_advantage"]
+        },
+        "network_name": { "type": ["string", "null"] },
+        "requires_referral": { "type": "boolean" },
+        "requires_prior_auth_for_specialist": { "type": "boolean" },
+        "synthetic": { "type": "boolean", "const": true }
+      }
+    },
+
+    "NetworkRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "plan_id", "provider_id", "status", "effective_from", "evidence_id"],
+      "properties": {
+        "record_id": { "$ref": "common.json#/$defs/Uuid" },
+        "plan_id": { "$ref": "common.json#/$defs/PlanId" },
+        "provider_id": { "$ref": "common.json#/$defs/ProviderId" },
+        "hospital_id": { "oneOf": [{ "$ref": "common.json#/$defs/HospitalId" }, { "type": "null" }] },
+        "status": {
+          "$ref": "common.json#/$defs/CoverageStatus",
+          "description": "Plan-level network status for this specific provider. Distinct from the provider's general `accepts_insurance` flag (§2.2)."
+        },
+        "effective_from": { "type": "string", "format": "date" },
+        "effective_to": { "type": ["string", "null"], "format": "date" },
+        "evidence_id": { "$ref": "common.json#/$defs/EvidenceId" }
+      }
+    },
+
+    "CoverageResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage_id",
+        "plan_id",
+        "accepts_insurance",
+        "in_network_for_plan",
+        "status",
+        "referral_required",
+        "prior_auth_required",
+        "freshness",
+        "evidence_ids",
+        "synthetic"
+      ],
+      "properties": {
+        "coverage_id": { "$ref": "common.json#/$defs/Uuid" },
+        "plan_id": { "$ref": "common.json#/$defs/PlanId" },
+        "provider_id": { "oneOf": [{ "$ref": "common.json#/$defs/ProviderId" }, { "type": "null" }] },
+        "hospital_id": { "oneOf": [{ "$ref": "common.json#/$defs/HospitalId" }, { "type": "null" }] },
+        "accepts_insurance": {
+          "type": ["boolean", "null"],
+          "description": "Does the provider accept this payer at all? Null means unknown — the schema distinguishes 'no' from 'we do not know'."
+        },
+        "in_network_for_plan": {
+          "type": ["boolean", "null"],
+          "description": "Is this provider in-network for THIS plan? A true `accepts_insurance` with a null or false `in_network_for_plan` is exactly the Network Conflict scenario (§20 row 3) and must be shown as unknown or out-of-network, never smoothed over."
+        },
+        "status": { "$ref": "common.json#/$defs/CoverageStatus" },
+        "referral_required": {
+          "type": ["boolean", "null"],
+          "description": "Null is unknown and stays unknown all the way to the UI."
+        },
+        "prior_auth_required": { "type": ["boolean", "null"] },
+        "conflict": {
+          "type": "boolean",
+          "description": "True when sources disagree (e.g. a stale directory blurb claims in-network while the plan record says otherwise). The conflict is surfaced, not resolved by preference."
+        },
+        "conflicting_evidence_ids": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/EvidenceId" }
+        },
+        "winning_evidence_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/EvidenceId" }, { "type": "null" }],
+          "description": "§10: the authoritative structured API result wins over retrieved or stale text. Null when there was no conflict."
+        },
+        "freshness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "age_seconds"],
+          "properties": {
+            "state": { "$ref": "common.json#/$defs/FreshnessState" },
+            "age_seconds": { "type": "integer", "minimum": 0 }
+          },
+          "description": "Evidence freshness is shown to the patient alongside the unknown (§2.2, §10)."
+        },
+        "evidence_ids": { "type": "array", "items": { "$ref": "common.json#/$defs/EvidenceId" } },
+        "disclaimer_key": {
+          "type": "string",
+          "const": "coverage_not_a_guarantee",
+          "description": "The Coverage agent may not promise payment or coverage (§3). This key binds the response to the approved non-guarantee wording; output guardrails reject a coverage/payment guarantee (§9)."
+        },
+        "synthetic": { "type": "boolean", "const": true }
+      }
+    },
+
+    "ReferralRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement_id", "hospital_id", "required_documents", "visit_type", "evidence_id"],
+      "properties": {
+        "requirement_id": { "$ref": "common.json#/$defs/Uuid" },
+        "hospital_id": { "$ref": "common.json#/$defs/HospitalId" },
+        "plan_id": {
+          "oneOf": [{ "$ref": "common.json#/$defs/PlanId" }, { "type": "null" }],
+          "description": "Null means the rule applies to every plan. §4: a hospital's document requirement is never presented as final before that hospital has been chosen."
+        },
+        "visit_type": { "$ref": "common.json#/$defs/VisitType" },
+        "required_documents": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/DocumentKind" }
+        },
+        "max_document_age_days": { "type": ["integer", "null"], "minimum": 0 },
+        "requires_prior_auth_reference": { "type": "boolean" },
+        "evidence_id": { "$ref": "common.json#/$defs/EvidenceId" }
+      }
+    },
+
+    "CoverageEvidenceSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot_id", "captured_at", "authoritative", "payload_hash"],
+      "properties": {
+        "snapshot_id": { "$ref": "common.json#/$defs/Uuid" },
+        "captured_at": { "$ref": "common.json#/$defs/IsoTimestamp" },
+        "authoritative": { "type": "boolean" },
+        "payload_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "stale": { "type": "boolean" }
+      },
+      "$comment": "Structured coverage records cannot be overridden by retrieved text (§10). A stale snapshot is flagged, never silently re-used as current."
+    }
+  },
+  "$comment": "Version: v1."
+}

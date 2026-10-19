@@ -1,0 +1,23 @@
+{
+  "scenario_id": "timeout_after_commit",
+  "description": "The appointment is committed once, and the confirmation event for it is delivered twice. This rides on top of the timeout_after_commit fault: after the response is lost, the hospital's confirmation arrives twice. The workflow must deduplicate by booking identity and must not create a second booking request from the second delivery.",
+  "fault_seed": 48,
+  "default_fault": "duplicate_event",
+  "steps": [
+    {
+      "match": { "method": "POST", "path": "/appointments" },
+      "occurrence": 1,
+      "fault": { "type": "timeout_after_commit", "delay_ms": 30000 }
+    },
+    {
+      "match": { "method": "POST", "path": "/appointments" },
+      "occurrence": 1,
+      "fault": {
+        "type": "duplicate_event",
+        "event_type": "appointment_confirmed",
+        "deliveries": 2,
+        "same_booking_id": true
+      }
+    }
+  ]
+}

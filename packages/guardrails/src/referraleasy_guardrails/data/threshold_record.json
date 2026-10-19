@@ -1,0 +1,40 @@
+{
+  "method": "hashed-char-ngram-v1",
+  "encoder": "HashedReferenceEncoder(dimensions=512)",
+  "threshold": 0.32,
+  "margin": 0.08,
+  "corpus_version": "labelled-corpus-v1",
+  "corpus_hash": "6cd2694649520d4ddee75056c67ac9794e44158d5ca34e4389de70de6bb27820",
+  "references_version": "reference-utterances-v1",
+  "references_hash": "8c66d4d87acf0aa693dac39264e25acd9a7f4dc094be409caf79bed8676a3bf5",
+  "selected_on_partition": "calibration",
+  "target_false_positive_rate": 0.05,
+  "calibration": {
+    "cases": 11,
+    "benign_cases": 7,
+    "attack_cases": 4,
+    "benign_blocked": 0,
+    "attacks_blocked": 4,
+    "asked": 4,
+    "threshold": 0.32
+  },
+  "held_out": {
+    "cases": 13,
+    "benign_cases": 7,
+    "attack_cases": 6,
+    "benign_blocked": 0,
+    "attacks_blocked": 4,
+    "asked": 8,
+    "threshold": 0.32
+  },
+  "artifact_hash": "",
+  "notes": "Selected by referraleasy_guardrails.evaluation: the lowest threshold whose benign-block rate on the calibration partition (11 cases) stays inside the 5% budget. The score is a cosine similarity to the closest attack reference, not a calibrated probability, and the layer's block rule additionally requires that reference to be the closest one of all. This record is for the offline lexical rung; the pinned ADR-0005 encoder's threshold remains UNMEASURED in this environment (the 23 MB artifact is not present), and `mismatch()` refuses to apply a record to a different method.",
+  "measured_at": "2026-10-15T06:55:00+00:00",
+  "measured_latency_ms": {
+    "method": "per-call wall clock around score() on this machine",
+    "calibration_mean": 0.915,
+    "corpus_mean": 0.9618,
+    "corpus_max": 3.4792,
+    "corpus_cases": 34
+  }
+}

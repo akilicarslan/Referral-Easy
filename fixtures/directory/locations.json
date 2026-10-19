@@ -1,0 +1,72 @@
+[
+  {
+    "location_id": "10000000-0000-4000-8000-000000000001",
+    "address_line1": "675 North Fairbanks Court",
+    "address_line2": "Physician Pavilion, Suite 1200",
+    "city": "Chicago",
+    "state": "IL",
+    "postal_code": "60611",
+    "geo": { "latitude": 41.8955, "longitude": -87.621 },
+    "timezone": "America/Chicago"
+  },
+  {
+    "location_id": "10000000-0000-4000-8000-000000000002",
+    "address_line1": "4417 North Ravenswood Avenue",
+    "address_line2": null,
+    "city": "Chicago",
+    "state": "IL",
+    "postal_code": "60640",
+    "geo": { "latitude": 41.9735, "longitude": -87.662 },
+    "timezone": "America/Chicago"
+  },
+  {
+    "location_id": "10000000-0000-4000-8000-000000000003",
+    "address_line1": "2210 Ridge Avenue",
+    "address_line2": "East Wing, Level 2",
+    "city": "Evanston",
+    "state": "IL",
+    "postal_code": "60201",
+    "geo": { "latitude": 42.0485, "longitude": -87.687 },
+    "timezone": "America/Chicago"
+  },
+  {
+    "location_id": "10000000-0000-4000-8000-000000000004",
+    "address_line1": "825 South Washington Street",
+    "address_line2": null,
+    "city": "Naperville",
+    "state": "IL",
+    "postal_code": "60540",
+    "geo": { "latitude": 41.772, "longitude": -88.149 },
+    "timezone": "America/Chicago"
+  },
+  {
+    "location_id": "10000000-0000-4000-8000-000000000005",
+    "address_line1": "310 East 34th Street",
+    "address_line2": "Murray Hill Medical Arts Building",
+    "city": "New York",
+    "state": "NY",
+    "postal_code": "10016",
+    "geo": { "latitude": 40.7465, "longitude": -73.9775 },
+    "timezone": "America/New_York"
+  },
+  {
+    "location_id": "10000000-0000-4000-8000-000000000006",
+    "address_line1": "1721 East 19th Avenue",
+    "address_line2": "South Tower, Level 4",
+    "city": "Denver",
+    "state": "CO",
+    "postal_code": "80218",
+    "geo": { "latitude": 39.737, "longitude": -104.975 },
+    "timezone": "America/Denver"
+  },
+  {
+    "location_id": "10000000-0000-4000-8000-000000000007",
+    "address_line1": "1200 Ogden Avenue",
+    "address_line2": "Medical Office Building B",
+    "city": "Downers Grove",
+    "state": "IL",
+    "postal_code": "60515",
+    "geo": { "latitude": 41.794, "longitude": -88.01 },
+    "timezone": "America/Chicago"
+  }
+]

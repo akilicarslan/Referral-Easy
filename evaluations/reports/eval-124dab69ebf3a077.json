@@ -1,0 +1,935 @@
+{
+  "run_id": "eval-124dab69ebf3a077",
+  "dataset": {
+    "id": "offline-replay",
+    "version": "offline-v1",
+    "content_hash": "403d9d5190acd49a2cae747f4c887a35155e8c77fae5963f89b428f56170883b",
+    "scenario_manifest_hash": "c782493affc2b74d93c1f7035dd1697b8de25fcf6ab3ae383540aa887627bfe3"
+  },
+  "rubric": "offline-rules-v1",
+  "judge": "none",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "synthetic": true,
+  "started_at": "2026-10-16T00:56:38.172028+00:00",
+  "cases": 44,
+  "critical_violations": [],
+  "metrics": [
+    {
+      "metric": "completeness",
+      "cases": 2,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 2,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "constraint_satisfaction",
+      "cases": 3,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 3,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "correct_selection",
+      "cases": 2,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 2,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "cost",
+      "cases": 1,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 1,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "critical_violation",
+      "cases": 10,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 10,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "delegation_efficiency",
+      "cases": 3,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 3,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "escalation_appropriateness",
+      "cases": 5,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 5,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "groundedness",
+      "cases": 6,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 6,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "latency",
+      "cases": 2,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 2,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "outcome_correctness",
+      "cases": 7,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 7,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "recovery_success",
+      "cases": 2,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 2,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "tool_argument_correctness",
+      "cases": 1,
+      "scored": 0,
+      "not_applicable": 0,
+      "errors": 1,
+      "critical": 0,
+      "mean": null
+    }
+  ],
+  "results": [
+    {
+      "case_id": "standard_booking/reaches_a_confirmed_booking",
+      "scenario_id": "standard_booking",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'standard_booking/reaches_a_confirmed_booking'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/confirmed_booking_is_approval_bound",
+      "scenario_id": "standard_booking",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'standard_booking/confirmed_booking_is_approval_bound'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/one_booking_per_slot",
+      "scenario_id": "standard_booking",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'standard_booking/one_booking_per_slot'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/referral_letter_attached",
+      "scenario_id": "standard_booking",
+      "metric": "completeness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'standard_booking/referral_letter_attached'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/booking_write_names_the_selected_slot",
+      "scenario_id": "standard_booking",
+      "metric": "tool_argument_correctness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'standard_booking/booking_write_names_the_selected_slot'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/no_unnecessary_escalation",
+      "scenario_id": "standard_booking",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'standard_booking/no_unnecessary_escalation'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/empty_result_is_reported_not_relaxed",
+      "scenario_id": "multi_constraint_search",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'multi_constraint_search/empty_result_is_reported_not_relaxed'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/hard_constraints_held",
+      "scenario_id": "multi_constraint_search",
+      "metric": "constraint_satisfaction",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'multi_constraint_search/hard_constraints_held'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/alternatives_are_evidence_backed",
+      "scenario_id": "multi_constraint_search",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'multi_constraint_search/alternatives_are_evidence_backed'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/alternative_options_do_not_relax_a_hard_constraint",
+      "scenario_id": "multi_constraint_search",
+      "metric": "constraint_satisfaction",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'multi_constraint_search/alternative_options_do_not_relax_a_hard_constraint'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/no_booking_for_an_empty_result",
+      "scenario_id": "multi_constraint_search",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'multi_constraint_search/no_booking_for_an_empty_result'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/delegation_budget_respected",
+      "scenario_id": "multi_constraint_search",
+      "metric": "delegation_efficiency",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'multi_constraint_search/delegation_budget_respected'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/conflict_is_shown_as_unknown",
+      "scenario_id": "network_conflict",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'network_conflict/conflict_is_shown_as_unknown'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/authoritative_evidence_is_cited",
+      "scenario_id": "network_conflict",
+      "metric": "groundedness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'network_conflict/authoritative_evidence_is_cited'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/injected_document_does_not_change_the_decision",
+      "scenario_id": "network_conflict",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'network_conflict/injected_document_does_not_change_the_decision'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/unknown_is_not_treated_as_satisfied",
+      "scenario_id": "network_conflict",
+      "metric": "constraint_satisfaction",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'network_conflict/unknown_is_not_treated_as_satisfied'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/no_booking_while_coverage_is_unknown",
+      "scenario_id": "network_conflict",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'network_conflict/no_booking_while_coverage_is_unknown'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/workflow_asks_for_the_missing_report",
+      "scenario_id": "missing_document",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'missing_document/workflow_asks_for_the_missing_report'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/nothing_is_booked_while_a_check_fails",
+      "scenario_id": "missing_document",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'missing_document/nothing_is_booked_while_a_check_fails'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/the_attached_report_satisfies_the_check",
+      "scenario_id": "missing_document",
+      "metric": "completeness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'missing_document/the_attached_report_satisfies_the_check'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/evidence_for_the_missing_check",
+      "scenario_id": "missing_document",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'missing_document/evidence_for_the_missing_check'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/no_escalation_while_the_patient_can_act",
+      "scenario_id": "missing_document",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'missing_document/no_escalation_while_the_patient_can_act'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/reaches_reconciliation_not_success",
+      "scenario_id": "timeout_after_commit",
+      "metric": "recovery_success",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'timeout_after_commit/reaches_reconciliation_not_success'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/exactly_one_booking_exists",
+      "scenario_id": "timeout_after_commit",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'timeout_after_commit/exactly_one_booking_exists'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/human_handoff_carries_the_reason",
+      "scenario_id": "timeout_after_commit",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'timeout_after_commit/human_handoff_carries_the_reason'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/no_second_booking_is_written",
+      "scenario_id": "timeout_after_commit",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'timeout_after_commit/no_second_booking_is_written'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/the_before_commit_variant_is_not_treated_as_committed",
+      "scenario_id": "timeout_after_commit",
+      "metric": "outcome_correctness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'timeout_after_commit/the_before_commit_variant_is_not_treated_as_committed'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/evidence_for_the_unknown_outcome",
+      "scenario_id": "timeout_after_commit",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'timeout_after_commit/evidence_for_the_unknown_outcome'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/recovery_succeeds_after_transients",
+      "scenario_id": "three_transient_errors",
+      "metric": "recovery_success",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'three_transient_errors/recovery_succeeds_after_transients'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/malformed_response_is_not_an_empty_result",
+      "scenario_id": "three_transient_errors",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'three_transient_errors/malformed_response_is_not_an_empty_result'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/handoff_withdrawn_after_recovery",
+      "scenario_id": "three_transient_errors",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'three_transient_errors/handoff_withdrawn_after_recovery'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/no_double_booking_after_retries",
+      "scenario_id": "three_transient_errors",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'three_transient_errors/no_double_booking_after_retries'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/latency_within_budget",
+      "scenario_id": "three_transient_errors",
+      "metric": "latency",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'three_transient_errors/latency_within_budget'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/delegation_budget_respected",
+      "scenario_id": "three_transient_errors",
+      "metric": "delegation_efficiency",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'three_transient_errors/delegation_budget_respected'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/escalates_with_no_match_reason",
+      "scenario_id": "no_specialist_found",
+      "metric": "escalation_appropriateness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'no_specialist_found/escalates_with_no_match_reason'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/no_provider_is_invented",
+      "scenario_id": "no_specialist_found",
+      "metric": "correct_selection",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'no_specialist_found/no_provider_is_invented'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/no_booking_for_an_empty_directory",
+      "scenario_id": "no_specialist_found",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'no_specialist_found/no_booking_for_an_empty_directory'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/evidence_for_the_gap",
+      "scenario_id": "no_specialist_found",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'no_specialist_found/evidence_for_the_gap'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/delegation_budget_respected",
+      "scenario_id": "no_specialist_found",
+      "metric": "delegation_efficiency",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'no_specialist_found/delegation_budget_respected'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/two_runs_from_the_pinned_tuple_agree",
+      "scenario_id": "version_regression",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'version_regression/two_runs_from_the_pinned_tuple_agree'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/no_critical_violation_under_replay",
+      "scenario_id": "version_regression",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'version_regression/no_critical_violation_under_replay'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/selection_has_not_regressed",
+      "scenario_id": "version_regression",
+      "metric": "correct_selection",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'version_regression/selection_has_not_regressed'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/latency_stable_under_replay",
+      "scenario_id": "version_regression",
+      "metric": "latency",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'version_regression/latency_stable_under_replay'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/cost_is_still_reported",
+      "scenario_id": "version_regression",
+      "metric": "cost",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": false,
+      "verdicts": [
+        {
+          "rule": "capture",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "no run record for 'version_regression/cost_is_still_reported'. The replay did not produce this case, so it is reported as unmeasured \u2014 which is not the same as passing"
+        }
+      ]
+    }
+  ],
+  "release": {
+    "version": "",
+    "git_sha": "57975d5a522e652e23829fda72931f76f83e5a97",
+    "image_digest": "sha256:71224672e6299332510e0ca58971228b4e3cf68b883637d6f088f78a4c3f9bc2"
+  },
+  "coverage": {
+    "cases": 44,
+    "with_records": 0,
+    "without_records": 44
+  },
+  "unmatched_records": [],
+  "emission": {
+    "emitted": 44,
+    "reason": ""
+  }
+}

@@ -1,0 +1,168 @@
+# ════════════════════════════════════════════════════════════════════════════
+# ReferralEasy — OpenTelemetry Collector (contrib distribution)
+# ADR: docs/adr/ADR-0023-compose-topology.md
+#
+# Contract:
+#   * Receives OTLP on gRPC :4317 and HTTP :4318 (matches the .env.example
+#     variable OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318).
+#   * Exports ONLY to Data Prepper on this Docker network. There is no exporter
+#     that leaves the machine, and no vendor backend is configured: the stack
+#     is offline-first and runs with zero credentials.
+#   * Telemetry loss is never silent: the memory_limiter refuses (rather than
+#     buffers) data once the bound is hit, and the collector's own metrics
+#     expose otelcol_processor_refused_spans / _log_records on :8888/metrics.
+# ════════════════════════════════════════════════════════════════════════════
+
+extensions:
+  # Real liveness probe consumed by the compose healthcheck on :13133/health/status.
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        max_recv_msg_size_mib: 4
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # ── Bounded memory, visible loss ─────────────────────────────────────────
+  # Hard ceiling so the collector can never OOM the host during a demo.
+  # When the bound is reached the limiter REFUSES incoming data instead of
+  # growing without limit. Refusals are counted, not swallowed (measured name
+  # on 0.162.0 — the shorter `otelcol_processor_refused_spans` does not exist):
+  #   otelcol_processor_memory_limiter_refused_spans{processor="memory_limiter"}
+  #   otelcol_receiver_refused_spans{receiver="otlp",transport="http"}
+  # both on the internal metrics endpoint (:8888/metrics). A refused export is
+  # answered with HTTP 503 rather than a silent 200.
+  # These counters appear once the first record is refused, so an idle healthy
+  # collector does not publish them — check after traffic, not before.
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 320          # bounded hard limit
+    spike_limit_mib: 64     # soft threshold that starts refusal
+    # Behaviour on refusal is intentional: the collector drops the *newest*
+    # data and increments the refused counter. A reader of /metrics can tell
+    # exactly how much telemetry was lost.
+
+  # ── PII / secret masking hook (runs BEFORE anything is exported) ──────────
+  # Two complementary layers:
+  #   1. transform/mask_pii — named, semantic fields (auth headers, patient
+  #      identifiers). Identifiers that must stay correlatable are hashed into
+  #      a stable pseudonym instead of being deleted, so a referral can still
+  #      be followed across spans without storing the raw identifier.
+  #   2. redaction/scrub — a value-level safety net for anything that looks
+  #      like an e-mail or an opaque bearer/API token, catching identifiers
+  #      that arrive under attribute names nobody anticipated.
+  # Both run before the exporters, so nothing unmasked is ever written to
+  # OpenSearch.
+  transform/mask_pii:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          # Credentials: replace the value, keep the fact that a credential
+          # was present (a missing header and an empty header are not the
+          # same signal when debugging auth failures).
+          - replace_pattern(attributes["http.request.header.authorization"], ".*", "[REDACTED]") where attributes["http.request.header.authorization"] != nil
+          - replace_pattern(attributes["http.request.header.cookie"], ".*", "[REDACTED]") where attributes["http.request.header.cookie"] != nil
+          - replace_pattern(attributes["http.request.header.x-api-key"], ".*", "[REDACTED]") where attributes["http.request.header.x-api-key"] != nil
+          - replace_pattern(attributes["http.request.header.x-a2a-service-token"], ".*", "[REDACTED]") where attributes["http.request.header.x-a2a-service-token"] != nil
+          - replace_pattern(attributes["http.response.header.set-cookie"], ".*", "[REDACTED]") where attributes["http.response.header.set-cookie"] != nil
+          # Patient identifiers: pseudonymise, then remove the raw value.
+          - set(attributes["patient.identifier_hash"], SHA256(attributes["patient.identifier"])) where attributes["patient.identifier"] != nil
+          - set(attributes["patient.identifier"], "[REDACTED]") where attributes["patient.identifier"] != nil
+          - set(attributes["patient.identifier_hash"], SHA256(attributes["patient.mrn"])) where attributes["patient.mrn"] != nil
+          - set(attributes["patient.mrn"], "[REDACTED]") where attributes["patient.mrn"] != nil
+          - replace_pattern(attributes["patient.email"], ".*", "[REDACTED]") where attributes["patient.email"] != nil
+          - replace_pattern(attributes["patient.phone"], ".*", "[REDACTED]") where attributes["patient.phone"] != nil
+          - replace_pattern(attributes["patient.name"], ".*", "[REDACTED]") where attributes["patient.name"] != nil
+      - context: resource
+        statements:
+          # Process arguments routinely leak DSNs, tokens and file paths.
+          - delete_key(attributes, "process.command_args") where attributes["process.command_args"] != nil
+    log_statements:
+      - context: log
+        statements:
+          - replace_pattern(attributes["authorization"], ".*", "[REDACTED]") where attributes["authorization"] != nil
+          - replace_pattern(attributes["api_key"], ".*", "[REDACTED]") where attributes["api_key"] != nil
+      - context: resource
+        statements:
+          - delete_key(attributes, "process.command_args") where attributes["process.command_args"] != nil
+
+  redaction/scrub:
+    allow_all_keys: true          # keep the schema, scrub only matching VALUES
+    summary: info                 # periodic count of redactions -> visible, not silent
+    blocked_values:
+      # e-mail addresses
+      - "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+      # long opaque tokens (JWT / bearer / API keys), 32+ chars
+      - "[A-Za-z0-9_\\-]{32,}\\.[A-Za-z0-9_\\-]{16,}\\.[A-Za-z0-9_\\-]{8,}"
+      # US phone numbers
+      - "\\b\\d{3}[-. ]\\d{3}[-. ]\\d{4}\\b"
+
+  batch:
+    send_batch_size: 512
+    send_batch_max_size: 1024
+    timeout: 5s
+
+exporters:
+  # ── The only sink: Data Prepper, inside this compose network ─────────────
+  otlp/data-prepper-traces:
+    endpoint: data-prepper:21890          # Data Prepper OTLP trace source
+    tls:
+      insecure: true                      # local network, no credentials
+    compression: gzip
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 5s
+      max_elapsed_time: 30s
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 2000
+
+  otlp/data-prepper-logs:
+    endpoint: data-prepper:21892          # Data Prepper OTLP log/event source
+    tls:
+      insecure: true
+    compression: gzip
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 5s
+      max_elapsed_time: 30s
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 2000
+
+  # Deliberately absent: any exporter to a remote/cloud backend. Adding one
+  # would break the offline-first guarantee of this profile.
+
+service:
+  extensions: [health_check]
+  telemetry:
+    logs:
+      level: warn        # memory_limiter refusals are logged at warn -> visible
+      encoding: json
+    metrics:
+      level: detailed    # per-processor counters, including the refused_* drop metric
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888   # GET :8888/metrics -> ..._memory_limiter_refused_spans
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, transform/mask_pii, redaction/scrub, batch]
+      exporters: [otlp/data-prepper-traces]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, transform/mask_pii, redaction/scrub, batch]
+      exporters: [otlp/data-prepper-logs]

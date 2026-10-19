@@ -1,0 +1,55 @@
+[
+  {
+    "ticket_id": "f2000000-0000-4000-8000-000000000001",
+    "handoff_id": "f1000000-0000-4000-8000-000000000001",
+    "workflow_id": "f0000000-0000-4000-8000-000000000006",
+    "status": "claimed",
+    "claimed_by": "operator:dana",
+    "claimed_at": "2026-10-13T16:05:00Z",
+    "claim_generation": 3,
+    "added_alternatives": [
+      {
+        "option_id": "a1000000-0000-4000-8000-000000000005",
+        "kind": "human_handoff",
+        "description": "No provider in the directory lists functional neurosurgery, so no appointment can be offered for this request. A referral coordinator can take the case, look outside the directory and place it in a queue. Nothing will be booked on your behalf: you will still be asked to approve the hospital, the doctor and the appointment before anything is confirmed.",
+        "relaxes_constraint_id": null,
+        "candidate_ids": ["f1000000-0000-4000-8000-000000000001"],
+        "evidence_ids": ["50000000-0000-4000-8000-000000000050"],
+        "estimated_delay_days": 14,
+        "additional_distance_miles": null
+      }
+    ],
+    "operator_notes": "The directory has no functional neurosurgery provider at any hospital in the fixture set. Widening the radius to 40 miles still returns nothing, and I am not going to invent a clinic to fill the gap. I have queued the case and told the patient what will happen next.",
+    "return_state": "AWAITING_HOSPITAL_CHOICE",
+    "final_approval_still_required": true,
+    "created_at": "2026-10-13T15:52:30Z"
+  },
+  {
+    "ticket_id": "f2000000-0000-4000-8000-000000000002",
+    "handoff_id": "f1000000-0000-4000-8000-000000000002",
+    "workflow_id": "f0000000-0000-4000-8000-000000000007",
+    "status": "pending",
+    "claimed_by": null,
+    "claimed_at": null,
+    "claim_generation": 0,
+    "added_alternatives": [],
+    "operator_notes": null,
+    "return_state": "BOOKING_UNVERIFIED",
+    "final_approval_still_required": true,
+    "created_at": "2026-10-14T09:40:10Z"
+  },
+  {
+    "ticket_id": "f2000000-0000-4000-8000-000000000003",
+    "handoff_id": "f1000000-0000-4000-8000-000000000004",
+    "workflow_id": "f0000000-0000-4000-8000-000000000002",
+    "status": "resolved",
+    "claimed_by": "operator:marisol",
+    "claimed_at": "2026-10-14T07:53:00Z",
+    "claim_generation": 2,
+    "added_alternatives": [],
+    "operator_notes": "The referring practice faxed the echocardiogram report at 09:55. I attached it to the workflow without touching the checks that had already passed; the readiness check re-ran the prior report item only.",
+    "return_state": "READINESS_CHECK",
+    "final_approval_still_required": true,
+    "created_at": "2026-10-14T07:50:30Z"
+  }
+]

@@ -34,20 +34,22 @@ silently moving to 3001 and breaking whatever URL you had.
 | `pnpm --filter @referraleasy/web build` | Production bundle into `dist/`. |
 | `pnpm --filter @referraleasy/web preview` | Serve the built bundle on 3000. |
 
-### Two pages
+### Three pages
 
 - **`/index.html`** — the real client. It reads the workflow from the URL:
-  `http://localhost:3000/?workflow_id=<uuid>`. Open it without that parameter to enter a seeded workflow ID and its synthetic patient reference.
+  `http://localhost:3000/?workflow_id=<uuid>`. Open it without that parameter to create a fresh referral using a sample patient, or expand the existing-referral form to enter a workflow ID and its matching patient reference. The creation form uses the demo-only admin seed route, then the patient session and initial message routes; a failed initial dispatch retains the workflow and command for retry.
   The demo session is kept in tab-local session storage and authenticated requests load the current
   snapshot before the stream opens.
 - **`/demo.html`** — the component gallery. Every one of the eight components rendered from
   static `SurfaceUpdate` fixtures, with **no backend and no network**. This is the page to
   open first: it is what makes the UI reviewable without a running stack.
 
+- **`/admin.html`** — the operations dashboard, reading the gateway’s admin API. Responsive cards, tables and outcome bars share the patient app’s design tokens.
+
 The gallery is deliberately a labelled gallery rather than a replica of the app, because
 several of its scenes exist to show a *negative* being handled — a booking request that
 must not read as confirmed, a coverage value that is unknown rather than "no". Those are
-only reviewable if the reviewer is told what to look for. Each scene gets its own surface
+only reviewable if the reviewer is told what to look for. Filter buttons group provider choices, review and outcomes, and recovery states without unmounting the components. Local activity is bounded to the 20 most recent entries. Each scene gets its own surface
 id so the components cannot interfere with one another, and every scene is mounted through
 the same adapter the real app uses, so **the gallery renders the product, not a second
 implementation of it**.

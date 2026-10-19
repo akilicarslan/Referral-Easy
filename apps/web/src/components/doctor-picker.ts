@@ -79,7 +79,7 @@ export class DoctorPicker extends PickerBase {
     locked: boolean,
   ): TemplateResult {
     const id = stringField(doctor, 'id') ?? `doctor-${index}`;
-    const name = stringField(doctor, 'name') ?? 'Name not provided';
+    const name = stringField(doctor, 'name') ?? stringField(doctor, 'label') ?? 'Name not provided';
     const specialty = stringField(doctor, 'specialty');
     const languages = Array.isArray(doctor['languages'])
       ? (doctor['languages'] as unknown[]).filter((l): l is string => typeof l === 'string')
@@ -125,7 +125,7 @@ export class DoctorPicker extends PickerBase {
   protected override choose(doctor: Record<string, unknown>, index: number): void {
     this.emitAction('doctor.select', {
       provider_id: stringField(doctor, 'id') ?? `doctor-${index}`,
-      provider_name: stringField(doctor, 'name') ?? null,
+      provider_name: stringField(doctor, 'name') ?? stringField(doctor, 'label') ?? null,
       hospital_id: this.str('hospital_id') ?? null,
     });
   }

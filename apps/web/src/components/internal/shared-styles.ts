@@ -23,6 +23,8 @@ export const sharedStyles: CSSResultGroup = css`
     display: none;
   }
 
+  *, *::before, *::after { box-sizing: border-box; }
+
   h2,
   h3,
   p {
@@ -315,6 +317,38 @@ export const sharedStyles: CSSResultGroup = css`
     height: 20px;
     accent-color: var(--re-accent);
     cursor: inherit;
+  }
+
+  .option input[type='radio'] {
+    appearance: none;
+    border: 1.5px solid var(--re-line-strong);
+    border-radius: 50%;
+    background: var(--re-surface);
+  }
+  .option input[type='radio']:checked {
+    border: 6px solid var(--re-accent);
+  }
+  .option input[type='checkbox'] {
+    appearance: none;
+    border: 1.5px solid var(--re-line-strong);
+    border-radius: 4px;
+    background: var(--re-surface);
+  }
+  .option input[type='checkbox']:checked {
+    border-color: var(--re-accent);
+    background: var(--re-accent);
+  }
+  .option input[type='checkbox']:checked::after {
+    content: '✓';
+    display: block;
+    color: white;
+    font-size: 16px;
+    line-height: 17px;
+    text-align: center;
+  }
+  @media (forced-colors: active) {
+    .option input[type='radio'], .option input[type='checkbox'] { appearance: auto; }
+    .option input[type='checkbox']:checked::after { content: none; }
   }
 
   .option-body {

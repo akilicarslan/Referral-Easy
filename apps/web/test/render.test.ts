@@ -42,6 +42,32 @@ async function render(update = surfaceUpdate([], { surface_id: SURFACE_ID }), se
 }
 
 describe('the eight components render through A2UI', () => {
+  it('shows the booking explanation from gateway props instead of a directory error', async () => {
+    await render(surfaceUpdate([instance({ component: 'DirectoryFallbackCard',
+      action: 'scheduling:lookup_request', notice: null, props: {
+        notice: 'The hospital has not confirmed this request. Check the original request again later.',
+        can_retry: true, retry_label: 'Check booking status',
+      },
+    })], { surface_id: SURFACE_ID }), 're-directory-fallback-card');
+    await eventually(() => deepText(host).includes('Booking confirmation pending'), 'booking status heading');
+    expect(deepText(host)).toContain('The hospital has not confirmed this request.');
+    expect(deepText(host)).not.toContain('We could not check the directory');
+    expect(deepText(host)).toContain('Check booking status');
+  });
+
+  it.each([
+    ['HospitalPicker', 're-hospital-picker', 'Gateway Hospital'],
+    ['DoctorPicker', 're-doctor-picker', 'Dr. Gateway'],
+  ] as const)('renders %s labels from the autonomous gateway', async (component, selector, label) => {
+    await render(surfaceUpdate([instance({ component, props: {
+      options: [{ id: 'option-1', label }],
+    } })], { surface_id: SURFACE_ID }), selector);
+    await eventually(() => deepText(host).includes(label), 'the gateway option label');
+    expect(deepText(host)).not.toContain('Name not provided');
+    expect(deepQueryAll(host, 'input[type="radio"]')).toHaveLength(1);
+    expect((deepQuery(host, 'input[type="radio"]') as HTMLInputElement).checked).toBe(false);
+  });
+
   it('shows the exact handoff summary before requesting consent', async () => {
     const actions: unknown[] = [];
     runtime.dispose();

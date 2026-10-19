@@ -70,6 +70,18 @@ describe('the component gallery', () => {
     expect(text).toContain('Nothing is selected yet');
   });
 
+  it('filters visible scenes without unmounting their component state', () => {
+    const filter = root.querySelector<HTMLButtonElement>('[data-filter="booking"]')!;
+    filter.click();
+    const visible = [...root.querySelectorAll<HTMLElement>('.demo-scene')].filter((scene) => !scene.hidden);
+    expect(visible).toHaveLength(6);
+    expect(visible.every((scene) => scene.dataset['category'] === 'booking')).toBe(true);
+    expect(filter.getAttribute('aria-pressed')).toBe('true');
+    expect(deepQuery(root, 're-hospital-picker')).not.toBeNull();
+    root.querySelector<HTMLButtonElement>('[data-filter="all"]')!.click();
+    expect([...root.querySelectorAll<HTMLElement>('.demo-scene')].every((scene) => !scene.hidden)).toBe(true);
+  });
+
   it('demonstrates idempotency when every fixture is applied a second time', async () => {
     await eventually(() => deepQuery(root, 're-slot-picker') !== null, 'the scenes to render');
 

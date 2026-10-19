@@ -36,3 +36,18 @@ See [full credits](../../videos/referraleasy-showcase/CREDITS.md),
 [Pocket TTS](https://huggingface.co/kyutai/pocket-tts-without-voice-cloning),
 [VCTK](https://datashare.ed.ac.uk/handle/10283/3443), and
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+
+## UI screenshots
+
+The repository README uses separate small thumbnails linked to full-size JPEG captures:
+
+- `referral-create.jpg` — the sample-patient creation form.
+- `referral-journey.jpg` — a referral rendered through the real gateway and A2UI adapter.
+- `admin-dashboard.jpg` — the operations overview using the local telemetry source.
+- `component-gallery.jpg` — the static, interactive fixture gallery.
+
+Captured October 19, 2026. All displayed records and traffic are synthetic. These are browser
+captures of the implemented UI, not design mockups. Counts reflect the local stack at capture time.
+Each `*-thumb.jpg` is resized to 520 pixels wide and displayed at 260 pixels in the README;
+clicking it opens its full-size counterpart.

@@ -55,7 +55,7 @@ export class AdminOverview extends AdminPage {
     const rows = mapRows(outcomes);
     return card(
       'Outcomes',
-      'Every attempt is exactly one of these. §15: an empty result is a valid outcome and not an error.',
+      'Recorded attempt outcomes. Empty results and policy refusals are counted separately from errors.',
       rows.length === 0
         ? empty(
             events === null
@@ -67,7 +67,7 @@ export class AdminOverview extends AdminPage {
               ${rows.map(
                 (row) => html`
                   <div class="row">
-                    <span class="row-key">${keyLabel(row.key)}</span>
+                    <span class="row-key">${keyLabel(row.key).replace(/_/g, ' ')}</span>
                     <span class="row-track"
                       ><span class="row-bar" style="width:${row.percent.toFixed(1)}%"></span
                     ></span>
@@ -93,7 +93,7 @@ export class AdminOverview extends AdminPage {
       return card(
         `${kind} latency`,
         kind === 'attempt'
-          ? 'One try. Timeouts stay in the distribution (§15).'
+          ? 'Time for one attempt, including timeouts.'
           : kind === 'invocation'
             ? 'One agent invocation: every attempt plus its tool work.'
             : 'One conversational turn — what the patient waited through.',
@@ -216,7 +216,7 @@ export class AdminOverview extends AdminPage {
     const indices = record.indices ?? [];
     return card(
       'Indices and retention',
-      '§15 keeps telemetry for 7 days and evaluation results for 30. An index missing from this list has not been written yet.',
+      'Telemetry is kept for 7 days; evaluations for 30 days. Only existing indices are listed.',
       indices.length === 0
         ? empty('The events index does not exist yet, so nothing has been indexed.')
         : html`

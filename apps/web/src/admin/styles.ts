@@ -22,7 +22,7 @@ export const adminStyles: CSSResultGroup = css`
     font-family: var(--re-font);
     font-size: var(--re-t-body);
     line-height: var(--re-lh-body);
-    min-height: 100vh;
+    min-height: 0;
   }
 
   *,
@@ -74,10 +74,15 @@ export const adminStyles: CSSResultGroup = css`
     display: flex;
     flex-direction: column;
     gap: var(--re-s4);
+    position: sticky;
+    top: 0;
+    height: 100dvh;
   }
 
   @media (max-width: 860px) {
     .side {
+      position: static;
+      height: auto;
       border-right: 0;
       border-bottom: 1px solid var(--re-line);
     }
@@ -165,7 +170,8 @@ export const adminStyles: CSSResultGroup = css`
     display: flex;
     flex-direction: column;
     gap: var(--re-s5);
-    max-width: 1240px;
+    width: 100%;
+    max-width: 1440px;
   }
 
   /* ── cards ─────────────────────────────────────────────────────────────── */
@@ -205,11 +211,11 @@ export const adminStyles: CSSResultGroup = css`
   }
 
   .grid.cols-2 {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   }
 
   .grid.cols-3 {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   }
 
   /* ── figures ───────────────────────────────────────────────────────────── */
@@ -278,6 +284,7 @@ export const adminStyles: CSSResultGroup = css`
   }
 
   .row-bar {
+    display: block;
     height: 100%;
     background: var(--re-accent);
     border-radius: var(--re-r-pill);
@@ -286,7 +293,7 @@ export const adminStyles: CSSResultGroup = css`
   .row-value {
     font-variant-numeric: tabular-nums;
     color: var(--re-ink-2);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .row-sample {
@@ -406,6 +413,7 @@ export const adminStyles: CSSResultGroup = css`
   }
 
   .control {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: var(--re-s1);
@@ -421,7 +429,8 @@ export const adminStyles: CSSResultGroup = css`
   button {
     font: inherit;
     font-size: var(--re-t-label);
-    min-height: 36px;
+    min-height: 44px;
+    max-width: 100%;
     padding: 0 var(--re-s3);
     border: 1px solid var(--re-line-strong);
     border-radius: var(--re-r-sm);
@@ -457,6 +466,49 @@ export const adminStyles: CSSResultGroup = css`
     padding: var(--re-s4) var(--re-s5) var(--re-s6);
     color: var(--re-ink-3);
     font-size: var(--re-t-meta);
-    max-width: 1240px;
+    width: 100%;
+    max-width: 1440px;
+  }
+
+  /* Each page is its own shadow root: give sibling cards a real vertical rhythm. */
+  :host > .card, :host > .grid { margin-bottom: var(--re-s5); }
+  :host > :last-child { margin-bottom: 0; }
+  .card .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .card .figure-value { font-size: clamp(16px, 1.6vw, 23px); overflow-wrap: anywhere; }
+  .figure { min-width: 0; }
+  .figure-sample { overflow-wrap: anywhere; }
+  :host > .grid.cols-3 > .figure { background: white; border: 1px solid var(--re-line); border-radius: 12px; padding: 22px; }
+  .brand-name { letter-spacing: -.7px; font-size: 21px; }
+  .brand-sub { color: var(--re-accent); letter-spacing: .06em; font-size: 11px; }
+  .brand { padding: 8px 10px 20px; border-bottom: 1px solid var(--re-line); }
+  .side > .chip { align-self: flex-start; margin-top: auto; }
+  .side-link { color: var(--re-accent); font-size: 13px; text-decoration: none; padding: 10px; }
+  .topbar { min-height: 98px; align-content: center; }
+  .topbar-title { font-size: 26px; letter-spacing: -.8px; }
+  .controls { padding: 16px 20px; background: #fff; border: 1px solid var(--re-line); border-radius: 12px; }
+  .control > span { font-weight: 600; }
+  .card-head { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .card-note { flex: initial; max-width: 80ch; line-height: 1.65; }
+  .row { grid-template-columns: minmax(96px, 160px) minmax(40px, 1fr) minmax(120px, 32%); }
+  .row-value { text-align: right; }
+  .row-sample { display: block; }
+  th { background: var(--re-surface-sunken); }
+  td { overflow-wrap: anywhere; }
+  .table-wrap { max-width: 100%; }
+  @media (max-width: 860px) {
+    .side > .chip { margin-top: 0; }
+    .brand { padding: 0 0 12px; }
+    .side { gap: 12px; }
+    .nav { gap: 4px; }
+    .nav a { min-height: 44px; display: flex; align-items: center; }
+  }
+  @media (max-width: 620px) {
+    .content { padding: 16px; gap: 16px; }
+    .card { padding: 18px; }
+    .topbar { padding: 20px; }
+    .controls { padding: 14px; }
+    .control { flex: 1 1 140px; }
+    .row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .row-value { text-align: left; }
   }
 `;

@@ -230,10 +230,10 @@ export class AdminShell extends LitElement {
     const route = this.route;
     return html`
       <div class="frame">
-        <nav class="side">
+        <nav class="side" aria-label="Admin navigation">
           <div class="brand">
             <span class="brand-name">ReferralEasy</span>
-            <span class="brand-sub">Admin</span>
+            <span class="brand-sub">OPERATIONS WORKSPACE</span>
           </div>
           <div class="nav">
             ${ADMIN_ROUTES.map(
@@ -246,6 +246,7 @@ export class AdminShell extends LitElement {
               `,
             )}
           </div>
+          <a class="side-link" href="/">↗ Create a demo referral</a>
           <span class="chip synthetic" title="Synthetic fixture traffic only. Not a live deployment."
             >Synthetic data</span
           >
@@ -260,9 +261,7 @@ export class AdminShell extends LitElement {
             ${this.#renderControls()} ${this.#renderBody()}
           </div>
           <footer class="foot">
-            Every figure carries the sample it was computed from, and a metric with no data says so
-            rather than showing zero. Charts are drawn from the telemetry indices the stack wrote;
-            none of this is canned output (§12).
+            Local demo · Metrics include sample counts. Missing measurements are shown as unavailable.
           </footer>
         </div>
       </div>

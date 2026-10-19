@@ -530,7 +530,7 @@ export class SurfaceRuntime {
         action: instance.action ?? null,
         submitted: instance.submitted ?? false,
         disabled: instance.disabled ?? false,
-        notice: instance.notice ?? null,
+        notice: instance.notice ?? props['notice'] ?? null,
       });
     }
 

@@ -30,8 +30,11 @@ export class DirectoryFallbackCard extends ReferralElement {
   static override styles = [sharedStyles];
 
   override render(): TemplateResult {
-    const title = this.str('title') ?? 'We could not check the directory';
-    const body = this.str('body');
+    const bookingLookup = this.str('action') === 'scheduling:lookup_request';
+    const title = this.str('title') ?? (bookingLookup ? 'Booking confirmation pending' : 'We could not check the directory');
+    const body = this.str('body') ?? (bookingLookup
+      ? this.serverNotice ?? 'The booking request has been sent. It is not confirmed yet.'
+      : undefined);
     const reasonCode = this.str('reason_code');
     const reasonDetail = this.str('reason_detail');
     const degraded = describeDegradation(this.str('degraded'));
@@ -100,7 +103,7 @@ export class DirectoryFallbackCard extends ReferralElement {
 
         ${lastKnown !== undefined ? this.renderLastKnown(lastKnown) : nothing}
 
-        ${this.serverNotice !== undefined
+        ${this.serverNotice !== undefined && this.serverNotice !== body
           ? html`<p class="notice info" role="status">
               <span class="glyph" aria-hidden="true">i</span><span>${this.serverNotice}</span>
             </p>`
@@ -109,7 +112,7 @@ export class DirectoryFallbackCard extends ReferralElement {
         ${canRetry
           ? html`
               <div class="actions">
-                <button class="secondary" type="button" ?disabled=${this.isDisabled}
+                <button class="secondary" type="button" ?disabled=${this.isDisabled || this.isSubmitted}
                   @click=${() => this.emitAction('directory.retry', {})}>
                   ${retryLabel}
                 </button>

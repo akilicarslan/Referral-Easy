@@ -274,8 +274,6 @@ jobs:
     # consumes slots and there is no reset endpoint, so a second run fails in fixture discovery
     # rather than on a real defect. This job starts a clean one, which is the only honest way to
     # run it. `MOCK_API_DB` points at the runner's temp dir so no repo file is written.
-    env:
-      MOCK_API_DB: ${{ runner.temp }}/mock-api.sqlite
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: astral-sh/setup-uv@v10.3.0
@@ -303,6 +301,9 @@ jobs:
       - name: Build the mock API
         run: pnpm --filter @referraleasy/mock-api build
       - name: Start the mock API on a clean database
+        # The runner context is available in step env, but not job env.
+        env:
+          MOCK_API_DB: ${{ runner.temp }}/mock-api.sqlite
         run: |
           set -eu
           rm -f "$MOCK_API_DB"

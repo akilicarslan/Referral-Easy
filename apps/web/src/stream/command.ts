@@ -18,7 +18,9 @@ import type { sse$ClientAction, sse$ComponentInstance } from '@referraleasy/cont
  * Retrying the same intent reuses the key. A different instance, or a different
  * server-issued action on the same instance, is a different intent and gets a
  * fresh one. The key is released only when the workflow has moved on — which the
- * caller signals by applying a newer `workflow_state_version`.
+ * caller signals by applying a newer `workflow_state_version`. A server snapshot
+ * may also re-offer a read-only booking lookup at the same state version; that
+ * is a new status check against the original request.
  */
 
 /** A stable key for "the patient is trying to do this one thing". */

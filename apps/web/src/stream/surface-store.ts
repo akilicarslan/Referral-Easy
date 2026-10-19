@@ -161,9 +161,23 @@ export class SurfaceStore {
   /** Restore current cards before opening a stream from the snapshot's cursor. */
   hydrate(snapshot: WorkflowSnapshot): void {
     if (snapshot.workflow_id !== this.#workflowId) throw new Error('Snapshot belongs to another workflow.');
-    for (const surfaceId of this.#runtime.surfaceIds()) this.#runtime.removeSurface(surfaceId);
+    const previousIds = this.#runtime.instances(snapshot.surface_id).map((item) => item.instance_id);
+    const currentIds = new Set(snapshot.components.map((item) => item.instance_id));
+    for (const surfaceId of this.#runtime.surfaceIds()) {
+      if (surfaceId !== snapshot.surface_id) this.#runtime.removeSurface(surfaceId);
+    }
+    for (const component of snapshot.components) {
+      if (component.action === 'scheduling:lookup_request' && !component.submitted && !component.disabled
+        && (snapshot.last_seq ?? -1) > this.#seq) {
+        // A server re-offer is a new read intent against the same original booking.
+        this.#commands.release(component.instance_id, component.action);
+        this.#inFlight.delete(component.instance_id);
+      }
+      if (component.submitted || component.disabled) this.#inFlight.delete(component.instance_id);
+    }
     this.#surfaces.clear();
-    this.#runtime.applyUpdate({ surface_id: snapshot.surface_id, components: snapshot.components });
+    this.#runtime.applyUpdate({ surface_id: snapshot.surface_id, components: snapshot.components,
+      remove_instance_ids: previousIds.filter((id) => !currentIds.has(id)) });
     this.#surfaces.set(snapshot.surface_id, {
       surfaceId: snapshot.surface_id, instanceIds: snapshot.components.map((item) => item.instance_id), updatedAt: '',
     });
@@ -171,6 +185,7 @@ export class SurfaceStore {
     this.#lastEventId = snapshot.last_event_id ?? undefined;
     this.#workflow = { state: snapshot.state, stateVersion: snapshot.state_version, degraded: null, reasonCode: 'ok', updatedAt: '' };
     this.#phase = 'live';
+    this.#terminal = undefined;
     if (snapshot.terminal !== null) this.#applyTerminal(snapshot.terminal);
     this.#emit();
   }

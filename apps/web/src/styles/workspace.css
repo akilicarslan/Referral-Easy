@@ -1,0 +1,55 @@
+/* The referral path is the signature: quiet surfaces with a persistent care journey. */
+[hidden] { display: none !important; }
+.site-header { min-height: 84px; padding: 0 max(24px, calc((100vw - 1280px)/2)); background: #fff; border-bottom: 1px solid var(--re-line); display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.wordmark { display:flex; align-items:center; gap:10px; color:var(--re-ink); text-decoration:none; font-size:21px; font-weight:750; letter-spacing:-.8px; }
+.brand-mark { display:grid; place-items:center; width:34px; height:34px; background:var(--re-accent); color:white; border-radius:10px; font-size:25px; }
+.brand-context { font-size:12px; font-weight:400; color:var(--re-ink-2); letter-spacing:0; border-left:1px solid var(--re-line); padding-left:16px; margin-left:8px; }
+.site-header nav { display:flex; gap:28px; align-items:center; }
+.site-header nav a { font-size:13px; color:var(--re-ink-2); text-decoration:none; padding:12px 0; }
+.site-header nav a[aria-current] { color:var(--re-accent); font-weight:650; }
+.eyebrow { display:block; font-size:11px; font-weight:700; letter-spacing:.13em; color:var(--re-accent); }
+.demo-launcher { max-width:1180px; margin:72px auto; padding:0 32px; display:grid; grid-template-columns:1fr 1.08fr; gap:88px; align-items:start; }
+.intro { padding-top:36px; }
+.intro h1 { font-family:'Avenir Next', 'Segoe UI', sans-serif; font-size:clamp(38px,4vw,54px); font-weight:650; line-height:1.12; letter-spacing:-2.3px; margin:20px 0 24px; }
+.intro > p { max-width:390px; font-size:17px; line-height:1.8; color:var(--re-ink-2); }
+.intro-note { display:flex; gap:14px; margin-top:44px; padding-top:28px; border-top:1px solid var(--re-line); max-width:370px; }
+.intro-note > span { color:var(--re-accent); font-size:25px; }
+.intro-note strong { font-size:14px; }
+.intro-note p { font-size:13px; color:var(--re-ink-2); line-height:1.65; margin:6px 0; }
+.launcher-card { background:#fff; border:1px solid var(--re-line); border-radius:20px; padding:32px; box-shadow:0 12px 40px #183f3910; }
+.card-heading { display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom:28px; }
+.card-heading h2 { font-size:23px; letter-spacing:-.6px; margin:8px 0 0; }
+.demo-launcher form { display:grid; gap:16px; }
+.demo-launcher label { display:grid; gap:8px; font-size:13px; font-weight:600; }
+.demo-launcher input, .demo-launcher select, .demo-launcher textarea { width:100%; min-width:0; font:inherit; font-size:14px; font-weight:400; min-height:46px; padding:12px; border:1px solid var(--re-line-strong); border-radius:8px; color:var(--re-ink); background:#fff; }
+.demo-launcher textarea { resize:vertical; line-height:1.6; }
+.sample-summary { display:flex; align-items:center; gap:12px; padding:16px; border:1px solid #dcebe7; border-radius:10px; background:#f1f8f6; }
+.sample-avatar { display:grid; place-items:center; width:38px; height:38px; flex:none; border-radius:50%; background:#d9eee8; color:var(--re-accent); font-size:12px; font-weight:700; }
+.sample-summary strong { font-size:13px; }
+.sample-summary p, .form-hint, .launcher-foot, .open-form p { font-size:12px; color:var(--re-ink-2); margin:4px 0 0; }
+.form-hint { margin:-8px 0 0; }
+.form-status { margin:0; color:var(--re-error); font-size:13px; overflow-wrap:anywhere; }
+.form-status:empty { display:none; }
+.existing-referral { border-top:1px solid var(--re-line); margin-top:24px; padding-top:20px; }
+.existing-referral summary { color:var(--re-accent); font-size:13px; cursor:pointer; padding:4px 0; }
+.open-form { padding-top:16px; }
+.launcher-foot { margin-top:22px; text-align:center; }
+.referral-workspace { max-width:1180px; padding:40px 32px 64px; margin:auto; display:grid; grid-template-columns:300px minmax(0,1fr); gap:56px; }
+.journey-panel { padding:28px 8px 0 0; }
+.journey-panel h1 { font-family:'Avenir Next','Segoe UI',sans-serif; font-size:32px; line-height:1.2; font-weight:650; letter-spacing:-1px; margin:14px 0; }
+.journey-panel > p { font-size:14px; color:var(--re-ink-2); line-height:1.7; }
+.journey-panel ol { list-style:none; counter-reset:care; padding:0; margin:32px 0; }
+.journey-panel li { counter-increment:care; position:relative; padding:0 0 28px 46px; }
+.journey-panel li::before { content:counter(care); position:absolute; left:0; top:-3px; width:28px; height:28px; border:1px solid var(--re-accent-line); border-radius:50%; display:grid; place-items:center; color:var(--re-accent); background:var(--re-accent-soft); font-size:12px; font-weight:600; }
+.journey-panel li:not(:last-child)::after { content:''; position:absolute; top:26px; bottom:5px; left:14px; width:1px; background:var(--re-accent-line); }
+.journey-panel li strong, .journey-panel li span { display:block; font-size:13px; }
+.journey-panel li span { color:var(--re-ink-2); font-size:12px; margin-top:4px; }
+.journey-note { border-top:1px solid var(--re-line); padding-top:20px; font-size:12px; color:var(--re-ink-2); }
+.journey-note span { display:block; margin-top:4px; }
+.journey-panel > a { display:inline-block; margin-top:22px; color:var(--re-accent); font-size:13px; text-decoration:none; }
+.referral-content { min-width:0; background:white; border:1px solid var(--re-line); border-radius:16px; align-self:start; box-shadow:var(--re-shadow-1); overflow:hidden; }
+.workspace-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:22px 28px; border-bottom:1px solid var(--re-line); }
+@media (max-width:900px) { .brand-context { display:none; } .demo-launcher { gap:36px; margin:40px auto; } .referral-workspace { gap:24px; grid-template-columns:240px minmax(0,1fr); } .card-heading { flex-wrap:wrap; } }
+@media (max-width:680px) { .site-header { padding:16px 20px; flex-wrap:wrap; gap:8px; } .site-header nav { gap:20px; flex-wrap:wrap; } .demo-launcher { display:block; padding:0 20px; margin:28px auto; } .intro { padding:0; } .intro h1 { font-size:38px; } .intro > p { font-size:15px; } .intro-note { display:none; } .launcher-card { margin-top:28px; padding:22px; } .referral-workspace { display:block; padding:24px 16px; } .journey-panel { padding:0; } .journey-panel h1 { font-size:26px; } .journey-panel ol, .journey-panel > p, .journey-note { display:none; } .journey-panel > a { margin:0 0 24px; } .workspace-heading { padding:16px; } }
+
+@media (max-width:680px) { .site-header nav { width:100%; gap:14px; } .site-header nav a { font-size:12px; } }

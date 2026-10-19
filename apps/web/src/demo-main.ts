@@ -1,5 +1,7 @@
 import './styles/tokens.css';
 import './styles/base.css';
+import './styles/workspace.css';
+import './styles/gallery.css';
 
 import { SurfaceRuntime, mountSurface, type SurfaceMount } from './a2ui/adapter.js';
 import { DEMO_SCENES, allScenesUpdate } from './fixtures/surfaces.js';
@@ -63,27 +65,24 @@ function render(): void {
   root.innerHTML = '';
 
   const header = document.createElement('header');
-  header.className = 'demo-header';
+  header.className = 'gallery-header';
   header.innerHTML = `
-    <h1>ReferralEasy — component gallery</h1>
-    <p class="demo-lede">
-      All eight components from the SSE contract's <code>RenderableComponent</code> enum, rendered
-      from static <code>SurfaceUpdate</code> fixtures with no backend. Every fixture is marked
-      synthetic. Several scenes exist to show a rule being obeyed rather than a feature working.
-    </p>
-    <p class="demo-actions">
-      <button type="button" id="apply-twice">Apply every update twice (idempotency)</button>
-      <button type="button" id="reload">Reset</button>
-    </p>
-    <p class="demo-log" id="demo-log" aria-live="polite">No actions yet.</p>
+    <div class="site-header"><a class="wordmark" href="/"><span class="brand-mark" aria-hidden="true">↗</span>ReferralEasy<span class="brand-context">Care, connected.</span></a><nav aria-label="Main navigation"><a href="/">Referrals</a><a href="/demo.html" aria-current="page">Component gallery</a><a href="/admin.html">Admin dashboard ↗</a></nav></div>
+    <div class="gallery-intro"><div><span class="eyebrow">EXPLORE THE REFERRAL EXPERIENCE</span><h1>Every step. Every state.</h1><p>Try the eight referral components, including the moments when information is missing or an appointment is still pending.</p></div><div class="gallery-context"><span class="re-chip re-chip--synthetic">Synthetic data</span><p>No backend required.<br>Choices stay in this gallery.</p><a href="/">Create a demo referral ↗</a></div></div>
+    <div class="gallery-toolbar"><div class="gallery-filters" role="group" aria-label="Filter gallery"><button type="button" data-filter="all" aria-pressed="true">All states</button><button type="button" data-filter="choices" aria-pressed="false">Provider choices</button><button type="button" data-filter="booking" aria-pressed="false">Review & outcomes</button><button type="button" data-filter="recovery" aria-pressed="false">Recovery & missing data</button></div><div class="demo-actions"><button type="button" id="apply-twice">Apply every update twice (idempotency)</button><button type="button" id="reload">Reset</button></div></div>
+    <details class="gallery-activity"><summary>Local activity <span id="activity-count">· No actions yet</span></summary><div class="demo-log" id="demo-log" role="status" aria-live="polite">Actions appear here. Nothing is sent to a hospital.</div></details>
   `;
   root.append(header);
 
+  const grid = document.createElement('main');
+  grid.className = 'gallery-grid';
+  root.append(grid);
   DEMO_SCENES.forEach((scene, index) => {
     const update = sceneUpdate(index);
 
     const section = document.createElement('section');
     section.className = 'demo-scene';
+    section.dataset['category'] = ['hospitals', 'doctors', 'slots'].includes(scene.key) ? 'choices' : ['form', 'review', 'review-degraded', 'receipt-requested', 'receipt-confirmed', 'receipt-unverified'].includes(scene.key) ? 'booking' : 'recovery';
 
     const heading = document.createElement('div');
     heading.className = 'demo-scene-head';
@@ -96,10 +95,18 @@ function render(): void {
     slot.className = 'demo-slot';
 
     section.append(heading, slot);
-    root.append(section);
+    grid.append(section);
 
     runtime.applyUpdate(update);
     mounts.push(mountSurface(slot, runtime, update.surface_id));
+  });
+
+  root.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const filter = button.dataset['filter'];
+      root.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
+      root.querySelectorAll<HTMLElement>('.demo-scene').forEach((scene) => { scene.hidden = filter !== 'all' && scene.dataset['category'] !== filter; });
+    });
   });
 
   document.getElementById('apply-twice')?.addEventListener('click', () => {
@@ -137,7 +144,13 @@ function logAction(code: string, message: string, context: Record<string, unknow
   entry.className = 'demo-log-entry';
   const payload = Object.keys(context).length > 0 ? ` ${JSON.stringify(context)}` : '';
   entry.textContent = `${code} — ${message}${payload}`;
+  if (!log.querySelector('.demo-log-entry')) log.textContent = '';
   log.append(entry);
+  while (log.children.length > 20) log.firstElementChild?.remove();
+  const count = document.getElementById('activity-count');
+  if (count) count.textContent = `· ${log.children.length} recent ${log.children.length === 1 ? 'action' : 'actions'}`;
+  const activity = log.closest('details');
+  if (activity) activity.open = true;
   log.scrollTop = log.scrollHeight;
 }
 

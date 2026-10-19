@@ -30,6 +30,21 @@ retrieval quality, user interaction and distributed correctness each have their 
 The demo runs on localhost and provides fixture sessions without login. Read the
 [security and publication notes](SECURITY.md) before running it or sharing source.
 
+## Screenshots
+
+Live browser captures from the local synthetic demo. Click a thumbnail to open the full-size image.
+
+<table>
+  <tr>
+    <td align="center"><a href="docs/media/referral-create.jpg"><img src="docs/media/referral-create-thumb.jpg" width="260" alt="Create a demo referral with a sample patient" /></a><br /><sub>Create a referral</sub></td>
+    <td align="center"><a href="docs/media/referral-journey.jpg"><img src="docs/media/referral-journey-thumb.jpg" width="260" alt="Guided patient referral and provider choices" /></a><br /><sub>Patient referral</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="docs/media/admin-dashboard.jpg"><img src="docs/media/admin-dashboard-thumb.jpg" width="260" alt="Admin dashboard with measured events and outcome bars" /></a><br /><sub>Admin dashboard</sub></td>
+    <td align="center"><a href="docs/media/component-gallery.jpg"><img src="docs/media/component-gallery-thumb.jpg" width="260" alt="Interactive gallery with provider selection and recovery states" /></a><br /><sub>Component gallery</sub></td>
+  </tr>
+</table>
+
 ## What this project demonstrates
 
 | Engineering area          | Design demonstrated here                                                                                                                                      |
@@ -250,24 +265,207 @@ replay harness or published quality benchmark yet.
 
 ## Run locally
 
-Prerequisites: **Python 3.12**, **Node.js 22+**, the pinned **pnpm** version from
-[package.json](package.json), **uv**, and **Docker Compose**.
+Run commands from the repository root. The sequence below starts PostgreSQL and applies migrations
+**before** starting the gateway, builds the current source, and includes the frontend's `showcase`
+profile. Plain `make demo` starts only `core` and can reuse old images.
+
+### 1. Install and check the tools
+
+Use **Python 3.12**, **Node.js 22+**, **pnpm 12.14.0** (pinned in
+[package.json](package.json)), **uv 0.13.1** (the CI/image pin), and **Docker Compose v2**.
+Start Docker Desktop, or your Docker Engine, before continuing.
 
 ```bash
-make bootstrap       # Create .env if absent; install Python and Node dependencies
-# Review .env against .env.example before starting services.
-make demo            # Validate → start stack → migrate → verify seed → index → health
+node --version
+npm install --global pnpm@12.14.0
+pnpm --version
+docker compose version
+docker info
 ```
 
-Default local surfaces: patient app at [localhost:3000](http://localhost:3000), admin at
-[localhost:3000/admin](http://localhost:3000/admin), and gateway at
-[localhost:8080](http://localhost:8080). The lifecycle prints the URLs that pass health checks.
+For a standalone uv installation on macOS/Linux, install the pinned version into a known location:
 
-The default model/embedding/rerank profile uses offline fixtures. Live providers require credentials
-and validated model configuration; unresolved `CHANGEME` pins block live startup. The guardrail
-decision-model layer has its own credential requirement: missing configuration closes the write
-path, even when specialist model execution is offline. See [.env.example](.env.example) and the
-[Compose guide](infra/compose/README.md).
+```bash
+curl -LsSf https://astral.sh/uv/0.13.1/install.sh \
+  | env UV_INSTALL_DIR="$HOME/.local/bin" UV_NO_MODIFY_PATH=1 sh
+export PATH="$HOME/.local/bin:$PATH"
+uv --version
+uv python install 3.12
+```
+
+The `PATH` change above applies to the current shell; keep `~/.local/bin` on your shell's `PATH` for
+future sessions. If `uv self update` reports a different installer directory, run `type -a uv` to
+find competing copies and reinstall at the intended location as above. Homebrew-managed copies
+are updated with `brew upgrade uv`; updating one copy does not change which copy `PATH` selects.
+See the [uv installer documentation](https://github.com/astral-sh/uv/blob/main/docs/reference/installer.md).
+
+### 2. Install dependencies and configure `.env`
+
+```bash
+make bootstrap
+pnpm --filter @referraleasy/contracts build
+```
+
+`make bootstrap` creates `.env` from [.env.example](.env.example) only when it is missing, then
+installs Python and Node dependencies. Building the TypeScript contracts also prepares the host
+for Vite development and tests; otherwise imports can fail with
+`Failed to resolve entry for package "@referraleasy/contracts"`.
+
+For a new offline setup, edit these values in `.env`:
+
+```dotenv
+DATABASE_URL=postgresql://referraleasy:referraleasy@localhost:55433/referraleasy
+POSTGRES_HOST_PORT=55433
+GATEWAY_URL=http://localhost:8080
+WEB_URL=http://localhost:3000
+MODEL_BACKEND=offline
+EMBEDDING_BACKEND=offline
+RERANK_BACKEND=offline
+OPENROUTER_API_KEY=offline-fixture-not-a-real-key
+```
+
+Port **55433** was used for this local walkthrough to avoid other PostgreSQL installations on 5432.
+You may use another free port, but `DATABASE_URL`, `POSTGRES_HOST_PORT`, and the migration command
+must agree. The key above is a non-secret fixture used only with the offline backends: the agent
+settings currently require a nonempty key even when no provider call is made.
+
+**Offline mode starts the stack and supports fixture inspection, but does not enable booking
+writes.** The decision-model guardrail deliberately stays unavailable offline. Use the component
+gallery for a preview without credentials; configure the live model path below for an interactive
+referral journey. A healthy container does not prove that guardrail screening or a provider call
+will succeed. Do not commit `.env` or real credentials.
+
+### 3. Start PostgreSQL, migrate, build, and launch
+
+```bash
+docker compose --profile core up -d --wait postgres
+
+uv run python scripts/migrate.py \
+  --database-url postgresql://referraleasy:referraleasy@localhost:55433/referraleasy
+
+uv run python scripts/validate_env.py
+
+docker compose --profile core --profile showcase build \
+  gateway agent-care_coordinator worker mock-api web
+
+uv run python scripts/demo.py --profile core --profile showcase
+```
+
+All seven specialists share the `referraleasy/agents:dev` image, so building `agent-care_coordinator`
+builds their common image once. The demo command starts the services, applies OpenSearch templates,
+checks migrations and fixture data, indexes the directory, and probes the selected profiles.
+On a fresh database, starting the whole stack before migrating can leave the gateway unhealthy and
+prevent the demo script from ever reaching its migration step.
+
+| Surface | Local address |
+| --- | --- |
+| Create referral / patient app | [localhost:3000](http://localhost:3000/) |
+| Component gallery | [localhost:3000/demo.html](http://localhost:3000/demo.html) |
+| Admin dashboard | [localhost:3000/admin.html](http://localhost:3000/admin.html) |
+| Gateway health | [localhost:8080/healthz](http://localhost:8080/healthz) |
+| Mock hospital API health | [localhost:4010/health](http://localhost:4010/health) |
+| OpenSearch health | [localhost:9200/_cluster/health](http://localhost:9200/_cluster/health) |
+
+### 4. Create a referral in the browser
+
+With the live model/guardrail configuration below ready, open
+[localhost:3000](http://localhost:3000/), choose a sample patient, and click **Create referral**.
+The form creates a fresh synthetic workflow, opens its patient session, submits the initial request,
+and takes you directly to provider choices. No workflow IDs or terminal commands are needed.
+The available samples include cardiology and neurology referrals, with language preferences loaded
+from their fixture records. Do not enter real patient information.
+
+A failed initial dispatch keeps the created workflow and its original command ID in the page;
+**Retry starting referral** retries that same request. Keep the page open while retrying.
+Creation uses the gateway’s existing demo-only session and workflow routes. If the demo gateway
+or required model guardrail is unavailable, the form reports the failure instead of inventing choices.
+
+To reopen an existing workflow, expand **Open a demo referral with an existing ID** and enter its
+workflow ID and matching patient reference. The browser keeps the patient session in tab-local
+storage so a reload restores the current question. Share or bookmark the referral URL only for
+this synthetic local demo; another tab may need to open a fresh demo session.
+
+Lakeview Regional Medical Center uses the `instant_confirm` fixture path; Ravenswood Specialty
+Surgical Center uses `review_required`. A review-required request remains `PENDING_REVIEW` and
+must not appear confirmed. Three unresolved status checks lead to an offer of human handoff;
+a queue record is created only after the patient approves the handoff summary.
+
+For a preview without a gateway, use [the component gallery](http://localhost:3000/demo.html).
+Its filters group provider choices, booking outcomes, and recovery states. Gallery controls only
+log local activity; they do not create workflows or send requests to hospitals.
+
+### Live model and guardrail configuration
+
+For the interactive journey, set `MODEL_BACKEND=live` in `.env`, replace the offline fixture key
+with your own `OPENROUTER_API_KEY`, and set `AGENT_MODEL_ID` to a verified tool-capable OpenRouter
+model ID. The shipped guardrail pin is `GUARDRAIL_DECISION_MODEL=openai/gpt-5-nano`; keep the local
+classifier model and calibrated threshold aligned with [.env.example](.env.example).
+The local classifier can remain offline while the decision model uses OpenRouter.
+
+You can keep `EMBEDDING_BACKEND=offline` and `RERANK_BACKEND=offline` while testing the patient
+journey. Their live backends need their own validated provider configuration. Before enabling any
+live backend, resolve **every** `CHANGEME` value: the environment validator checks even unrelated
+declared pins. Replace the patient/admin signing secrets and A2A token with local-only values.
+If Vertex, evaluation, or LangSmith are disabled, clear their unused placeholder fields rather
+than inventing provider settings; set `LANGSMITH_ENABLED=false` when tracing is disabled.
+
+```bash
+uv run python scripts/validate_env.py
+docker compose --profile core --profile showcase up -d --wait
+```
+
+The second command recreates services whose environment changed. Real provider calls can incur
+charges. Keep service ports on localhost. See [.env.example](.env.example) and the
+[Compose guide](infra/compose/README.md) for the complete environment contract.
+
+### Development, health checks, and common startup failures
+
+For frontend changes with hot reload, keep the backend stack running, stop its web container, and
+start Vite on the same port:
+
+```bash
+docker compose stop web
+pnpm --filter @referraleasy/contracts build
+pnpm web:dev
+```
+
+The gallery at `/demo.html` also works with Vite alone, without Docker or a gateway. If you use
+containerized frontend development instead, rebuild after source changes:
+
+```bash
+docker compose --profile core --profile showcase build web
+docker compose --profile core --profile showcase up -d --no-deps --wait web
+```
+
+After backend changes, repeat the image-build command in step 3 and start the stack again.
+`docker compose restart` alone does not rebuild source into an existing image.
+
+| Symptom | Check / fix |
+| --- | --- |
+| PostgreSQL connection refused on 5432 | This walkthrough uses 55433. Match the migration URL to `.env`, and start `postgres` with `--wait`. |
+| PostgreSQL authentication fails on another project's server | Confirm the published port with `docker compose port postgres 5432`; keep both `.env` port values aligned. |
+| `web NO PROBE: WEB_URL is not set` | Add `WEB_URL=http://localhost:3000` to an existing `.env`. Updating `.env.example` does not update existing files. |
+| No frontend on port 3000 | Include both `--profile core --profile showcase`; the web service belongs to `showcase`. |
+| Old missing-workflow screen or a stream `Invalid URL` error | Rebuild the web image from current source, recreate the container, and reload. Open a real workflow using both IDs. |
+| Sample workflow returns not found | The example ID is from another local database. Create a fresh workflow with the browser form above. |
+| Session expired | Click **Open demo session** again using the same workflow ID and patient reference. |
+| Agent startup says `OPENROUTER_API_KEY is not set` in offline mode | Set the non-secret offline fixture key shown in step 2, keeping all three backends offline. |
+| Booking is pending or not confirmed | A review-required fixture can remain pending. Status checks look up the original request; they do not submit another booking. |
+| Mock API reports `offline: true`, `llm_calls: 0` | Expected: this service simulates hospitals and never calls a model. It does not describe the agent or guardrail model backend. |
+| OpenSearch is `yellow` on one node | All primary shards are available, but some replicas cannot be allocated on that node. This does not explain a frontend startup failure. |
+
+```bash
+docker compose ps
+docker compose logs --tail=100 gateway web
+uv run python scripts/health.py --profile core --profile showcase
+make down
+```
+
+`make down` stops the stack and preserves named volumes. Do not delete volumes to fix a frontend
+problem: doing so removes the local workflows, booking state, and indexes you may want to inspect.
+The [local demo runbook](docs/runbooks/local-demo.md) contains additional troubleshooting.
+
+### Tests
 
 ```bash
 make test                 # Python unit and contract tests

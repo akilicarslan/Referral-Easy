@@ -156,9 +156,9 @@ describe('the outcome page cannot overstate what happened', () => {
     store.beginWorkflow(WORKFLOW_ID);
     store.apply(terminal('BOOKING_UNVERIFIED', 'booking_outcome_unknown'));
 
-    const text = await textWhen((value) => value.includes('Workflow finished'), 'the outcome page');
+    const text = await textWhen((value) => value.includes('Booking confirmation pending'), 'the pending outcome page');
 
-    expect(text).toContain('booking unverified');
+    expect(text).not.toContain('Workflow finished');
     expect(text).toContain('The booking was sent but the outcome could not be confirmed.');
 
     // The glyph is not a tick, and the tone is not `ok`.

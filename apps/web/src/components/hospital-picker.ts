@@ -58,7 +58,7 @@ export class HospitalPicker extends PickerBase {
     locked: boolean,
   ): TemplateResult {
     const id = stringField(hospital, 'id') ?? `hospital-${index}`;
-    const name = stringField(hospital, 'name') ?? 'Name not provided';
+    const name = stringField(hospital, 'name') ?? stringField(hospital, 'label') ?? 'Name not provided';
     const distance = numberField(hospital, 'distance_km');
     const meta = metaLine(
       stringField(hospital, 'city'),
@@ -95,7 +95,7 @@ export class HospitalPicker extends PickerBase {
   protected override choose(hospital: Record<string, unknown>, index: number): void {
     this.emitAction('hospital.select', {
       hospital_id: stringField(hospital, 'id') ?? `hospital-${index}`,
-      hospital_name: stringField(hospital, 'name') ?? null,
+      hospital_name: stringField(hospital, 'name') ?? stringField(hospital, 'label') ?? null,
     });
   }
 }

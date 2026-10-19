@@ -5,10 +5,12 @@ import './app/referral-app.js';
 import { SurfaceRuntime } from './a2ui/adapter.js';
 import { SurfaceStore } from './stream/surface-store.js';
 import { SseClient, type StreamTransport } from './stream/sse-client.js';
-import { PatientClient, demoPatientSession } from './stream/patient-client.js';
+import { PatientClient } from './stream/patient-client.js';
 import { ReferralApp } from './app/referral-app.js';
+import { demoLauncher } from './app/demo-launcher.js';
+import './styles/workspace.css';
 
-const GATEWAY_BASE = (import.meta.env['VITE_GATEWAY_URL'] as string | undefined) ?? window.location.origin;
+const GATEWAY_BASE = (import.meta.env['VITE_GATEWAY_URL'] as string | undefined)?.trim() || window.location.origin;
 let disposePrevious: (() => void) | undefined;
 
 export interface BootOptions {
@@ -25,6 +27,7 @@ export function boot(options: BootOptions = {}): () => void {
   let connectionGeneration = 0;
   let client: SseClient | undefined;
   let patient: PatientClient | undefined;
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
   const app = new ReferralApp();
   const runtime = new SurfaceRuntime({
     onDiagnostic: (diagnostic) => store.addDiagnostic(diagnostic),
@@ -44,12 +47,35 @@ export function boot(options: BootOptions = {}): () => void {
   app.snapshot = store.snapshot;
   const root = document.getElementById('app');
   if (root === null) throw new Error('Missing #app root element.');
-  // Replaces the pre-bundle skeleton as well as any previous app instance.
-  root.replaceChildren(app);
+
+  function refreshUnverified(workflowId: string, generation: number): void {
+    if (!active || generation !== connectionGeneration || store.snapshot.workflow?.state !== 'BOOKING_UNVERIFIED') return;
+    if (refreshTimer !== undefined) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(async () => {
+      refreshTimer = undefined;
+      try {
+        const snapshot = await patient!.snapshot(workflowId);
+        if (!active || generation !== connectionGeneration) return;
+        if ((snapshot.last_seq ?? -1) > store.snapshot.seq
+          || snapshot.state_version > (store.snapshot.workflow?.stateVersion ?? -1)) {
+          store.hydrate(snapshot);
+        }
+      } catch (error) {
+        if (active && generation === connectionGeneration) store.addDiagnostic({
+          code: 'BOOKING_STATUS_REFRESH_FAILED',
+          message: `Could not refresh the booking status: ${describe(error)}`,
+        });
+      }
+      refreshUnverified(workflowId, generation);
+    }, 1000);
+  }
 
   async function connect(workflowId: string, token: string): Promise<void> {
     const generation = ++connectionGeneration;
+    if (refreshTimer !== undefined) clearTimeout(refreshTimer);
     app.hidden = false;
+    launcher.hidden = true;
+    workspace.hidden = false;
     client?.disconnect();
     patient = new PatientClient(GATEWAY_BASE, token, fetchImpl);
     store.beginWorkflow(workflowId);
@@ -57,13 +83,20 @@ export function boot(options: BootOptions = {}): () => void {
       const snapshot = await patient.snapshot(workflowId);
       if (!active || generation !== connectionGeneration) return;
       store.hydrate(snapshot);
-      if (snapshot.terminal !== null) { app.streamStatus = 'closed'; return; }
+      if (snapshot.terminal !== null) {
+        app.streamStatus = 'closed';
+        refreshUnverified(workflowId, generation);
+        return;
+      }
       client = new SseClient({
         baseUrl: GATEWAY_BASE, token,
         ...(options.transport === undefined ? {} : { transport: options.transport }),
         onEvent: (event) => {
           store.apply(event);
-          if (event.type === 'terminal') client?.disconnect();
+          if (event.type === 'terminal') {
+            client?.disconnect();
+            refreshUnverified(workflowId, generation);
+          }
         },
         onStatus: (status) => {
           app.streamStatus = status;
@@ -75,58 +108,36 @@ export function boot(options: BootOptions = {}): () => void {
       });
       client.connect(workflowId, { seq: snapshot.last_seq ?? -1, eventId: snapshot.last_event_id ?? undefined });
     } catch (error) {
-      if (active && generation === connectionGeneration) store.setError(`Could not load this referral: ${describe(error)}`);
+      if (active && generation === connectionGeneration) {
+        store.setError(`Could not load this referral: ${describe(error)}`);
+        launcher.hidden = false;
+      }
     }
   }
 
+  const header = document.createElement('header');
+  header.className = 'site-header';
+  header.innerHTML = `<a class="wordmark" href="/"><span class="brand-mark" aria-hidden="true">↗</span>ReferralEasy<span class="brand-context">Care, connected.</span></a><nav aria-label="Main navigation"><a href="/" aria-current="page">Referrals</a><a href="/demo.html">Component gallery</a><a href="/admin.html">Admin dashboard <span aria-hidden="true">↗</span></a></nav>`;
+  const workspace = document.createElement('main');
+  workspace.className = 'referral-workspace';
+  workspace.hidden = true;
+  workspace.innerHTML = `<aside class="journey-panel"><span class="eyebrow">YOUR REFERRAL</span><h1>One step closer<br>to your care.</h1><p>Your care team coordinates the details. You make the choices.</p><ol><li><strong>Find your care</strong><span>Coverage and provider options</span></li><li><strong>Prepare your visit</strong><span>Details and required documents</span></li><li><strong>Review and approve</strong><span>Your request, with your consent</span></li><li><strong>Track the outcome</strong><span>Confirmation or next steps</span></li></ol><div class="journey-note">Synthetic demo<br><span>No real appointment will be made.</span></div><a href="/">＋ Create another referral</a></aside><section class="referral-content" aria-label="Referral updates"><div class="workspace-heading"><span class="eyebrow">CARE COORDINATION</span><span class="re-chip re-chip--synthetic">Synthetic demo</span></div></section>`;
+  workspace.querySelector('.referral-content')!.append(app);
+  const launcher = demoLauncher(GATEWAY_BASE, fetchImpl, async (id, session, patientRef) => {
+    if (!active) return;
+    try { sessionStorage.setItem(`referraleasy.patient.${id}`, session); } catch { /* Storage can be disabled. */ }
+    const url = new URL(window.location.href);
+    url.searchParams.set('workflow_id', id);
+    url.searchParams.set('patient_ref', patientRef);
+    url.hash = '';
+    window.history.replaceState({}, '', url);
+    await connect(id, session);
+  });
+  root.replaceChildren(header, launcher, workspace);
   const workflowId = readWorkflowId();
   const token = options.token ?? storedToken(workflowId);
-  if (workflowId === undefined) {
-    app.hidden = true;
-  } else if (token === undefined) {
-    app.hidden = true;
-  } else {
-    void connect(workflowId, token);
-  }
-
-  // The token issuer exists only in demo/test/CI. Never infer a patient's identity from a workflow.
-  const form = document.createElement('form');
-  form.style.cssText = 'max-width:560px;margin:16px auto;padding:16px;display:grid;gap:12px';
-  form.innerHTML = `<h2>Open a demo referral</h2>
-    <p>Synthetic data only. Use the workflow ID and patient reference from a seeded demo. This session does not verify a real identity.</p>
-    <label>Workflow ID <input name="workflow_id" required pattern="[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}" autocomplete="off"></label>
-    <label>Patient reference <input name="patient_ref" required autocomplete="off"></label>
-    <button type="submit">Open demo session</button>
-    <p role="status"></p>
-    <p><a href="/demo.html">Component gallery</a> · <a href="/admin.html">Admin dashboard</a></p>`;
-  const workflowInput = form.elements.namedItem('workflow_id') as HTMLInputElement;
-  const patientInput = form.elements.namedItem('patient_ref') as HTMLInputElement;
-  workflowInput.value = workflowId ?? '';
-  patientInput.value = new URLSearchParams(window.location.search).get('patient_ref') ?? '';
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const button = form.querySelector('button')!;
-    button.disabled = true;
-    const status = form.querySelector('[role="status"]')!;
-    status.textContent = 'Opening demo session…';
-    void (async () => {
-      try {
-        const id = workflowInput.value.trim();
-        const session = await demoPatientSession(GATEWAY_BASE, patientInput.value.trim(), fetchImpl);
-        if (!active) return;
-        try { sessionStorage.setItem(`referraleasy.patient.${id}`, session); } catch { /* Storage can be disabled. */ }
-        const url = new URL(window.location.href);
-        url.searchParams.set('workflow_id', id);
-        url.hash = '';
-        window.history.replaceState({}, '', url);
-        await connect(id, session);
-        status.textContent = '';
-      } catch (error) {
-        if (active) status.textContent = describe(error);
-      } finally { button.disabled = false; }
-    })();
-  });
-  root.append(form);
+  app.hidden = true;
+  if (workflowId !== undefined && token !== undefined) void connect(workflowId, token);
 
   app.addEventListener('re-retry', () => {
     const id = store.snapshot.workflowId ?? workflowId;
@@ -138,6 +149,7 @@ export function boot(options: BootOptions = {}): () => void {
   document.addEventListener('visibilitychange', visibilityChanged);
   const dispose = () => {
     active = false;
+    if (refreshTimer !== undefined) clearTimeout(refreshTimer);
     client?.disconnect();
     document.removeEventListener('visibilitychange', visibilityChanged);
     runtime.dispose();

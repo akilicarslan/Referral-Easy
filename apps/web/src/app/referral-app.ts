@@ -53,7 +53,7 @@ export class ReferralApp extends LitElement {
         display: flex;
         flex-direction: column;
         gap: var(--re-s4);
-        padding: var(--re-s4) var(--re-gutter) var(--re-s6);
+        padding: var(--re-s5);
       }
 
       .page-head {
@@ -150,10 +150,6 @@ export class ReferralApp extends LitElement {
     this.streamStatus = 'idle';
   }
 
-  override createRenderRoot(): HTMLElement | DocumentFragment {
-    return this.attachShadow({ mode: 'open' });
-  }
-
   override disconnectedCallback(): void {
     super.disconnectedCallback();
     for (const mount of this.#mounts.values()) {
@@ -214,6 +210,9 @@ export class ReferralApp extends LitElement {
 
     switch (snapshot.phase) {
       case 'connecting':
+        if (snapshot.surfaces.some((surface) => surface.instanceIds.length > 0)) {
+          return html`<p class="notice info" role="status">Your saved referral is loaded. Connecting to live updates…</p>`;
+        }
         return this.page({
           tone: 'info',
           glyph: '…',
@@ -286,7 +285,9 @@ export class ReferralApp extends LitElement {
       tone,
       glyph,
       title:
-        terminal.state === 'BOOKED'
+        terminal.state === 'BOOKING_UNVERIFIED'
+          ? 'Booking confirmation pending'
+          : terminal.state === 'BOOKED'
           ? 'Workflow finished'
           : `Workflow finished — ${terminal.state.toLowerCase().replace(/_/g, ' ')}`,
       body:
@@ -327,7 +328,7 @@ export class ReferralApp extends LitElement {
           (notice) => html`
             <p class="notice info">
               <span class="glyph" aria-hidden="true">i</span>
-              <span>${notice.text}</span>
+              <span>${notice.text === 'Recorded: system:await_patient_choice.' ? 'Your choice was saved.' : notice.text}</span>
             </p>
           `,
         )}

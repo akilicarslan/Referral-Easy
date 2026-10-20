@@ -108,9 +108,4 @@ Verification on 2026-10-19:
 | Full E2E suite before the final fixes | 24 scenarios passed in each of two PostgreSQL iterations |
 | Final memory E2E suite | 24 scenarios passed in each of two fresh iterations |
 | Final browser checks | Both hospital paths passed; reload, consent and original-request lookup checked |
-| Final PostgreSQL rerun | Pending: the disk outage left Docker unavailable; restart approval is pending |
-
-The disk outage interrupted later test attempts and stopped their isolated mock APIs.
-Those interrupted attempts do not count as successful verification.
-Repository-wide lint also reports errors in separately added `videos/referraleasy-showcase/tools/` scripts.
-Those files are outside this change.
+| Final PostgreSQL rerun | Not rerun after the final fixes |

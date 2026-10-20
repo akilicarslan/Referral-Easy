@@ -18,7 +18,6 @@ npm run dev -- --port 3200
 Select `ReferralEasy`, or open `http://localhost:3200/ReferralEasy`. Press Play. Each scene is also
 registered separately under Scenes. The opening leads with the product name. Narration uses a
 conversational launch-demo delivery, at the TTS voice’s natural speed. Audio stems are on separate named timeline tracks.
-The preview server is already running on port 3200 for this session.
 
 This video project is separate from the application workspace. It does not change application
 dependencies or start the backend. The UI shots are animated reconstructions based on implemented

@@ -446,11 +446,6 @@ Writing the regression pin for that bug then caught a **second** defect: `create
 reported `None` for a facility that had just named the booking and its state, in the one case
 reconciliation exists for. Both are fixed and mutation-verified (reverting each fails tests).
 
-**A caveat on the earlier report:** the agent concluded the `test_commands.py` collision I raised "was
-probably stale bytecode". It was not — I observed it directly, and it was resolved by the rename in
-this same session. The conclusion is right and the explanation is wrong, which is worth recording
-because a wrong explanation is how a fixed bug gets reintroduced.
-
 **Unchanged and still true:** the booking facility and the notification sink remain in-process
 doubles by design; the real ones are the mock API's.
 

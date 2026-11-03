@@ -37,10 +37,14 @@ terminal failure for the turn, reported as one.
 
 from __future__ import annotations
 
+import asyncio
+import os
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Final
 
+from google.adk.agents.invocation_context import LlmCallsLimitExceededError
+from google.adk.agents.run_config import RunConfig
 from google.adk.sessions import BaseSessionService, InMemorySessionService
 from google.genai import types
 from pydantic import ValidationError
@@ -70,10 +74,14 @@ from referraleasy_agent_runtime import (
     terminal_error,
     unknown_outcome,
 )
+from referraleasy_agent_runtime.budget import BudgetExhausted, CapKind
+from referraleasy_agent_runtime.plugins import TurnScope, build_plugin_stack, unwrap_plugin_error
+from referraleasy_agent_runtime.roles import owns_booking_writes
 from referraleasy_agents.assembly import (
     adk_node_name,
     budgeted_model,
     build_agent,
+    build_app,
     build_runner,
     resolve_llm,
     session_key,
@@ -314,8 +322,10 @@ class RoleHandler:
             }
             or None,
         )
-        runner = build_runner(self.role, agent=agent, sessions=self.service.sessions)
-        text = await self._run(runner, key, request, inputs.value)
+        scope = TurnScope(role=self.role, budget=budget, profile=self._profile())
+        app = build_app(self.role, agent=agent, plugins=build_plugin_stack(scope))
+        runner = build_runner(self.role, app=app, sessions=self.service.sessions)
+        text = await self._run(runner, key, request, inputs.value, budget=budget)
 
         parsed = _validated_output(self.role, text)
         if isinstance(parsed, _Refused):
@@ -336,6 +346,10 @@ class RoleHandler:
         )
 
     # ── the pieces ───────────────────────────────────────────────────────────────────────────
+
+    def _profile(self) -> str:
+        env = self.service.env if self.service.env is not None else os.environ
+        return (env.get("APP_ENV") or "production").strip().lower() or "production"
 
     def _select_skills(self, workflow_state: str) -> tuple[SkillSelection, str]:
         source = self.service.skill_source_or_empty()
@@ -393,27 +407,65 @@ class RoleHandler:
         key: Any,
         request: AgentTaskRequest,
         payload: Mapping[str, Any],
+        *,
+        budget: TurnBudget,
     ) -> str:
         """Run the ADK turn and return its final text.
 
         A typed failure raised inside a tool (a refused tool call, an exhausted
         budget) propagates out of here untouched: ADK re-raises it, and the app
         projects it. Swallowing it would turn a refusal into an answer.
+
+        Three backstops sit around the iteration (WS3 S1):
+
+        * ``RunConfig.max_llm_calls`` is the turn's model-call cap plus two. The
+          runtime's `BudgetedLlm` refuses first; ADK's own limit (default 500) only
+          fires if a model reached the runner unwrapped.
+        * The whole run is bounded by the turn's remaining deadline. A role that holds
+          booking-write authority reports a timeout as ``after_write_attempt``, so the
+          outcome is ``outcome_unknown`` (reconcile), never a retry that could book twice.
+        * A typed failure that a plugin raised arrives wrapped in ADK's
+          ``RuntimeError``; it is unwrapped so it is projected as itself.
         """
         message = types.Content(
             role="user",
             parts=[types.Part(text=_turn_prompt(self.role, request, payload))],
         )
+        model_call_cap = budget.caps.max_model_calls
+        run_config = RunConfig(max_llm_calls=model_call_cap + 2)
+        remaining_ms = budget.require_time()
         final = ""
-        async for event in runner.run_async(
-            user_id=key.user_id, session_id=key.session_id, new_message=message
-        ):
-            if not event.is_final_response():
-                continue
-            content = event.content
-            if content is None or not content.parts:
-                continue
-            final = "".join(part.text or "" for part in content.parts) or final
+        try:
+            async with asyncio.timeout(remaining_ms / 1000):
+                async for event in runner.run_async(
+                    user_id=key.user_id,
+                    session_id=key.session_id,
+                    new_message=message,
+                    run_config=run_config,
+                ):
+                    if not event.is_final_response():
+                        continue
+                    content = event.content
+                    if content is None or not content.parts:
+                        continue
+                    final = "".join(part.text or "" for part in content.parts) or final
+        except TimeoutError as error:
+            raise BudgetExhausted(
+                CapKind.DEADLINE,
+                limit=budget.caps.turn_deadline_ms,
+                used=budget.caps.turn_deadline_ms,
+                agent_role=self.role.value,
+                site="adk run",
+                after_write_attempt=owns_booking_writes(self.role),
+                cause=error,
+            ) from error
+        except (RuntimeError, LlmCallsLimitExceededError) as error:
+            typed = unwrap_plugin_error(
+                error, model_call_limit=model_call_cap, role=self.role.value
+            )
+            if typed is error:
+                raise
+            raise typed from error
         return final
 
     def _guarded_output(self, output: Any, tools: ToolSet) -> Any:

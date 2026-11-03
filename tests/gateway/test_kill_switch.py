@@ -25,7 +25,7 @@ from uuid import uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from gateway_fixtures import Demo
+from gateway_fixtures import COORDINATOR_REF, Demo
 
 from referraleasy_contracts.generated.common import WorkflowState
 from referraleasy_gateway.api import NO_TELEMETRY_SOURCE
@@ -33,8 +33,9 @@ from referraleasy_gateway.commands import CommandService, DispatchTicket
 from referraleasy_gateway.errors import BookingHaltedError, ContractViolationError
 from referraleasy_gateway.killswitch import KillSwitch
 
-ENGAGE = {"engage": True, "reason": "the booking path is writing duplicates", "by": "oncall"}
-RELEASE = {"engage": False, "reason": "released after the fix was deployed", "by": "oncall"}
+#: No `by`: the switch is attributed to the session that changed it (WS1 S1), never to the body.
+ENGAGE = {"engage": True, "reason": "the booking path is writing duplicates"}
+RELEASE = {"engage": False, "reason": "released after the fix was deployed"}
 
 
 def _booking_ready(client: TestClient) -> tuple[Demo, str, str]:
@@ -64,7 +65,7 @@ def test_an_engaged_switch_refuses_the_booking_write(configured_client: TestClie
     # The operator's own reason travels with the refusal. A halt with no stated reason is
     # indistinguishable from a bug.
     assert body["detail"]["reason"] == "the booking path is writing duplicates"
-    assert body["detail"]["by"] == "oncall"
+    assert body["detail"]["by"] == COORDINATOR_REF
 
     # And nothing was written. A 503 that had already recorded a booking would be the worst of both.
     assert demo.bookings(workflow_id) == []
@@ -93,13 +94,41 @@ def test_engaging_twice_keeps_the_first_reason(configured_client: TestClient) ->
     ).json()["booking_writes"]
     second = configured_client.post(
         "/v1/admin/control/booking-writes",
-        json={"engage": True, "reason": "everything is stopped", "by": "someone else"},
+        json={"engage": True, "reason": "everything is stopped"},
         headers=demo.admin,
     ).json()["booking_writes"]
 
     assert second["reason"] == first["reason"] == "the booking path is writing duplicates"
     assert second["since"] == first["since"]
-    assert second["by"] == "oncall"
+    assert second["by"] == COORDINATOR_REF
+
+
+def test_the_switch_is_attributed_to_the_session_not_the_body(
+    configured_client: TestClient,
+) -> None:
+    """WS1 S1 (attack): an operator cannot record an incident action under someone else's name.
+
+    `by` naming the caller is accepted for older clients; `by` naming anyone else is a 422, and the
+    switch is left as it was.
+    """
+    demo, _, _ = _booking_ready(configured_client)
+
+    spoofed = configured_client.post(
+        "/v1/admin/control/booking-writes",
+        json={**ENGAGE, "by": "someone-else"},
+        headers=demo.admin,
+    )
+    assert spoofed.status_code == 422, spoofed.text
+    control = configured_client.get("/v1/admin/control", headers=demo.admin).json()
+    assert control["booking_writes"]["engaged"] is False
+
+    honest = configured_client.post(
+        "/v1/admin/control/booking-writes",
+        json={**ENGAGE, "by": COORDINATOR_REF},
+        headers=demo.admin,
+    )
+    assert honest.status_code == 200, honest.text
+    assert honest.json()["booking_writes"]["by"] == COORDINATOR_REF
 
 
 # ---------------------------------------------------------------------------

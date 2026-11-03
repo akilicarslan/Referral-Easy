@@ -7,38 +7,68 @@ Neither path grants a tool permission. Each call uses the same policy and budget
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+import itertools
+from typing import Any, Final
 
-from referraleasy_agent_runtime import AgentRole, UpstreamTransient
+from referraleasy_agent_runtime import (
+    BOOKING_WRITE_TOOLS,
+    AgentRole,
+    CallLease,
+    CapKind,
+    is_transient,
+    is_write_tool,
+    run_with_retries,
+)
 from referraleasy_agent_runtime.llm_tracing import active_llm_tracing
 from referraleasy_agents.decisions import next_allowed_actions
 from referraleasy_agents.errors import UnknownDataError
 from referraleasy_agents.schemas import schema_for
 from referraleasy_agents.tools.toolbox import ToolSet
 
+#: Never retried. A write that may have reached the hospital is reconciled, not repeated, and a
+#: delegation is the child's own turn with its own retries; repeating either multiplies effects.
+_SINGLE_ATTEMPT_TOOLS: Final = frozenset({"delegate_task"}) | BOOKING_WRITE_TOOLS
+
+#: Numbers each logical call, so two calls of one tool — including two run in parallel by an
+#: execution plan — never share an attempt counter.
+_LOGICAL_CALLS: Final = itertools.count(1)
+
 
 async def _invoke(tools: ToolSet, name: str, **arguments: Any) -> dict[str, Any]:
-    attempts = 1 if name in {"create_booking", "delegate_task"} else 3
+    """One governed tool call, retried by the runtime's single retry owner (WS3 S7).
+
+    `run_with_retries` owns the attempt cap (`AGENT_MAX_ATTEMPTS`), the backoff curve, `Retry-After`
+    and the rule that no wait may overrun the turn. The tool-call quota is charged by
+    `ToolSet.invoke` itself, so the retry loop counts attempts without charging them again.
+    The site is per *logical* call — the attempt cap counts attempts at one call, not every call
+    of the same tool in a turn.
+    """
     tracing = active_llm_tracing()
-    for attempt in range(attempts):
-        try:
-            # One observation per attempt, so a retried call shows each try and why it failed.
-            with tracing.tool(name, arguments) as observation:
-                try:
-                    result = await tools.invoke(name, **arguments)
-                except Exception as error:
-                    observation.finish(
-                        output=None, outcome="error", error=f"{type(error).__name__}: {error}"
-                    )
-                    raise
-                observation.finish(output=result, outcome="ok", metadata={"attempt": attempt + 1})
-                return result
-        except UpstreamTransient:
-            if attempt + 1 == attempts:
+    single = name in _SINGLE_ATTEMPT_TOOLS
+
+    async def attempt(lease: CallLease) -> dict[str, Any]:
+        # One observation per attempt, so a retried call shows each try and why it failed.
+        with tracing.tool(name, arguments) as observation:
+            try:
+                result = await tools.invoke(name, **arguments)
+            except Exception as error:
+                observation.finish(
+                    output=None, outcome="error", error=f"{type(error).__name__}: {error}"
+                )
                 raise
-            tools.budget.require_time()
-            await tools.budget.clock.sleep_ms(min(150 * 2**attempt, tools.budget.remaining_ms()))
-    raise AssertionError("The bounded tool loop did not return.")
+            observation.finish(output=result, outcome="ok", metadata={"attempt": lease.attempt})
+            return result
+
+    outcome = await run_with_retries(
+        attempt,
+        budget=tools.budget,
+        site=f"workflow:{name}#{next(_LOGICAL_CALLS)}",
+        spend=CapKind.TOOL_CALLS,
+        charge=False,
+        retryable=(lambda _error: False) if single else is_transient,
+        write_attempt=is_write_tool(name),
+    )
+    return outcome.value
 
 
 async def execute_workflow(tools: ToolSet, role: AgentRole, data: dict[str, Any]) -> Any:

@@ -59,6 +59,7 @@ COPY packages/guardrails/pyproject.toml packages/guardrails/
 COPY packages/eval/pyproject.toml packages/eval/
 COPY packages/alerts/pyproject.toml packages/alerts/
 COPY packages/release-registry/pyproject.toml packages/release-registry/
+COPY packages/secret-provider/pyproject.toml packages/secret-provider/
 COPY services/agents/pyproject.toml services/agents/
 COPY services/gateway/pyproject.toml services/gateway/
 COPY services/workers/pyproject.toml services/workers/

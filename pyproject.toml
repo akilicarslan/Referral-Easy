@@ -25,6 +25,7 @@ dependencies = [
   "referraleasy-guardrails",
   "referraleasy-eval",
   "referraleasy-alerts",
+  "referraleasy-secrets",
 ]
 
 [tool.uv]
@@ -46,6 +47,7 @@ referraleasy-alerts = { workspace = true }
 referraleasy-eval = { workspace = true }
 referraleasy-guardrails = { workspace = true }
 referraleasy-release-registry = { workspace = true }
+referraleasy-secrets = { workspace = true }
 referraleasy-workers = { workspace = true }
 
 [tool.uv.workspace]
@@ -62,6 +64,7 @@ members = [
   "packages/eval",
   "packages/alerts",
   "packages/release-registry",
+  "packages/secret-provider",
   "services/gateway",
   "services/workers",
   "services/agents",
@@ -127,6 +130,7 @@ src = [
   "packages/release-registry/src",
   "packages/eval/src",
   "packages/alerts/src",
+  "packages/secret-provider/src",
   "services/gateway/src",
   "services/workers/src",
   "services/agents",

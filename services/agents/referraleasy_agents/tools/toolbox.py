@@ -38,6 +38,8 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Final
 
+from pydantic import ValidationError
+
 from referraleasy_agent_runtime import (
     AgentRole,
     PolicyBackend,
@@ -47,10 +49,11 @@ from referraleasy_agent_runtime import (
     governed_tool_call,
 )
 from referraleasy_agents.canonical import id_text, id_texts
+from referraleasy_agents.errors import ArgumentRejected
 from referraleasy_agents.evidence import EvidenceLedger
 from referraleasy_agents.tools.call import Api, DelegationPort, ToolCall
 from referraleasy_agents.tools.handlers import handler_for
-from referraleasy_agents.tools.specs import TOOL_SPECS, ToolSpec
+from referraleasy_agents.tools.specs import TOOL_SPECS, ToolSpec, spec_for
 from referraleasy_contracts.generated.task import TaskEnvelope
 
 __all__ = [
@@ -210,6 +213,7 @@ class ToolSet:
             name,
             workflow_state=self.workflow_state or None,
         ) as lease:
+            self._check_arguments(name, arguments)
             call = ToolCall(
                 role=self.box.role,
                 tool=name,
@@ -235,6 +239,27 @@ class ToolSet:
                 )
             )
             return result
+
+    def _check_arguments(self, name: str, arguments: Mapping[str, Any]) -> None:
+        """Hold the arguments to the declared contract (WS2 S1), on every path to a handler.
+
+        Here rather than in an ADK plugin because the deterministic workflow calls `invoke`
+        directly and never runs a Runner. The values are not replaced by the validated ones: the
+        handlers were written against the wire shapes, and the check is that those shapes fit.
+        """
+        try:
+            spec_for(name).args_model().model_validate(dict(arguments))
+        except ValidationError as error:
+            problems = "; ".join(
+                f"{'.'.join(str(part) for part in item['loc']) or '(arguments)'}: {item['msg']}"
+                for item in error.errors(include_url=False, include_input=False)
+            )
+            raise ArgumentRejected(
+                f"{name} was called with arguments its declaration does not allow: {problems}",
+                role=self.box.role.value,
+                tool=name,
+                workflow_state=self.workflow_state or None,
+            ) from None
 
     # ── what the turn learned ────────────────────────────────────────────────────────────────
 

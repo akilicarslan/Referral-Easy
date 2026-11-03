@@ -191,7 +191,10 @@ class ControlSwitchBody(BaseModel):
 
     engage: bool
     reason: str = Field(min_length=1)
-    by: str = Field(min_length=1)
+    #: Attribution comes from the session, not the body (WS1 S1). The field is still accepted so an
+    #: old client keeps working, but only when it names the caller: a body that claims someone else
+    #: is a spoofed audit entry and is refused with 422.
+    by: str | None = Field(default=None, min_length=1)
 
 
 class QueueClaimBody(BaseModel):
@@ -381,6 +384,7 @@ def build_router(deps: GatewayDeps) -> APIRouter:
             "service": "referraleasy-gateway",
             "contract_version": CONTRACT_VERSION,
             "control_backend": deps.settings.control_backend,
+            "profile": deps.settings.profile(),
             "guardrails": {
                 "mode": deps.settings.guardrail_mode,
                 "configured": deps.guardrails.configured,
@@ -650,11 +654,17 @@ def build_router(deps: GatewayDeps) -> APIRouter:
         silently re-open the switch an incident closed. Saying which direction you mean costs one
         field and removes that failure.
         """
+        if body.by is not None and body.by != session.subject:
+            raise ContractViolationError(
+                "`by` must be omitted or equal the session subject: the kill switch records who "
+                "changed it from the session, never from the request body",
+                detail={"by": body.by},
+            )
         now = deps.clock.now()
         state = (
-            deps.kill_switch.engage(reason=body.reason, by=body.by, now=now)
+            deps.kill_switch.engage(reason=body.reason, by=session.subject, now=now)
             if body.engage
-            else deps.kill_switch.release(by=body.by, now=now)
+            else deps.kill_switch.release(by=session.subject, now=now)
         )
         return {"booking_writes": state.as_dict(), "subject": session.subject}
 

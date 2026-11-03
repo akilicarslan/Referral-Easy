@@ -158,6 +158,18 @@ def test_the_built_model_is_the_spike_tested_construction(env: dict[str, str]) -
     assert type(model).__name__ == "LiteLlm"
 
 
+def test_litellm_retries_pinned_to_zero(env: dict[str, str]) -> None:
+    """WS3 S7: the SDK never retries; `retries.py` is the only owner. Pinned, not left to a default,
+    and a `params` override cannot turn it back on."""
+    model, _ = build_model(env, role="care_coordinator")
+    assert model._additional_args["num_retries"] == 0
+    assert model._additional_args["max_retries"] == 0
+
+    override = AgentModelOverride(model_id="vendor/model", params={"num_retries": 3})
+    model, _ = build_model(env, role="scheduling", overrides={"scheduling": override})
+    assert model._additional_args["num_retries"] == 0
+
+
 def test_the_secret_never_reaches_the_reference_or_the_manifest(env: dict[str, str]) -> None:
     secret = "sk-or-v1-not-a-real-credential"
     env[OPENROUTER_API_KEY_ENV] = secret

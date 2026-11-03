@@ -103,6 +103,7 @@ invariant, and every one of them is covered by a test in `tests/`.
 | **Resolving a ticket is not booking consent** | `handoff_resolve()`'s state allow-list excludes the booking states; `approval_guard()` refuses consent from a human actor; `workflow_booking_consent_guard()` needs a live approval | `test_handoff.py::test_resolving_a_ticket_cannot_move_a_workflow_into_booking`, `..._cannot_write_consent_by_hand` |
 | **Release registry immutability** | `release_registry_no_update_trigger` (BEFORE UPDATE OR DELETE, raises `RE008`) + a TRUNCATE guard + `REVOKE`s; status is derived from the append-only `release_event` | `test_release_registry.py::test_the_release_manifest_cannot_be_updated` |
 | **Audit stays in PostgreSQL** | `audit` is append-only in the system of record, hash-chained, and written by triggers on the events themselves | `test_audit.py` (whole module) |
+| **A kill switch names who pulled it, and every replica sees it** | `control_switch` is written only through `control_switch_set()`/`control_switch_release()` (direct writes raise `RE009`); each change takes the actor from the transaction, writes the append-only `control_switch_event` and an `audit` row, and NOTIFYs `control_switch` with the new epoch | `test_control_switch.py::test_a_switch_change_writes_one_audit_row_with_the_session_actor`, `..._cannot_be_written_around_the_function`, `..._notifies_listeners_with_the_epoch` |
 | **Policy cannot be exceeded** | `policy_is_allowed()` is default-deny; `task_policy_gate()` raises `RE006` on every task insert | `test_policy_gate.py::test_a_tool_the_role_may_not_use_is_refused` |
 
 ### SQLSTATEs
@@ -120,6 +121,7 @@ string-matching a message:
 | `RE006` | policy denies this role/tool/state |
 | `RE007` | outbox: bad claim or settle request |
 | `RE008` | append-only table refused a mutation |
+| `RE009` | control switch: written around `control_switch_set()`/`control_switch_release()`, or by an anonymous actor |
 
 ## Reading order
 

@@ -216,6 +216,11 @@ def resolve_model(
     )
 
 
+#: The retry settings every LiteLLM model is built with (WS3 S7). `num_retries` is LiteLLM's own
+#: retry loop; `max_retries` is the provider SDK's (OpenAI-compatible clients) beneath it.
+SDK_RETRY_PARAMS: Final[Mapping[str, int]] = MappingProxyType({"num_retries": 0, "max_retries": 0})
+
+
 def build_model(
     env: Mapping[str, str],
     *,
@@ -237,4 +242,7 @@ def build_model(
 
     from google.adk.models.lite_llm import LiteLlm  # imported here on purpose: see TYPE_CHECKING
 
-    return LiteLlm(model=ref.litellm_model, **dict(ref.params)), ref
+    # WS3 S7: the model SDK never retries (`retries.py` is the one owner). LiteLLM's default is
+    # already no retry, but by omission; pinned here so an upgrade or a `params` override cannot
+    # quietly multiply every model call the budget counted once. Set last, so it wins.
+    return LiteLlm(model=ref.litellm_model, **{**dict(ref.params), **SDK_RETRY_PARAMS}), ref

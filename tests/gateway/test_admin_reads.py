@@ -581,7 +581,9 @@ def test_queue_actions_run_through_the_workers_queue_as_the_session_subject() ->
         yield "connection"
 
     settings = replace(
-        GatewaySettings.from_env({"JWT_PATIENT_SECRET": "p" * 40, "JWT_ADMIN_SECRET": "a" * 40}),
+        GatewaySettings.from_env(
+            {"APP_ENV": "test", "JWT_PATIENT_SECRET": "p" * 40, "JWT_ADMIN_SECRET": "a" * 40}
+        ),
         control_backend="postgres",
         database_url="postgresql://db/referraleasy",
     )

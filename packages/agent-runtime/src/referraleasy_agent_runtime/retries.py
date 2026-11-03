@@ -188,6 +188,7 @@ async def run_with_retries[T](
     retryable: Callable[[BaseException], bool] = is_transient,
     retry_after: Callable[[BaseException], float | None] = retry_after_of,
     write_attempt: bool = False,
+    charge: bool = True,
 ) -> CallOutcome[T]:
     """Run ``call`` under the turn budget, retrying only what is worth retrying.
 
@@ -195,6 +196,10 @@ async def run_with_retries[T](
     pass it to the transport). ``valid_empty`` marks the "ran fine, matched
     nothing" case: the result is returned immediately, as a ``no_match``
     outcome, with ``attempts == 1``.
+
+    ``charge=False`` is for a ``call`` that charges its own quota — a governed tool
+    call takes its tool-call lease inside ``ToolSet.invoke`` — so the attempt is
+    counted and timed here without being charged twice.
 
     Raises :class:`BudgetExhausted` — the typed outcome — when the attempts,
     deadline, model-call or tool-call caps are reached. ``CancelledError`` is
@@ -210,12 +215,16 @@ async def run_with_retries[T](
             # attempt claim, then the quota and the timeout.
             budget.require_time(after_write_attempt=write_attempt)
             attempt = budget.next_attempt(site)
-            lease = budget.lease(
-                spend,
-                site=site,
-                attempt=attempt,
-                timeout_ms=timeout_ms,
-                after_write_attempt=write_attempt,
+            lease = (
+                budget.lease(
+                    spend,
+                    site=site,
+                    attempt=attempt,
+                    timeout_ms=timeout_ms,
+                    after_write_attempt=write_attempt,
+                )
+                if charge
+                else _uncharged_lease(budget, spend, attempt=attempt, timeout_ms=timeout_ms)
             )
         except BudgetExhausted as exhausted:
             if last_failure is None:
@@ -269,6 +278,26 @@ async def run_with_retries[T](
                 cause=last_failure,
             ) from last_failure
         await budget.clock.sleep_ms(delay_ms)
+
+
+def _uncharged_lease(
+    budget: TurnBudget, spend: CapKind, *, attempt: int, timeout_ms: int | None
+) -> CallLease:
+    """A lease that sizes the attempt's timeout and spends nothing (see ``charge``)."""
+    remaining = budget.remaining_ms()
+    nominal = (
+        timeout_ms
+        if timeout_ms is not None
+        else budget.caps.http_tool_timeout_ms
+        if spend is CapKind.TOOL_CALLS
+        else budget.caps.attempt_timeout_ms
+    )
+    return CallLease(
+        cap=spend,
+        attempt=attempt,
+        timeout_ms=max(1, min(nominal, remaining)),
+        remaining_ms=remaining,
+    )
 
 
 def _exhausted_with_cause(

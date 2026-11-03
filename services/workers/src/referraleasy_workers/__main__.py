@@ -22,7 +22,7 @@ from __future__ import annotations
 import asyncio
 import atexit
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 
 from referraleasy_agent_runtime import ConfigurationError
 from referraleasy_telemetry import Telemetry, TelemetryEmitter, configure_telemetry
@@ -38,6 +38,7 @@ _USAGE = """usage: python -m referraleasy_workers <command> [args]
 commands:
   outbox                 drain the notification outbox until it is empty (repeats with --watch)
   reconcile <key>        resolve an unknown booking outcome under the idempotency key given
+  alerts                 one §16 alert tick: measure, decide, record (repeats with --watch)
   handoff list           the operator queue: live tickets, oldest first
   handoff resolve <id>   close a ticket and return its workflow to an allow-listed state
                          --operator <id> --generation <n> --return-state <STATE>
@@ -47,6 +48,7 @@ environment:
   DATABASE_URL                 the control-state database (required)
   BOOKING_API_URL              booking API base URL (required for `reconcile`)
   NOTIFICATION_URL             notification API base URL (required for `outbox`)
+  OPENSEARCH_URL               the telemetry cluster the alert rules read (required for `alerts`)
   WORKER_ID                    defaults to <hostname>:<pid>
 """
 
@@ -196,6 +198,37 @@ def _telemetry_emitter() -> TelemetryEmitter:
     return bundle.emitter
 
 
+def _alerts(settings: WorkerSettings, *, watch: bool) -> int:
+    """§16's scheduler: one tick, or a tick per `ALERT_INTERVAL_SECONDS` with `--watch`."""
+    import json
+    import os
+    from contextlib import contextmanager
+
+    from referraleasy_telemetry.query import TelemetryQuery
+    from referraleasy_workers.alerts import AlertScheduler, AlertSettings, PostgresAlertStorage
+
+    url = os.environ.get("OPENSEARCH_URL", "").strip()
+    if not url:
+        raise ConfigurationError(
+            "OPENSEARCH_URL is not set; the alert rules read §15's telemetry indices and a scheduler "
+            "with nothing to read would record every rule as unmeasured forever"
+        )
+
+    @contextmanager
+    def storage() -> Iterator[PostgresAlertStorage]:
+        with connection(settings) as conn:
+            yield PostgresAlertStorage(conn)
+
+    scheduler = AlertScheduler(
+        storage=storage, source=TelemetryQuery(url), settings=AlertSettings.from_env()
+    )
+    if watch:
+        scheduler.run_forever()
+        return 0
+    print(json.dumps(scheduler.tick(), default=str, indent=2))
+    return 0
+
+
 def service_version() -> str:
     """The package version, for the `service.version` resource attribute. Absent is not fatal."""
     from importlib.metadata import PackageNotFoundError, version
@@ -219,6 +252,8 @@ async def _run(argv: Sequence[str]) -> int:
                 await _outbox_once(settings)
                 await asyncio.sleep(settings.poll_seconds)
         return await _outbox_once(settings)
+    if command == "alerts":
+        return _alerts(settings, watch="--watch" in rest)
     if command == "handoff":
         if not rest or rest[0] == "list":
             return _handoff_list(settings)

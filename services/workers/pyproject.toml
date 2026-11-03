@@ -15,6 +15,9 @@ dependencies = [
   # "HITL wait/resolution") because the workers own the human queue (ADR-0035), so the metric has to
   # be emitted from here rather than from the gateway, which never sees a ticket resolved.
   "referraleasy-telemetry",
+  # §16's rules, dedup engine and email composition. The scheduler (`referraleasy_workers.alerts`)
+  # measures and stores; the package decides.
+  "referraleasy-alerts",
   "psycopg[binary]>=3.2",
   "httpx>=0.28",
 ]
@@ -32,5 +35,6 @@ packages = ["src/referraleasy_workers"]
 [tool.uv.sources]
 referraleasy-agent-runtime = { workspace = true }
 referraleasy-telemetry = { workspace = true }
+referraleasy-alerts = { workspace = true }
 referraleasy-contracts = { workspace = true }
 referraleasy-domain = { workspace = true }

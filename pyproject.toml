@@ -91,9 +91,9 @@ dev = [
   "a2a-sdk==1.2.2",                                    # ADR-0003
   "google-adk==2.12.0",                                # ADR-0002
   "google-genai==2.31.0",                              # ADR-0006
-  "langsmith==0.14.11",                                # ADR-0010
+  "langfuse==4.15.6",                                  # ADR-0042
   "litellm==1.105.1",                                  # ADR-0002
-  "openinference-instrumentation-google-adk==1.0.4",   # ADR-0010
+  "openinference-instrumentation-google-adk==1.0.4",   # ADR-0042
   "opensearch-py==3.2.0",                              # ADR-0008
   "opentelemetry-sdk>=1.30.0",
   "httpx>=0.28.0",

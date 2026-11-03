@@ -43,7 +43,7 @@ def _rewrite(tmp_path, mutate: Any) -> Any:
 def test_the_committed_dataset_loads_and_covers_every_scenario() -> None:
     """The happy path, asserted first: everything below is about a corpus that does load."""
     loaded = dataset()
-    assert loaded.version == "offline-v1"
+    assert loaded.version == "offline-v2"
     assert len(loaded.cases) >= 40, "§14 asks for 40-60 cases"
     assert len(loaded.by_scenario()) == 8, "the dataset does not cover all eight §20 scenarios"
     assert set(loaded.partitions()) >= {"calibration", "held_out"}
@@ -163,14 +163,14 @@ def test_the_report_names_the_judge_that_answered() -> None:
 
 def test_a_record_with_no_case_id_is_refused() -> None:
     with pytest.raises(RunRecordError, match="no `case_id`"):
-        records_from_payload([{"outcome": "succeeded"}])
+        records_from_payload([{"outcome": "completed"}])
 
 
 def test_a_booking_missing_its_state_is_refused_rather_than_defaulted() -> None:
     """A defaulted field would score as though it were empty — a capture gap read as a property."""
     with pytest.raises(RunRecordError, match="no 'state'"):
         records_from_payload(
-            [{"case_id": "c", "outcome": "succeeded", "bookings": [{"booking_id": "b"}]}]
+            [{"case_id": "c", "outcome": "completed", "bookings": [{"booking_id": "b"}]}]
         )
 
 
@@ -181,7 +181,7 @@ def test_a_constraint_of_an_unknown_kind_is_refused() -> None:
             [
                 {
                     "case_id": "c",
-                    "outcome": "succeeded",
+                    "outcome": "completed",
                     "constraints": [{"code": "x", "kind": "medium", "satisfied": True}],
                 }
             ]
@@ -192,7 +192,10 @@ def test_a_duplicated_record_is_refused() -> None:
     """Two records for one case would make the score depend on file order."""
     with pytest.raises(RunRecordError, match="appears more than once"):
         records_from_payload(
-            [{"case_id": "c", "outcome": "succeeded"}, {"case_id": "c", "outcome": "failed"}]
+            [
+                {"case_id": "c", "outcome": "completed"},
+                {"case_id": "c", "outcome": "terminal_error"},
+            ]
         )
 
 
@@ -261,7 +264,7 @@ def test_a_healthy_replay_scores_and_writes_a_report_that_names_its_inputs(
 
     # §14: the report carries the versions it ran under, resolved rather than echoed.
     assert report["release_manifest_id"] == RELEASE_ID
-    assert report["dataset"]["version"] == "offline-v1"
+    assert report["dataset"]["version"] == "offline-v2"
     assert len(report["dataset"]["content_hash"]) == 64
     assert report["dataset"]["scenario_manifest_hash"]
     assert report["rubric"] == "offline-rules-v1"

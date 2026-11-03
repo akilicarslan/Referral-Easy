@@ -59,6 +59,23 @@ class WorkflowSurfaceProjection:
         row = self._fresh(row)
         state = WorkflowState(row.state)
         plan = self._validate(state, props)
+        if state is WorkflowState.READINESS_CHECK and props.get("documents"):
+            # The one card READINESS_CHECK has: ask the patient for a document the hospital needs.
+            plan = CardPlan(
+                RenderableComponent.PatientDetailsForm,
+                "system:await_patient_choice",
+                ("documents", "fields"),
+                slot="documents",
+            )
+        if state is WorkflowState.AWAITING_DOCTOR_CHOICE and props.get("coverage"):
+            # The doctors again, with the chosen doctor's coverage finding on the card. A second
+            # slot, because the first DoctorPicker was answered and must not be asked twice.
+            plan = CardPlan(
+                RenderableComponent.DoctorPicker,
+                "system:await_patient_choice",
+                ("options", "coverage"),
+                slot="coverage",
+            )
         if state is WorkflowState.HUMAN_HANDOFF:
             if props.get("consent_required") is True:
                 plan = CardPlan(RenderableComponent.HumanHandoffCard, "system:capture_consent")

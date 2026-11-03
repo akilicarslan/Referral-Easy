@@ -163,8 +163,13 @@ class CoordinatorDispatch:
         specialist_inputs: Mapping[str, Any],
         execution_plan: list[dict[str, Any]],
         patient_details_id: str | None = None,
+        release_manifest_id: str | None = None,
     ) -> Mapping[str, Any]:
-        """Execute a stored workflow step and return its typed source results."""
+        """Execute a stored workflow step and return its typed source results.
+
+        `release_manifest_id` is the workflow's own pin (§13). Without one the task carries the
+        release this gateway resolved at startup, as an unpinned deployment always has.
+        """
         envelope = self._envelope(
             workflow_id=workflow_id,
             workflow_state=workflow_state,
@@ -173,6 +178,7 @@ class CoordinatorDispatch:
             goal="Execute the standard referral step.",
             deadline_at=self._clock.now() + timedelta(seconds=self._timeout),
             synthetic=True,
+            release_manifest_id=release_manifest_id,
         )
         if patient_details_id:
             envelope["patient_details_id"] = patient_details_id
@@ -290,6 +296,7 @@ class CoordinatorDispatch:
         goal: str,
         deadline_at: datetime,
         synthetic: bool,
+        release_manifest_id: str | None = None,
     ) -> dict[str, Any]:
         """The §5 envelope for a root task, from the facts the gateway owns.
 
@@ -302,8 +309,9 @@ class CoordinatorDispatch:
           may do nothing, which is a true answer rather than a missing one.
         * `deadline` and `call_budget` are this dispatcher's own declaration: the deadline is the
           dispatch timeout, and the counters are §8's defaults a delegation chain inherits.
-        * `release_manifest_id` is the release this gateway was configured to dispatch under (§13),
-          resolved at startup — the envelope cannot be built without one, which `configured` says.
+        * `release_manifest_id` is the workflow's pinned release when the caller names it (§13), and
+          otherwise the release this gateway resolved at startup — the envelope cannot be built
+          without one, which `configured` says.
         * `task_id` is derived from `(workflow, command)` so a redelivery of the same committed
           command is the same task rather than a second one.
         """
@@ -329,7 +337,7 @@ class CoordinatorDispatch:
                 "remaining_tool_calls": TOOL_CALLS_PER_TURN,
                 "remaining_delegations": DELEGATIONS_PER_TURN,
             },
-            "release_manifest_id": self._release_manifest_id,
+            "release_manifest_id": release_manifest_id or self._release_manifest_id,
             "synthetic": synthetic,
         }
 

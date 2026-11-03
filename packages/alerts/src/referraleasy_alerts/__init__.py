@@ -15,10 +15,9 @@ Four modules, in the order the sentence above reaches them:
 * :mod:`~referraleasy_alerts.models` — the three states a rule can be in, where the third is "not
   enough data" and is deliberately not a pass.
 
-**What is not here.** The scheduler that queries OpenSearch and runs the rules on an interval, and
-the durable tables the events and messages land in. The evaluation itself is pure — it takes
-measurements and returns decisions — so the loop and the storage are the parts that are still to be
-written, and they are named rather than implied.
+**What is not here.** The loop that queries OpenSearch on an interval and the durable tables. Both
+live in `referraleasy_workers.alerts` (migration `017_alerts.sql`), which measures and stores while
+this package decides. The evaluation stays pure: it takes measurements and returns decisions.
 """
 
 from referraleasy_alerts.dedup import (

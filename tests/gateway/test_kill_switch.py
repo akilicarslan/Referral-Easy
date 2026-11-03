@@ -16,6 +16,12 @@ there could not tell the two refusals apart.
 
 from __future__ import annotations
 
+import inspect
+from datetime import UTC, datetime
+from types import SimpleNamespace
+from unittest.mock import Mock
+from uuid import uuid4
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -23,6 +29,8 @@ from gateway_fixtures import Demo
 
 from referraleasy_contracts.generated.common import WorkflowState
 from referraleasy_gateway.api import NO_TELEMETRY_SOURCE
+from referraleasy_gateway.commands import CommandService, DispatchTicket
+from referraleasy_gateway.errors import BookingHaltedError, ContractViolationError
 from referraleasy_gateway.killswitch import KillSwitch
 
 ENGAGE = {"engage": True, "reason": "the booking path is writing duplicates", "by": "oncall"}
@@ -276,7 +284,8 @@ def test_the_alerts_read_says_nothing_has_been_evaluated(client) -> None:
     body = client.get("/v1/admin/alerts", headers=demo.admin).json()
 
     assert body["evaluation"]["ran"] is False
-    assert "7.3" in body["evaluation"]["reason"]
+    # Both profiles say why: memory has no alert tables, postgres has no recorded tick yet.
+    assert "scheduler" in body["evaluation"]["reason"]
     assert body["outbox"]["sends"] is False
     assert body["outbox"]["messages"] == []
 
@@ -298,3 +307,75 @@ def test_a_patient_session_cannot_read_the_alerts_page(client) -> None:
     demo = Demo(client)
 
     assert client.get("/v1/admin/alerts", headers=demo.patient).status_code == 401
+
+
+# ---------------------------------------------------------------------------
+# The command plane's gate
+# ---------------------------------------------------------------------------
+
+
+def _commands(switch: KillSwitch) -> CommandService:
+    ports = {
+        name: Mock()
+        for name in (
+            "control",
+            "surfaces",
+            "log",
+            "approvals",
+            "policy",
+            "guardrails",
+            "clock",
+            "latencies",
+        )
+    }
+    return CommandService(**ports, kill_switch=switch)
+
+
+def test_the_command_plane_cannot_be_built_without_a_switch() -> None:
+    """An optional switch is one a caller forgets, and a forgotten switch reads as released: the
+    halt would fail open. So there is no default to forget."""
+    parameter = inspect.signature(CommandService).parameters["kill_switch"]
+
+    assert parameter.default is inspect.Parameter.empty
+    with pytest.raises(TypeError, match="kill_switch"):
+        CommandService(
+            **{
+                name: Mock()
+                for name in (
+                    "control",
+                    "surfaces",
+                    "log",
+                    "approvals",
+                    "policy",
+                    "guardrails",
+                    "clock",
+                    "latencies",
+                )
+            }
+        )
+
+
+def test_dispatch_is_refused_while_engaged_and_minted_once_released() -> None:
+    switch = KillSwitch()
+    commands = _commands(switch)
+    row = SimpleNamespace(
+        workflow_id=uuid4(), payload={"booking_authority": {"approval_id": "a-1"}}
+    )
+    switch.engage(reason=ENGAGE["reason"], by="oncall", now=datetime(2026, 11, 3, tzinfo=UTC))
+
+    with pytest.raises(BookingHaltedError) as refused:
+        commands.authorise_dispatch(row)
+    assert refused.value.detail["reason"] == ENGAGE["reason"]
+
+    switch.release(by="oncall", now=datetime(2026, 11, 3, 1, tzinfo=UTC))
+    ticket = commands.authorise_dispatch(row)
+
+    assert ticket == DispatchTicket(workflow_id=row.workflow_id, approval_id="a-1")
+
+
+def test_dispatch_without_an_approval_is_refused() -> None:
+    commands = _commands(KillSwitch())
+    row = SimpleNamespace(workflow_id=uuid4(), payload={})
+
+    with pytest.raises(ContractViolationError):
+        commands.authorise_dispatch(row)

@@ -162,6 +162,10 @@ class ToolSet:
     payload: Mapping[str, Any] = field(default_factory=dict)
     ledger: EvidenceLedger = field(default_factory=EvidenceLedger)
     calls: list[_CallRecord] = field(default_factory=list)
+    #: Every result a tool returned this turn, in call order — including results that cite no
+    #: evidence, which the ledger does not keep. Read by the output guardrail's oracle
+    #: (`referraleasy_agents.output_guard`), never written by anything but `invoke`.
+    results: list[tuple[str, Any]] = field(default_factory=list)
     #: The service's own reading of the turn's state, used when no envelope carries
     #: one. Set by `ToolBox.start`, never by a caller of a tool.
     state: str = ""
@@ -220,6 +224,7 @@ class ToolSet:
                 delegation=self.box.delegation,
             )
             result = await handler_for(name)(call, **arguments)
+            self.results.append((name, result))
             evidence_ids = self.ledger.record(name, result)
             self.calls.append(
                 _CallRecord(

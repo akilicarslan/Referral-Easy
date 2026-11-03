@@ -132,6 +132,7 @@ __all__ = [
     "PAYLOAD_HASH_KEY",
     "CommandReceipt",
     "CommandService",
+    "DispatchTicket",
     "SubmittedAction",
     "Turn",
     "question_is_open",
@@ -540,6 +541,21 @@ class CommandReceipt:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class DispatchTicket:
+    """Leave to send one approved booking to the hospital. Only `authorise_dispatch` mints one.
+
+    §16's halt belongs where the external effect starts, not where its result is recorded. `book`
+    records what the scheduler reported *after* the hospital was asked; refusing that record while
+    halted would leave a real appointment with no booking row and the workflow stuck in
+    `BOOKING_IN_FLIGHT`, the orphan §7's reconciliation exists to prevent. So the coordinator needs a
+    ticket to send a booking, and needs nothing to record or reconcile one.
+    """
+
+    workflow_id: UUID
+    approval_id: str
+
+
 class CommandService:
     """The four operations, over ports. One instance per app; it holds no state of its own."""
 
@@ -557,7 +573,9 @@ class CommandService:
         synthetic: bool = True,
         emitter: TelemetryEmitter | None = None,
         dispatch: CoordinatorDispatch | None = None,
-        kill_switch: KillSwitch | None = None,
+        #: Required, with no default: an optional switch is one a caller can forget, and a forgotten
+        #: switch reads as "released" — the halt would fail open.
+        kill_switch: KillSwitch,
     ) -> None:
         self._control = control
         self._surfaces = surfaces
@@ -576,9 +594,33 @@ class CommandService:
         self._continuations = ContinuationLifecycle(control, clock=clock)
         self._kill_switch = kill_switch
 
-    def assert_booking_writes(self) -> None:
-        if self._kill_switch is not None and self._kill_switch.state.engaged:
-            raise BookingHaltedError("Booking writes are stopped by the admin kill switch.")
+    def require_booking_writes(self) -> None:
+        """Refuse with `booking_halted` (503) while §16's switch is engaged.
+
+        Called at the two entries that start a booking: an operator's `POST …/bookings`, and
+        `authorise_dispatch` before the coordinator asks the hospital. Never from `book` itself.
+        """
+        switch = self._kill_switch.state
+        if switch.engaged:
+            raise BookingHaltedError(
+                "booking writes are stopped by the admin kill switch (#5). Read-only guidance, the "
+                "event stream and the workflow's own transitions keep working.",
+                detail={
+                    "reason": switch.reason,
+                    "since": switch.since.isoformat() if switch.since else None,
+                    "by": switch.by,
+                },
+            )
+
+    def authorise_dispatch(self, row: WorkflowRow) -> DispatchTicket:
+        """Check the halt and mint the ticket the coordinator needs to send this booking."""
+        self.require_booking_writes()
+        authority = row.payload.get("booking_authority")
+        if not isinstance(authority, Mapping) or not authority.get("approval_id"):
+            raise ContractViolationError("The workflow has no booking approval to dispatch.")
+        return DispatchTicket(
+            workflow_id=row.workflow_id, approval_id=str(authority["approval_id"])
+        )
 
     def enable_coordination(self) -> None:
         """Store work with each accepted patient command."""
@@ -591,7 +633,7 @@ class CommandService:
 
     def prepare_booking(self, row: WorkflowRow) -> Mapping[str, Any]:
         """Check consent and guardrails before the hospital write can start."""
-        self.assert_booking_writes()
+        self.require_booking_writes()
         payload = _booking_payload(row)
         if payload is None:
             raise ContractViolationError("The workflow has no reviewed booking payload.")
@@ -648,6 +690,19 @@ class CommandService:
         turn = self._turn(row, f"lookup:{row.workflow_id}:{self._clock.now().isoformat()}")
         try:
             self._publish_surface(self._surfaces.reopen_lookup(row), turn)
+        finally:
+            turn.close()
+
+    def present(self, row: WorkflowRow, props: Mapping[str, Any]) -> None:
+        """Issue a card in the current state, without a transition.
+
+        Used where a state asks the patient something mid-way — the readiness check asking for a
+        missing document. The card carries this state version, so an answer to it is an answer to
+        *this* question, and the policy row for its action is checked when the answer arrives.
+        """
+        turn = self._turn(row, f"present:{row.workflow_id}:{row.state_version}")
+        try:
+            self._publish_surface(self._surfaces.show(row, props), turn)
         finally:
             turn.close()
 
@@ -1441,6 +1496,22 @@ class CommandService:
             raise ContractViolationError(
                 "await_patient_choice with no value: there is no answer to record"
             )
+        if instance.component is RenderableComponent.PatientDetailsForm:
+            offered = {
+                str(item.get("document_id"))
+                for item in instance.props.get("documents", [])
+                if isinstance(item, Mapping)
+            }
+            chosen = value.get("document_ids")
+            if (
+                not isinstance(chosen, list)
+                or not chosen
+                or any(str(item) not in offered for item in chosen)
+            ):
+                raise ContractViolationError(
+                    "attach at least one of the documents this card offered, and only those"
+                )
+            return
         fields = {
             RenderableComponent.HospitalPicker: ("hospital_id", "hospitals"),
             RenderableComponent.DoctorPicker: ("provider_id", "doctors"),

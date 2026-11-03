@@ -1,6 +1,7 @@
 # ADR-0002 — Agent runtime and OpenRouter model access (google-adk + litellm)
 
-- **Status:** Accepted (library versions pinned). The *model id* pin remains `UNRESOLVED`.
+- **Status:** Accepted. Library versions pinned 2026-10-14; **model id pinned 2026-10-20** (see
+  "Resolution" at the end).
 - **Date:** 2026-10-14
 - **Phase:** 0 (spike S-02)
 - **Decides:** `AGENT_MODEL_PROVIDER`, `AGENT_MODEL_ID`, and the runtime library versions.
@@ -35,7 +36,8 @@ support the four capabilities the agent loop depends on — **tool calling**,
   exists at tag `v1.105.1`). Credentials go in the standard env var
   `OPENROUTER_API_KEY`, which LiteLLM reads itself — ADK passes no key.
 - **`AGENT_MODEL_PROVIDER=openrouter`** — unchanged from `.env.example`.
-- **`AGENT_MODEL_ID=CHANGEME_TOOL_CAPABLE_MODEL`** — **UNRESOLVED.** See below.
+- **`AGENT_MODEL_ID=anthropic/claude-haiku-5.5`** — pinned 2026-10-20 by the spike; see
+  "Resolution". (Until then it was `CHANGEME_TOOL_CAPABLE_MODEL`, for the reasons below.)
 
 ### Capability support in `google-adk==2.12.0` + `litellm==1.105.1`
 
@@ -44,9 +46,9 @@ support the four capabilities the agent loop depends on — **tool calling**,
 | Tool calling | **SUPPORTED** | `lite_llm.py` handles both structured `tool_calls` and the inline-JSON fallback that some providers emit (`"LiteLLM responses either provide structured tool_calls or inline JSON, not both"`, ~line 2459), and maps `finish_reason` values. |
 | Structured output | **SUPPORTED** | `_LITELLM_STRUCTURED_TYPES = {"json_object", "json_schema"}` plus a converter that turns an ADK `response_schema` (`types.Schema` or Pydantic model) into a LiteLLM structured-output format; it raises `Unsupported response_schema type %s for LiteLLM structured outputs.` otherwise. |
 | Streaming | **SUPPORTED** | Dedicated streaming paths (`_aggregate_streaming_thought_parts`, `_model_response_to_generate_content_response` over stream chunks, chunk-level `delta` vs full-object handling). |
-| Cancellation | **NOT VERIFIED — absent from the source** | `grep -n -i "cancell\|aclose\|GeneratorExit"` over `src/google/adk/models/lite_llm.py` **and** `src/google/adk/models/base_llm.py` at `v2.12.0` returns **zero matches**. There is no cancellation hook in the model layer. Whether cancelling the async iteration actually aborts the in-flight HTTP request is an empirical question. |
+| Cancellation | **No source-level hook; verified behaviourally 2026-10-20** | `grep -n -i "cancell\|aclose\|GeneratorExit"` over `src/google/adk/models/lite_llm.py` **and** `src/google/adk/models/base_llm.py` at `v2.12.0` returns **zero matches**. There is no cancellation hook in the model layer. Whether cancelling the async iteration actually aborts the in-flight HTTP request is an empirical question. |
 
-## Why `AGENT_MODEL_ID` stays `CHANGEME`
+## Why `AGENT_MODEL_ID` stayed `CHANGEME` until the spike ran
 
 `https://openrouter.ai/api/v1/models` currently lists **462** models; **342** of them
 advertise both `tools` and `structured_outputs` in `supported_parameters`. That is a
@@ -81,3 +83,22 @@ candidate id** rather than against a marketing page.
   `OPENROUTER_API_KEY` and `AGENT_MODEL_ID`) until both are real.
 - When the pin lands, this ADR is amended with the dated result and the four capability
   assertions, not merely the version numbers.
+
+## Resolution (2026-10-20)
+
+`AGENT_MODEL_ID=anthropic/claude-haiku-5.5`, run through `openrouter/` by the runtime's factory.
+
+| Run | Command | Result |
+|---|---|---|
+| S1 spike | `uv run pytest -m spike tests/contracts/spikes/test_adk_openrouter_spike.py -v` | 4 passed in 6.5 s: tool call with round-tripped `patient_id`; JSON validating against a Pydantic schema; >1 streamed chunk carrying text; `CancelledError` raised within the 5 s budget after cancelling 0.5 s into a stream |
+| Runtime spike | `uv run pytest -m spike tests/agent_runtime/test_spike_live_model.py -q` | 9 passed in 9.6 s |
+
+What this closes from "What remains unverified": item 1 (the ADK 2.12.0 + LiteLLM 1.105.1 pairing
+works for this model), item 2 (cancelling the consuming task stops the stream promptly — what it does
+*not* prove is that the provider stops billing the abandoned completion), and item 3 (tool arguments
+survive both normalisers). Item 4 stands: the `openrouter/` prefix works, so no explicit
+`custom_llm_provider` was needed, but the explicit form was not tried.
+
+This pins one model on one provider. It says nothing about Vertex (S1b, ADR-0009), which on the same
+date fails before reaching a model: the GCP project has billing disabled (`403 BILLING_DISABLED`).
+

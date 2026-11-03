@@ -17,6 +17,26 @@ def demo_sources(patient_ref: str) -> dict[str, Any]:
         return next((row for row in rows if row.get("patient_id") == patient_ref), {})
 
     referral = record("referral_intake.json")
+    documents_file = root.parent / "documents" / "documents.json"
+    documents = (
+        [
+            {
+                key: row.get(key)
+                for key in (
+                    "document_id",
+                    "kind",
+                    "filename",
+                    "issued_at",
+                    "synthetic",
+                    "contains_injection_attempt",
+                )
+            }
+            for row in json.loads(documents_file.read_text())
+            if row.get("patient_id") == patient_ref
+        ]
+        if documents_file.is_file()
+        else []
+    )
     preferences = record("preferences.json")
     details = record("patient_details.json")
     if not referral:
@@ -25,4 +45,7 @@ def demo_sources(patient_ref: str) -> dict[str, Any]:
         "referral": referral,
         "preferences": preferences,
         "patient_details_id": details.get("patient_details_id"),
+        # The patient's own synthetic documents, offered when a hospital needs one the referral
+        # did not include. Metadata only: the text stays with the document service.
+        "patient_documents": documents,
     }

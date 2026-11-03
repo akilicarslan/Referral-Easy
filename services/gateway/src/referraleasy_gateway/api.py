@@ -76,7 +76,6 @@ from referraleasy_gateway.config import OFFLINE_PROFILE_LABEL, GatewaySettings
 from referraleasy_gateway.control import ControlState
 from referraleasy_gateway.errors import (
     ERROR_ENVELOPE_OPENAPI,
-    BookingHaltedError,
     ContractViolationError,
     GatewayError,
     NotFoundError,
@@ -87,8 +86,11 @@ from referraleasy_gateway.guardrails import GuardrailPipeline, layer_report
 from referraleasy_gateway.human_queue import open_tickets
 from referraleasy_gateway.killswitch import KillSwitch
 from referraleasy_gateway.policy import ActionPolicy
+from referraleasy_gateway.psql import session as psql_session
 from referraleasy_gateway.timing import Clock, LatencyLedger
 from referraleasy_telemetry import Filters, TelemetryQueryError, TimeRange
+from referraleasy_workers.alerts import read_alerts
+from referraleasy_workers.hitl import HandoffRecord, HumanQueue
 
 __all__ = [
     "GatewayDeps",
@@ -190,6 +192,54 @@ class ControlSwitchBody(BaseModel):
     engage: bool
     reason: str = Field(min_length=1)
     by: str = Field(min_length=1)
+
+
+class QueueClaimBody(BaseModel):
+    """An operator action on a ticket, at the claim generation the operator read off it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    expected_generation: int | None = Field(default=None, ge=0)
+
+
+class QueueResolveBody(QueueClaimBody):
+    """A resolution. `return_state` is checked against the database's allow-list (§11)."""
+
+    resolution: str = Field(min_length=1, max_length=2000)
+    return_state: str = Field(min_length=1, max_length=64)
+    note: str | None = Field(default=None, max_length=4000)
+
+
+def queue_action(
+    settings: GatewaySettings,
+    handoff_id: UUID,
+    work: Any,
+    *,
+    open_session: Any = None,
+    queue_factory: Any = None,
+) -> dict[str, Any]:
+    """Run one operator action through the workers' `HumanQueue` on a fresh connection.
+
+    One implementation of §11's claim rules: the workers' class, over the database functions whose
+    compare-and-set decides every race. The gateway adds only the operator's identity (the admin
+    session's subject) and the profile gate — the memory profile has no handoff table to act on.
+    """
+    if settings.control_backend != "postgres":
+        raise NotFoundError(
+            "no such ticket: the in-memory control profile has no handoff table to act on"
+        )
+    with (open_session or psql_session)(settings.database_url) as connection:
+        return dict(work((queue_factory or HumanQueue)(connection), str(handoff_id)))
+
+
+def _ticket_answer(record: HandoffRecord) -> dict[str, Any]:
+    return {
+        "handoff_id": str(record.id),
+        "workflow_id": str(record.workflow_id),
+        "state": str(record.state),
+        "claimed_by": record.claimed_by,
+        "claim_generation": record.claim_generation,
+    }
 
 
 class BookingBody(BaseModel):
@@ -541,21 +591,12 @@ def build_router(deps: GatewayDeps) -> APIRouter:
         body: BookingBody,
         session: Session = Depends(require_admin),  # noqa: B008
     ) -> JSONResponse:
-        # §16's kill switch, checked here and only here. Not on the stream, not on the help card,
-        # not on the transitions a coordinator needs to finish or unwind work already in flight: the
-        # spec says the switch stops booking *writes* and that read-only guidance continues, and a
-        # switch that stopped everything would be an outage with a friendlier name.
-        switch = deps.kill_switch.state
-        if switch.engaged:
-            raise BookingHaltedError(
-                "booking writes are stopped by the admin kill switch (#5). Read-only guidance, the "
-                "event stream and the workflow's own transitions keep working.",
-                detail={
-                    "reason": switch.reason,
-                    "since": switch.since.isoformat() if switch.since else None,
-                    "by": switch.by,
-                },
-            )
+        # §16's kill switch, checked at the entry of a booking and not inside `book`, which the
+        # coordinator also uses to record a hospital result it already has. Not on the stream, not on
+        # the help card, not on the transitions a coordinator needs to finish or unwind work already
+        # in flight: the spec says the switch stops booking *writes* and that read-only guidance
+        # continues, and a switch that stopped everything would be an outage with a friendlier name.
+        deps.commands.require_booking_writes()
         receipt = deps.commands.book(
             session,
             workflow_id,
@@ -739,19 +780,109 @@ def build_router(deps: GatewayDeps) -> APIRouter:
         return open_tickets(deps.settings.database_url)
 
     @router.get(
-        "/v1/admin/alerts", summary="§16: the alert rules, their thresholds, and the switch"
+        "/v1/admin/alerts", summary="§16: the alert rules, what the scheduler concluded, the switch"
     )
     def admin_alerts(
         session: Session = Depends(require_admin),  # noqa: B008
     ) -> dict[str, Any]:
-        """Rules and thresholds from the alerts package; the switch from this process.
+        """Rules and thresholds from the alerts package; state, transitions and outbox from 017.
 
-        No telemetry cluster is consulted, and none is needed. Nothing has been *evaluated*, because
-        the scheduler that would do it on an interval is the remaining work in Phase 7.3 — and the
-        answer says so rather than returning an empty list of firing alerts, which reads as a system
-        with nothing wrong.
+        The scheduler (`referraleasy_workers.alerts`) writes every tick to the database; this route
+        reads it back. The memory profile has no such tables, and a database the scheduler has not
+        written yet has no run — both answer "not evaluated" with the reason rather than an empty
+        list of firing alerts, which would read as a system with nothing wrong.
         """
-        return {**load_alert_rules(), "kill_switch": deps.kill_switch.state.as_dict()}
+        switch = deps.kill_switch.state.as_dict()
+        if deps.settings.control_backend != "postgres":
+            return {
+                **load_alert_rules(
+                    reason=(
+                        "This gateway runs the in-memory control profile; the alert scheduler "
+                        "records its runs in PostgreSQL (migration 017), so there is nothing here "
+                        "to read."
+                    )
+                ),
+                "kill_switch": switch,
+            }
+        try:
+            with psql_session(deps.settings.database_url) as connection:
+                evaluated = read_alerts(connection)
+        except Exception as error:  # an unmigrated database is a reason, not a 500
+            return {
+                **load_alert_rules(
+                    reason=f"The alert tables could not be read ({type(error).__name__}: {error})."
+                ),
+                "kill_switch": switch,
+            }
+        return {**load_alert_rules(evaluated), "kill_switch": switch}
+
+    # -- the operator's actions on the Human Queue (§11) -----------------------------------------
+
+    def _queue_action(handoff_id: UUID, work: Any) -> dict[str, Any]:
+        return queue_action(deps.settings, handoff_id, work)
+
+    @router.post("/v1/admin/human-queue/{handoff_id}/claim", summary="§11: claim a ticket")
+    def admin_claim_ticket(
+        handoff_id: UUID,
+        body: QueueClaimBody,
+        session: Session = Depends(require_admin),  # noqa: B008
+    ) -> dict[str, Any]:
+        """Claim at the generation the operator saw. A lost race is a 409 from the database's CAS."""
+
+        def work(queue: HumanQueue, ticket: str) -> Mapping[str, Any]:
+            record = queue.claim(
+                ticket, operator_id=session.subject, expected_generation=body.expected_generation
+            )
+            return _ticket_answer(record)
+
+        return _queue_action(handoff_id, work)
+
+    @router.post("/v1/admin/human-queue/{handoff_id}/release", summary="§11: release a claim")
+    def admin_release_ticket(
+        handoff_id: UUID,
+        body: QueueClaimBody,
+        session: Session = Depends(require_admin),  # noqa: B008
+    ) -> dict[str, Any]:
+        """Give the ticket back without resolving it; only the holder, at the held generation."""
+
+        def work(queue: HumanQueue, ticket: str) -> Mapping[str, Any]:
+            record = queue.release(
+                ticket, operator_id=session.subject, expected_generation=body.expected_generation
+            )
+            return _ticket_answer(record)
+
+        return _queue_action(handoff_id, work)
+
+    @router.post("/v1/admin/human-queue/{handoff_id}/resolve", summary="§11: resolve a ticket")
+    def admin_resolve_ticket(
+        handoff_id: UUID,
+        body: QueueResolveBody,
+        session: Session = Depends(require_admin),  # noqa: B008
+    ) -> dict[str, Any]:
+        """Close the ticket and return the workflow to an allow-listed state.
+
+        A booking-consent state is refused (RE004 → 403): resolving a ticket is not the patient's
+        approval, and no argument here can create one.
+        """
+
+        def work(queue: HumanQueue, ticket: str) -> Mapping[str, Any]:
+            outcome = queue.resolve(
+                ticket,
+                operator_id=session.subject,
+                expected_generation=body.expected_generation,
+                resolution=body.resolution,
+                return_state=body.return_state,
+                note=body.note,
+            )
+            return {
+                "handoff_id": str(outcome.handoff_id),
+                "workflow_id": str(outcome.workflow_id),
+                "return_state": outcome.return_state,
+                "final_approval_still_required": outcome.final_approval_still_required,
+                "booking_consent_granted": outcome.booking_consent_granted,
+            }
+
+        return _queue_action(handoff_id, work)
 
     @router.get(
         "/v1/admin/overview", summary="§12 Overview: counts, outcomes, latencies, index health"
@@ -824,23 +955,21 @@ async def _stream(
     replayed = deps.log.replay(
         workflow_id, after_event_id=cursor_event_id, after_seq=after_seq, limit=limit
     )
-    known = deps.log.events_for(workflow_id)
-    last_seq = (
-        replayed[-1].seq
-        if replayed
-        else next(
-            (event.seq for event in known if event.event_id == cursor_event_id),
-            after_seq if after_seq is not None and not cursor_event_id else -1,
+    if replayed:
+        last_seq = replayed[-1].seq
+    else:
+        known_seq = deps.log.seq_of(workflow_id, cursor_event_id) if cursor_event_id else None
+        last_seq = (
+            known_seq
+            if known_seq is not None
+            else (after_seq if after_seq is not None and not cursor_event_id else -1)
         )
-    )
     if replayed:
         for frame in frames(replayed):
             yield frame
 
     hold_ms = deps.settings.stream_hold_ms
-    if hold_ms <= 0 or any(
-        event.type is StreamEventType.terminal and event.seq <= last_seq for event in known
-    ):
+    if hold_ms <= 0 or deps.log.has_terminal(workflow_id, through_seq=last_seq):
         # The zero-hold profile drains and closes, which is what lets a test read a stream with a
         # plain request. A terminal event closes a real stream too: the outcome has arrived, and
         # holding the connection open afterwards leaves the client waiting for a sixth act.
@@ -851,9 +980,9 @@ async def _stream(
     for _ in range(int(hold_ms / 1000.0 / _STREAM_POLL_SECONDS) + 2):
         if await request.is_disconnected():
             return
-        pending = [event for event in deps.log.events_for(workflow_id) if event.seq > last_seq][
-            :limit
-        ]
+        # Only what is past the cursor: with the shared log this is how another replica's append
+        # reaches this connection, and it never re-reads the whole history on a poll.
+        pending = deps.log.replay(workflow_id, after_seq=last_seq, limit=limit)
         if pending:
             last_seq = pending[-1].seq
             for frame in frames(pending):

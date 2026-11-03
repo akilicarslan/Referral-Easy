@@ -134,7 +134,7 @@ export class AdminClient {
 
   constructor(
     private readonly baseUrl: string = GATEWAY_BASE,
-    private readonly subject = 'coordinator@demo',
+    readonly subject = 'coordinator@demo',
     private readonly fetchImpl: typeof fetch = fetch,
   ) { this.fetchImpl = fetchImpl.bind(globalThis); }
 
@@ -186,6 +186,49 @@ export class AdminClient {
       return { kind: 'unavailable', reason: String(body['reason'] ?? 'no reason given') };
     }
     return { kind: 'data', data: body };
+  }
+
+  /**
+   * Perform one operator action (`POST /v1/admin/<path>`), such as claiming a ticket.
+   *
+   * **Never throws**, like `read`. A lost race comes back as `failed` with the gateway's own message
+   * (§11's compare-and-set answers 409 with the reason), so the page can show *why* the claim lost
+   * rather than a generic error — and reload, because the ticket it acted on has moved on.
+   */
+  async act(
+    path: string,
+    body: Record<string, unknown>,
+  ): Promise<{ kind: 'done'; data: Record<string, unknown> } | { kind: 'failed'; message: string }> {
+    let token: string;
+    try {
+      token = await this.#sessionToken();
+    } catch (problem) {
+      return { kind: 'failed', message: describe(problem) };
+    }
+    let response: Response;
+    try {
+      response = await this.fetchImpl(this.#url(`/v1/admin/${path}`), {
+        method: 'POST',
+        headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } catch (problem) {
+      return { kind: 'failed', message: describe(problem) };
+    }
+    const answer = await this.#json(response);
+    if (!response.ok || answer === undefined) {
+      if (response.status === 401) {
+        this.reset();
+      }
+      return {
+        kind: 'failed',
+        message:
+          answer === undefined
+            ? `the gateway answered ${response.status} with no JSON body`
+            : refusal(answer, response.status),
+      };
+    }
+    return { kind: 'done', data: answer };
   }
 
   /** Forget the session, so the next read mints a new one. Used when a read answers 401. */

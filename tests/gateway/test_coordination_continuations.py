@@ -10,7 +10,7 @@ from uuid import uuid4
 import pytest
 
 from referraleasy_domain import canonical_request_hash
-from referraleasy_gateway.commands import CommandService
+from referraleasy_gateway.commands import CommandService, DispatchTicket
 from referraleasy_gateway.continuations import (
     ContinuationExpired,
     ContinuationKind,
@@ -18,12 +18,25 @@ from referraleasy_gateway.continuations import (
     ContinuationRecord,
     ContinuationReplaced,
 )
-from referraleasy_gateway.coordination import CoordinationService
+from referraleasy_gateway.coordination import CoordinationError, CoordinationService
+from referraleasy_gateway.errors import BookingHaltedError
 
 
 @pytest.fixture
 def lifecycle(control, clock):
     return ContinuationLifecycle(control, clock=clock)
+
+
+APPROVAL = "a0000000-0000-4000-8000-000000000001"
+
+
+def dispatching_commands(row):
+    """A command plane whose switch is released: it mints a ticket for the stored approval."""
+    commands = Mock(spec=CommandService)
+    commands.authorise_dispatch.return_value = DispatchTicket(
+        workflow_id=row.workflow_id, approval_id=APPROVAL
+    )
+    return commands
 
 
 def enqueue(control, lifecycle, row, *, commit=True, kind=ContinuationKind.ANSWER):
@@ -293,7 +306,7 @@ def test_lost_booking_claim_cannot_record_an_outcome(control, lifecycle, clock, 
         payload={
             "booking_idempotency_key": "original-key",
             "booking_payload": {},
-            "booking_authority": {},
+            "booking_authority": {"approval_id": APPROVAL},
             "selected_slot_version": 1,
         },
     )
@@ -301,7 +314,7 @@ def test_lost_booking_claim_cannot_record_an_outcome(control, lifecycle, clock, 
     claim = lifecycle.claim(row.workflow_id)
     assert claim is not None
     row = lifecycle.refresh(claim)
-    commands = Mock(spec=CommandService)
+    commands = dispatching_commands(row)
     worker = CoordinationService(
         control=control, commands=commands, coordinator=Mock(), clock=clock
     )
@@ -341,7 +354,7 @@ def test_timeout_after_lease_loss_cannot_record_a_booking_outcome(control, lifec
         payload={
             "booking_idempotency_key": "original-key",
             "booking_payload": {},
-            "booking_authority": {},
+            "booking_authority": {"approval_id": APPROVAL},
             "selected_slot_version": 1,
         },
     )
@@ -349,7 +362,7 @@ def test_timeout_after_lease_loss_cannot_record_a_booking_outcome(control, lifec
     claim = lifecycle.claim(row.workflow_id)
     assert claim is not None
     row = lifecycle.refresh(claim)
-    commands = Mock(spec=CommandService)
+    commands = dispatching_commands(row)
     worker = CoordinationService(
         control=control, commands=commands, coordinator=Mock(), clock=clock
     )
@@ -362,3 +375,78 @@ def test_timeout_after_lease_loss_cannot_record_a_booking_outcome(control, lifec
     with pytest.raises(ContinuationReplaced):
         worker._book(claim, row, SimpleNamespace(scheduling=lambda: {}))
     commands.book.assert_not_called()
+
+
+def _claimed_booking(control, lifecycle, **payload):
+    row = control.create(
+        "continuation-patient",
+        payload={
+            "booking_idempotency_key": "original-key",
+            "booking_payload": {},
+            "booking_authority": {"approval_id": APPROVAL},
+            "booking_screening_text": "Please book it.",
+            "selected_slot_version": 1,
+            **payload,
+        },
+    )
+    enqueue(control, lifecycle, row)
+    claim = lifecycle.claim(row.workflow_id)
+    assert claim is not None
+    return claim, lifecycle.refresh(claim)
+
+
+def test_a_halt_stops_the_first_send_before_the_hospital_is_asked(control, lifecycle, clock):
+    """§16: the switch is checked where the external effect starts. Nothing is sent, and nothing is
+    marked as sent, so a release later dispatches the booking instead of only looking it up."""
+    claim, row = _claimed_booking(control, lifecycle)
+    commands = Mock(spec=CommandService)
+    commands.authorise_dispatch.side_effect = BookingHaltedError("halted")
+    worker = CoordinationService(
+        control=control, commands=commands, coordinator=Mock(), clock=clock
+    )
+    worker._call = Mock()
+
+    with pytest.raises(BookingHaltedError):
+        worker._book(claim, row, SimpleNamespace(scheduling=lambda: {}))
+
+    worker._call.assert_not_called()
+    commands.book.assert_not_called()
+    assert "booking_sent" not in control.load(row.workflow_id).payload
+
+
+def test_a_resend_after_a_crash_reconciles_and_records_while_halted(control, lifecycle, clock):
+    """The other half: a booking already sent is looked up and recorded even with the switch on.
+    Refusing that record would leave the hospital's appointment with no booking row."""
+    claim, row = _claimed_booking(control, lifecycle, booking_sent=True)
+    commands = Mock(spec=CommandService)
+    commands.authorise_dispatch.side_effect = BookingHaltedError("halted")
+    worker = CoordinationService(
+        control=control, commands=commands, coordinator=Mock(), clock=clock
+    )
+    worker._call = Mock(return_value={"scheduling": {}})
+
+    worker._book(claim, row, SimpleNamespace(scheduling=lambda: {}))
+
+    commands.authorise_dispatch.assert_not_called()
+    sent = worker._call.call_args.args[2]["scheduling"]
+    assert sent["reconcile_only"] is True
+    assert commands.book.call_args.kwargs["outcome"] == "unverified"
+
+
+def test_a_ticket_for_another_approval_sends_nothing(control, lifecycle, clock):
+    """The ticket is bound to the approval being sent, not a bare "the switch was off" flag."""
+    claim, row = _claimed_booking(control, lifecycle)
+    commands = Mock(spec=CommandService)
+    commands.authorise_dispatch.return_value = DispatchTicket(
+        workflow_id=row.workflow_id, approval_id="some-other-approval"
+    )
+    worker = CoordinationService(
+        control=control, commands=commands, coordinator=Mock(), clock=clock
+    )
+    worker._call = Mock()
+
+    with pytest.raises(CoordinationError, match="different approval"):
+        worker._book(claim, row, SimpleNamespace(scheduling=lambda: {}))
+
+    worker._call.assert_not_called()
+    assert "booking_sent" not in control.load(row.workflow_id).payload

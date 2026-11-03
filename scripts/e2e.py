@@ -11,6 +11,8 @@ import sys
 import tempfile
 import time
 import xml.etree.ElementTree as ET
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 import httpx
@@ -25,7 +27,9 @@ def verify_report(path: Path) -> None:
         raise RuntimeError("E2E did not run every collected scenario; empty or skipped runs fail")
 
 
-def run_iteration(directory: Path, test_path: str = "tests/e2e") -> int:
+@contextmanager
+def isolated_mock_api(directory: Path) -> Iterator[str]:
+    """Start the mock API on a free port over a fresh SQLite file in `directory`; yield its URL."""
     node = shutil.which("node")
     tsx = ROOT / "services/mock-api/node_modules/tsx/dist/cli.mjs"
     if node is None or not tsx.exists():
@@ -65,26 +69,7 @@ def run_iteration(directory: Path, test_path: str = "tests/e2e") -> int:
                     if time.monotonic() >= deadline:
                         raise RuntimeError("isolated mock API did not become ready in 30 seconds")
                     time.sleep(0.1)
-            report = directory / "results.xml"
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "pytest",
-                    test_path,
-                    "-m",
-                    "e2e",
-                    "-q",
-                    f"--junitxml={report}",
-                ],
-                cwd=ROOT,
-                env=env,
-                check=False,
-            )
-            if result.returncode:
-                return result.returncode
-            verify_report(report)
-            return 0
+            yield url
         except Exception:
             log.seek(0)
             print(log.read()[-4000:], file=sys.stderr)
@@ -96,6 +81,30 @@ def run_iteration(directory: Path, test_path: str = "tests/e2e") -> int:
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
+
+
+def run_iteration(directory: Path, test_path: str = "tests/e2e") -> int:
+    with isolated_mock_api(directory) as url:
+        report = directory / "results.xml"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                test_path,
+                "-m",
+                "e2e",
+                "-q",
+                f"--junitxml={report}",
+            ],
+            cwd=ROOT,
+            env={**os.environ, "MOCK_API_URL": url},
+            check=False,
+        )
+        if result.returncode:
+            return result.returncode
+        verify_report(report)
+        return 0
 
 
 def main() -> int:

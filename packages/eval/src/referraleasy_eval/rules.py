@@ -255,6 +255,14 @@ def no_hard_constraint_relaxed(case: Case, record: RunRecord) -> Verdict:
     )
 
 
+def _written_slot(arguments: Mapping[str, object]) -> str:
+    """The slot a booking write names: flat, or inside the contract's `BookingRequest.payload`."""
+    payload = arguments.get("payload")
+    if isinstance(payload, Mapping) and "slot_id" in payload:
+        return str(payload["slot_id"])
+    return str(arguments.get("slot_id", ""))
+
+
 def tool_arguments_match_the_outcome(case: Case, record: RunRecord) -> Verdict:
     """§14's "tool/argument correctness": did the write name what the run decided?
 
@@ -278,9 +286,7 @@ def tool_arguments_match_the_outcome(case: Case, record: RunRecord) -> Verdict:
             "the run wrote a booking and reported no selected slot, so its arguments cannot be "
             "checked against its own decision",
         )
-    wrong = [
-        call for call in writes if str(call.arguments.get("slot_id", "")) != record.selected_slot_id
-    ]
+    wrong = [call for call in writes if _written_slot(call.arguments) != record.selected_slot_id]
     if not wrong:
         return scored(
             "tool_arguments_match_the_outcome",

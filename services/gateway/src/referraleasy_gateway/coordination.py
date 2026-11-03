@@ -20,9 +20,14 @@ from referraleasy_contracts.generated.booking import BookingPayload, BookingRequ
 from referraleasy_contracts.generated.coverage import CoverageResult, InsurancePlan
 from referraleasy_contracts.generated.directory import AccessibilityFeature, ProviderCandidate, Slot
 from referraleasy_contracts.generated.documents import ReadinessResult
-from referraleasy_contracts.generated.patient import Constraint, ReferralIntake
+from referraleasy_contracts.generated.patient import (
+    AlternativeOption,
+    Constraint,
+    ConstraintChange,
+    ReferralIntake,
+)
 from referraleasy_gateway.auth import Session, SessionKind
-from referraleasy_gateway.commands import CommandService
+from referraleasy_gateway.commands import CommandService, DispatchTicket
 from referraleasy_gateway.continuations import (
     ContinuationClaim,
     ContinuationExpired,
@@ -31,6 +36,7 @@ from referraleasy_gateway.continuations import (
     ContinuationReplaced,
 )
 from referraleasy_gateway.control import ControlState, WorkflowRow
+from referraleasy_gateway.release import WorkflowReleases, pinned_release
 from referraleasy_gateway.timing import Clock
 
 _log = logging.getLogger(__name__)
@@ -47,6 +53,7 @@ class CoordinatorPort(Protocol):
         specialist_inputs: Mapping[str, Any],
         execution_plan: list[dict[str, Any]],
         patient_details_id: str | None = None,
+        release_manifest_id: str | None = None,
     ) -> Mapping[str, Any]: ...
 
 
@@ -56,6 +63,20 @@ class CoordinationError(ValueError):
 
 def _id(*parts: Any) -> str:
     return str(uuid5(NAMESPACE_URL, "referraleasy:coordination:" + ":".join(map(str, parts))))
+
+
+def _booking_request(row: WorkflowRow, ticket: DispatchTicket | None) -> dict[str, Any]:
+    """The scheduler's booking input. Without a ticket it can only look up an earlier send."""
+    authority = row.payload["booking_authority"]
+    if ticket is not None and ticket.approval_id != str(authority.get("approval_id")):
+        raise CoordinationError("The dispatch ticket names a different approval.")
+    return {
+        "idempotency_key": row.payload["booking_idempotency_key"],
+        "booking_payload": row.payload["booking_payload"],
+        "approval": authority,
+        "expected_slot_version": row.payload["selected_slot_version"],
+        "reconcile_only": ticket is None,
+    }
 
 
 class WorkflowInputs:
@@ -75,6 +96,12 @@ class WorkflowInputs:
             for c in self.preferences.get("constraints", [])
             if not c.get("superseded_by")
         ]
+        # §2.4: a preference moves only by an explicit decision, recorded as a ConstraintChange.
+        # The recorded preferences are never edited; the change is applied on top of them here.
+        for change in row.payload.get("constraint_changes", []):
+            for constraint in self.constraints:
+                if constraint["constraint_id"] == change["constraint_id"]:
+                    constraint["value"] = change["to_value"]
         for constraint in self.constraints:
             field, value = constraint["field"], constraint["value"]
             if field == "max_distance_miles":
@@ -130,6 +157,31 @@ class WorkflowInputs:
             None,
         )
 
+    def document_ids(self) -> list[str]:
+        """The referral's documents plus any the patient attached during the readiness check."""
+        attached = [str(d) for d in self.row.payload.get("attached_document_ids", [])]
+        return list(dict.fromkeys([*self.referral.get("document_ids", []), *attached]))
+
+    def attachable(self, kinds: list[str]) -> list[dict[str, Any]]:
+        """The patient's own documents of the missing kinds that the referral does not include."""
+        included = set(self.document_ids())
+        return [
+            dict(document)
+            for document in self.sources.get("patient_documents", [])
+            if document.get("kind") in kinds and document.get("document_id") not in included
+        ]
+
+    def document_answer(self, state_version: int) -> list[str] | None:
+        """The documents attached in answer to the card issued at `state_version`, if any yet."""
+        for answer in reversed(self.row.payload.get("answers", [])):
+            if (
+                answer.get("state") == "READINESS_CHECK"
+                and answer.get("state_version") == state_version
+                and isinstance(answer.get("value", {}).get("document_ids"), list)
+            ):
+                return [str(item) for item in answer["value"]["document_ids"]]
+        return None
+
     def scheduling(self) -> dict[str, Any]:
         hospital = self.choice("AWAITING_HOSPITAL_CHOICE")
         provider = self.choice("AWAITING_DOCTOR_CHOICE")
@@ -156,11 +208,15 @@ class CoordinationService:
         commands: CommandService,
         coordinator: CoordinatorPort,
         clock: Clock,
+        releases: WorkflowReleases | None = None,
     ) -> None:
         self.control = control
         self.commands = commands
         self.coordinator = coordinator
         self.clock = clock
+        #: §13: a workflow is pinned to a release on its first dispatch and keeps it. `None` is a
+        #: deployment with no readable catalog; its tasks carry the dispatcher's startup release.
+        self.releases = releases
         self.continuations = ContinuationLifecycle(control, clock=clock)
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -256,6 +312,7 @@ class CoordinationService:
             specialist_inputs=inputs,
             execution_plan=plan,
             patient_details_id=row.payload.get("source_data", {}).get("patient_details_id"),
+            release_manifest_id=pinned_release(row),
         )
         row = self.continuations.refresh(claim)
         output = result.get("output")
@@ -274,6 +331,8 @@ class CoordinationService:
         return answers
 
     def _resume(self, claim: ContinuationClaim) -> None:
+        if self.releases is not None:
+            self.releases.pin(self.continuations.refresh(claim))
         for _ in range(12):
             row = self.continuations.refresh(claim)
             self.commands.repair_surface(row)
@@ -362,22 +421,61 @@ class CoordinationService:
                                 "provider_id": schedule["provider_id"],
                             }
                         },
-                        step="provider-network",
+                        # The provider is in the step: a second check for another doctor at this
+                        # state version is a different task, not a replay of the first.
+                        step=f"provider-network:{schedule['provider_id']}",
                     )
                     coverage = CoverageResult.model_validate(
                         answers["coverage_network"]["coverage"]
                     )
-                    if (
-                        coverage.in_network_for_plan is not True
-                        or coverage.conflict
-                        or coverage.freshness.state.value != "fresh"
-                    ):
-                        raise CoordinationError(
-                            "The provider network status needs review. Coverage is not a payment guarantee."
+                    confirmed = (
+                        coverage.in_network_for_plan is True
+                        and not coverage.conflict
+                        and coverage.freshness.state.value == "fresh"
+                    )
+                    if not confirmed and not self._acknowledged(row, schedule["provider_id"]):
+                        # Scenario 3: show the status as it is — unknown or out of network, with its
+                        # freshness and evidence — and let the patient decide. Never resolved into a
+                        # confident answer, and nothing is booked without final approval.
+                        row = self.control.load(row.workflow_id) or row
+                        row = self._store(
+                            row,
+                            coverage_review={
+                                "provider_id": schedule["provider_id"],
+                                "answers_before": len(row.payload.get("answers", [])),
+                                "coverage": answers["coverage_network"]["coverage"],
+                            },
+                        )
+                        self.commands.present(row, self._coverage_card(row, answers))
+                        break
+                    if not confirmed:
+                        row = self.control.load(row.workflow_id) or row
+                        row = self._store(
+                            row,
+                            coverage_acknowledged={
+                                "provider_id": schedule["provider_id"],
+                                "coverage": answers["coverage_network"]["coverage"],
+                                "acknowledged_at": self.clock.now().isoformat(),
+                            },
+                            coverage_review=None,
                         )
                 self._move(row, "READINESS_CHECK")
             elif row.state == "READINESS_CHECK":
                 schedule = source.scheduling()
+                request = row.payload.get("document_request")
+                if request is not None:
+                    attached = source.document_answer(int(request["state_version"]))
+                    if attached is None:
+                        break  # the patient has not attached anything yet
+                    row = self._store(
+                        row,
+                        attached_document_ids=list(
+                            dict.fromkeys(
+                                [*row.payload.get("attached_document_ids", []), *attached]
+                            )
+                        ),
+                    )
+                    source = WorkflowInputs(row)
                 answers = self._call(
                     claim,
                     row,
@@ -387,20 +485,66 @@ class CoordinationService:
                             "patient_id": row.patient_ref,
                             "plan_id": source.plan_id,
                             "visit_type": schedule["visit_type"],
-                            "document_ids": source.referral.get("document_ids", []),
+                            "document_ids": source.document_ids(),
                         }
                     },
-                    step="readiness",
+                    step="readiness" if request is None else "readiness-recheck",
                 )
                 ready = ReadinessResult.model_validate(answers["referral_readiness"]["readiness"])
+                row = self.control.load(row.workflow_id) or row
+                checks = self._kept_checks(
+                    row.payload.get("readiness_checks"),
+                    answers["referral_readiness"]["readiness"].get("checks", []),
+                )
+                row = self._store(row, readiness_checks=checks)
                 if not ready.can_proceed:
-                    raise CoordinationError(
-                        "The chosen hospital needs a complete referral document package."
+                    missing = [str(kind) for kind in ready.missing_kinds or []]
+                    attachable = source.attachable(missing) if request is None else []
+                    if not attachable:
+                        raise CoordinationError(
+                            "The chosen hospital needs a complete referral document package."
+                        )
+                    row = self._store(
+                        row,
+                        document_request={
+                            "state_version": row.state_version,
+                            "missing_kinds": missing,
+                        },
                     )
+                    self.commands.present(row, self._document_card(missing, attachable))
+                    break
+                if request is not None:
+                    row = self._store(row, document_request=None)
                 answers = self._call(claim, row, {"scheduling": schedule}, step="slots")
                 slots = self._slots(answers["scheduling"]["slots"], source)
                 if not slots:
-                    raise CoordinationError("No appointment time matches the recorded preferences.")
+                    other_times = self._slots(
+                        answers["scheduling"]["slots"], source, honour_preferences=False
+                    )
+                    alternative = self._time_alternative(
+                        source, other_times, answers["scheduling"].get("availability") or {}
+                    )
+                    if alternative is None:
+                        raise CoordinationError(
+                            "No appointment time matches the recorded preferences."
+                        )
+                    # Scenario 2: report the empty result and offer the doctor's other times as an
+                    # evidence-backed alternative. Nothing is relaxed until the patient picks one.
+                    row = self.control.load(row.workflow_id) or row
+                    self._store(row, offered_slots=other_times, slot_alternative=alternative)
+                    self._move(
+                        row,
+                        "AWAITING_SLOT_CHOICE",
+                        {
+                            "options": [
+                                {"id": slot["slot_id"], "label": slot["start_at"], **slot}
+                                for slot in other_times
+                            ],
+                            "alternative": alternative,
+                            "notice": alternative["description"],
+                        },
+                    )
+                    break
                 row = self.control.load(row.workflow_id) or row
                 self._store(row, offered_slots=slots)
                 self._move(
@@ -418,6 +562,17 @@ class CoordinationService:
                 selected = source.choice(row.state)
                 if selected is None:
                     break
+                alternative = row.payload.get("slot_alternative")
+                if alternative and selected in alternative.get("candidate_ids", []):
+                    row = self._store(
+                        row,
+                        constraint_changes=[
+                            *row.payload.get("constraint_changes", []),
+                            *self._accepted(source, alternative, selected, row),
+                        ],
+                        slot_alternative=None,
+                    )
+                    source = WorkflowInputs(row)
                 answers = self._call(
                     claim, row, {"scheduling": source.scheduling()}, step="validate-slot"
                 )
@@ -438,7 +593,7 @@ class CoordinationService:
                         "provider_id": slot["provider_id"],
                         "slot_id": selected,
                         "visit_type": slot["visit_type"],
-                        "document_ids": source.referral.get("document_ids", []),
+                        "document_ids": source.document_ids(),
                     }
                 ).model_dump(mode="json", exclude_none=True)
                 self._store(row, selected_slot_version=slot["version"])
@@ -468,7 +623,193 @@ class CoordinationService:
         row = self.control.load(row.workflow_id) or row
 
     @staticmethod
-    def _slots(slots: list[dict[str, Any]], source: WorkflowInputs) -> list[dict[str, Any]]:
+    def _acknowledged(row: WorkflowRow, provider_id: str) -> bool:
+        """Whether the patient chose this doctor again *after* seeing the coverage finding."""
+        review = row.payload.get("coverage_review")
+        if not review or review.get("provider_id") != provider_id:
+            return False
+        later = row.payload.get("answers", [])[int(review["answers_before"]) :]
+        return any(
+            answer.get("state") == "AWAITING_DOCTOR_CHOICE"
+            and answer.get("value", {}).get("provider_id") == provider_id
+            for answer in later
+        )
+
+    @staticmethod
+    def _coverage_card(row: WorkflowRow, answers: Mapping[str, Any]) -> dict[str, Any]:
+        coverage = dict(answers["coverage_network"]["coverage"])
+        status = (
+            "out of network"
+            if coverage.get("in_network_for_plan") is False
+            else "unknown"
+            if coverage.get("in_network_for_plan") is None or coverage.get("conflict")
+            else "in network, but the record is not fresh"
+        )
+        freshness = coverage.get("freshness") or {}
+        candidates = row.payload["specialist_results"]["provider_matching"]["candidates"]
+        labels = row.payload["specialist_results"]["provider_matching"].get("directory_labels", {})
+        hospital = next(
+            (
+                str(a["value"]["hospital_id"])
+                for a in reversed(row.payload.get("answers", []))
+                if a.get("state") == "AWAITING_HOSPITAL_CHOICE"
+            ),
+            None,
+        )
+        return {
+            "options": [
+                {"id": c["provider_id"], "label": labels.get(c["provider_id"], c["provider_id"])}
+                for c in candidates
+                if c["hospital_id"] == hospital
+            ],
+            "coverage": {
+                "provider_id": coverage.get("provider_id"),
+                "status": status,
+                "conflict": bool(coverage.get("conflict")),
+                "freshness": freshness,
+                "evidence_ids": list(coverage.get("evidence_ids") or []),
+                "disclaimer_key": coverage.get("disclaimer_key"),
+            },
+            "notice": (
+                f"Your plan's network status for this doctor is {status} "
+                f"(records checked: {freshness.get('state', 'unknown')}). This is not a payment "
+                "decision. Choose the same doctor to continue anyway, or another doctor."
+            ),
+        }
+
+    @staticmethod
+    def _kept_checks(
+        previous: list[dict[str, Any]] | None, current: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Scenario 4: a check that already passed keeps its original result and run id.
+
+        The readiness agent validates the whole package each time; what changes on a re-check is
+        only the result of the checks that had failed. Those are taken from the new run, and every
+        other check is the one recorded first.
+        """
+        if not previous:
+            return list(current)
+        passed = {
+            check["kind"]: check
+            for check in previous
+            if check.get("status") in {"satisfied", "not_required"}
+        }
+        return [passed.get(check["kind"], check) for check in current]
+
+    @staticmethod
+    def _document_card(missing: list[str], documents: list[dict[str, Any]]) -> dict[str, Any]:
+        names = ", ".join(kind.replace("_", " ") for kind in missing)
+        return {
+            "title": "The hospital needs another document",
+            "subtitle": (
+                f"Before an appointment can be offered, the hospital asks for: {names}. "
+                "Attach yours to continue. Nothing is booked until you approve it."
+            ),
+            "missing_documents": missing,
+            "documents": documents,
+            "fields": [
+                {
+                    "name": "note",
+                    "label": "Note for the hospital (optional)",
+                    "type": "textarea",
+                    "required": False,
+                }
+            ],
+            "submit_label": "Attach and continue",
+            "synthetic": True,
+        }
+
+    @staticmethod
+    def _local(slot: Mapping[str, Any]) -> datetime:
+        return datetime.fromisoformat(str(slot["start_at"]).replace("Z", "+00:00")).astimezone(
+            ZoneInfo(str(slot["display_timezone"]))
+        )
+
+    @staticmethod
+    def _period(local: datetime) -> str:
+        return "morning" if local.hour < 12 else "afternoon" if local.hour < 17 else "evening"
+
+    def _time_alternative(
+        self,
+        source: WorkflowInputs,
+        other_times: list[dict[str, Any]],
+        availability: Mapping[str, Any],
+    ) -> dict[str, Any] | None:
+        """An AlternativeOption for the chosen doctor's other times, or None when there is none.
+
+        Only offered when day or time-of-day preferences are what excluded every slot, and only with
+        the availability record's evidence: §2.4 forbids an alternative nobody can trace.
+        """
+        timing = [
+            c
+            for c in source.constraints
+            if c["field"] in {"preferred_day", "preferred_time_of_day"}
+        ]
+        evidence = [str(availability["evidence_id"])] if availability.get("evidence_id") else []
+        if not other_times or not timing or not evidence:
+            return None
+        first = self._local(other_times[0])
+        wanted = " ".join(str(c["value"]) for c in timing)
+        kind = (
+            "different_day"
+            if any(c["field"] == "preferred_day" for c in timing)
+            else "different_time_of_day"
+        )
+        description = (
+            f"No time with this doctor matches your {wanted} preference. The doctor's next time is "
+            f"{first.strftime('%A %d %B at %H:%M')} {other_times[0]['display_timezone']}. Choosing "
+            "one of these times changes that preference for this referral; nothing else changes."
+        )
+        option = AlternativeOption.model_validate(
+            {
+                "option_id": _id("alternative", kind, *[s["slot_id"] for s in other_times]),
+                "kind": kind,
+                "description": description,
+                # Null: every timing preference here is hard, and a hard constraint is never relaxed
+                # by the system — only by the patient's choice, recorded as a ConstraintChange.
+                "relaxes_constraint_id": None,
+                "candidate_ids": [str(s["slot_id"]) for s in other_times],
+                "evidence_ids": evidence,
+            }
+        )
+        return option.model_dump(mode="json")
+
+    def _accepted(
+        self,
+        source: WorkflowInputs,
+        alternative: Mapping[str, Any],
+        slot_id: str,
+        row: WorkflowRow,
+    ) -> list[dict[str, Any]]:
+        """The ConstraintChanges the patient made by choosing `slot_id` from the alternative."""
+        slot = next(s for s in row.payload.get("offered_slots", []) if s["slot_id"] == slot_id)
+        local = self._local(slot)
+        actual = {
+            "preferred_day": local.strftime("%A").lower(),
+            "preferred_time_of_day": self._period(local),
+        }
+        changes = []
+        for constraint in source.constraints:
+            field = constraint["field"]
+            if field in actual and str(constraint["value"]).lower() != actual[field]:
+                changes.append(
+                    ConstraintChange.model_validate(
+                        {
+                            "constraint_id": constraint["constraint_id"],
+                            "from_value": constraint["value"],
+                            "to_value": actual[field],
+                            "decided_by": "patient",
+                            "decided_at": self.clock.now().isoformat(),
+                            "presented_options": [dict(alternative)],
+                        }
+                    ).model_dump(mode="json")
+                )
+        return changes
+
+    @staticmethod
+    def _slots(
+        slots: list[dict[str, Any]], source: WorkflowInputs, *, honour_preferences: bool = True
+    ) -> list[dict[str, Any]]:
         accepted = []
         schedule = source.scheduling()
         days = {
@@ -489,8 +830,9 @@ class CoordinationService:
                 ZoneInfo(raw["display_timezone"])
             )
             period = "morning" if local.hour < 12 else "afternoon" if local.hour < 17 else "evening"
-            if (not days or local.strftime("%A").lower() in days) and (
-                not periods or period in periods
+            if not honour_preferences or (
+                (not days or local.strftime("%A").lower() in days)
+                and (not periods or period in periods)
             ):
                 accepted.append(raw)
         return accepted
@@ -498,16 +840,13 @@ class CoordinationService:
     def _book(self, claim: ContinuationClaim, row: WorkflowRow, source: WorkflowInputs) -> None:
         schedule = source.scheduling()
         already_sent = bool(row.payload.get("booking_sent"))
-        if not already_sent:
-            self.commands.assert_booking_writes()
+        # A first send needs a ticket, so §16's halt is checked where the hospital is asked. A resend
+        # after a crash only looks the earlier send up, and the record below needs no ticket at all:
+        # refusing to record a booking the hospital already made is how an appointment is orphaned.
+        ticket = None if already_sent else self.commands.authorise_dispatch(row)
+        request = _booking_request(row, ticket)
         self._store(row, booking_sent=True)
-        schedule.update(
-            idempotency_key=row.payload["booking_idempotency_key"],
-            booking_payload=row.payload["booking_payload"],
-            approval=row.payload["booking_authority"],
-            expected_slot_version=row.payload["selected_slot_version"],
-            reconcile_only=already_sent,
-        )
+        schedule.update(request)
         booking: dict[str, Any] | None = None
         output: Mapping[str, Any] = {}
         try:

@@ -27,7 +27,7 @@ None of them is registered when `APP_ENV` is not `demo`/`test`/`ci`.
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any
@@ -64,17 +64,22 @@ from referraleasy_gateway.control import (
 from referraleasy_gateway.coordination import CoordinationService
 from referraleasy_gateway.dispatch import CoordinatorDispatch
 from referraleasy_gateway.errors import ContractViolationError
-from referraleasy_gateway.events import EventLog
+from referraleasy_gateway.events import EventLog, PostgresEventLog
 from referraleasy_gateway.guardrails import GuardrailPipeline
 from referraleasy_gateway.killswitch import KillSwitch
 from referraleasy_gateway.policy import TablePolicy
 from referraleasy_gateway.projection import WorkflowSurfaceProjection
+from referraleasy_gateway.release import ReleaseCatalog, WorkflowReleases
 from referraleasy_gateway.timing import Clock, LatencyLedger, SystemClock
 from referraleasy_telemetry import Telemetry, install_server_spans
 
-__all__ = ["APP_DESCRIPTION", "DemoWorkflowBody", "create_app"]
+__all__ = ["APP_DESCRIPTION", "DemoWorkflowBody", "DispatcherFactory", "create_app"]
 
 _log = logging.getLogger("referraleasy.gateway")
+
+#: Builds the coordinator port from the gateway's own log and clock. The default reads the
+#: environment; the eval replay passes one that reaches in-process agents and records each call.
+DispatcherFactory = Callable[..., "CoordinatorDispatch | None"]
 
 APP_DESCRIPTION = """
 ReferralEasy's patient-facing gateway (§9, §12).
@@ -138,6 +143,7 @@ def create_app(
     guardrails: GuardrailPipeline | None = None,
     telemetry: Telemetry | None = None,
     admin_reads: TelemetryReads | None = None,
+    dispatcher: DispatcherFactory | None = None,
 ) -> FastAPI:
     """Build the app.
 
@@ -168,6 +174,7 @@ def create_app(
         guardrails=guardrails,
         admin_reads=admin_reads,
         telemetry=telemetry,
+        dispatcher=dispatcher,
     )
 
     @asynccontextmanager
@@ -213,9 +220,16 @@ def _wire(
     guardrails: GuardrailPipeline | None = None,
     admin_reads: TelemetryReads | None = None,
     telemetry: Telemetry | None = None,
+    dispatcher: DispatcherFactory | None = None,
 ) -> _Wiring:
     """Build every port once, in dependency order, with nothing chosen twice."""
-    events = EventLog(synthetic=settings.synthetic)
+    # §12's log is the database's under the postgres profile, so every replica serves one stream;
+    # the memory profile keeps it in process, like the rest of that profile's state.
+    events = (
+        PostgresEventLog(settings.database_url, synthetic=settings.synthetic)
+        if settings.control_backend == "postgres"
+        else EventLog(synthetic=settings.synthetic)
+    )
     approvals = ApprovalService(_approval_ledger(settings), clock=clock)
     latencies = LatencyLedger()
     guardrails = guardrails or GuardrailPipeline.from_settings(
@@ -225,7 +239,9 @@ def _wire(
     state = control or _control_state(settings)
     surfaces = WorkflowSurfaceProjection(state, synthetic=settings.synthetic)
     kill_switch = KillSwitch()
-    dispatcher = _dispatcher(settings, log=events, clock=clock, telemetry=telemetry)
+    coordinator = (dispatcher or _dispatcher)(
+        settings, log=events, clock=clock, telemetry=telemetry
+    )
     commands = CommandService(
         control=state,
         surfaces=surfaces,
@@ -241,7 +257,7 @@ def _wire(
         # its own ledger and told the telemetry path nothing, which is why `latency.turn.ms` had no
         # writer and the Feedback page had no denominator.
         emitter=telemetry.emitter if telemetry is not None else None,
-        dispatch=dispatcher,
+        dispatch=coordinator,
         kill_switch=kill_switch,
     )
     patient_verifier, admin_verifier = build_verifiers(settings, clock)
@@ -293,12 +309,35 @@ def _wire(
         admin_issuer=admin_issuer,
         coordination=(
             CoordinationService(
-                control=state, commands=commands, coordinator=dispatcher, clock=clock
+                control=state,
+                commands=commands,
+                coordinator=coordinator,
+                clock=clock,
+                releases=_releases(settings, state, clock),
             )
-            if dispatcher is not None
+            if coordinator is not None
             else None
         ),
     )
+
+
+def _releases(
+    settings: GatewaySettings, control: SeedableControlState, clock: Clock
+) -> WorkflowReleases | None:
+    """§13's per-conversation pinning, over the committed registry; `None` when it cannot be read.
+
+    A deployment that names `RELEASE_MANIFEST_ID` narrows the catalog to that release, so its
+    conversations still record a pin with their effective versions.
+    """
+    catalog = ReleaseCatalog.from_directory(explicit=settings.explicit_release_manifest_id)
+    if catalog is None:
+        _log.warning(
+            "no release catalog could be read from registry/releases; workflows will not be "
+            "pinned and every task carries the startup release %r",
+            settings.release_manifest_id,
+        )
+        return None
+    return WorkflowReleases(control, catalog, clock=clock)
 
 
 def _dispatcher(

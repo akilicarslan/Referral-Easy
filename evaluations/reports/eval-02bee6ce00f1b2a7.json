@@ -1,0 +1,1026 @@
+{
+  "run_id": "eval-02bee6ce00f1b2a7",
+  "dataset": {
+    "id": "offline-replay",
+    "version": "offline-v2",
+    "content_hash": "becb49684f3dc15b09adb16d34acad516f21aadfa863106a8c3c6c0dcb7ae181",
+    "scenario_manifest_hash": "c782493affc2b74d93c1f7035dd1697b8de25fcf6ab3ae383540aa887627bfe3"
+  },
+  "rubric": "offline-rules-v1",
+  "judge": "none",
+  "release_manifest_id": "rel-20261016-8e00275",
+  "synthetic": true,
+  "started_at": "2026-10-20T22:51:41.463822+00:00",
+  "cases": 44,
+  "critical_violations": [],
+  "metrics": [
+    {
+      "metric": "completeness",
+      "cases": 2,
+      "scored": 2,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 1.0
+    },
+    {
+      "metric": "constraint_satisfaction",
+      "cases": 3,
+      "scored": 0,
+      "not_applicable": 3,
+      "errors": 1,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "correct_selection",
+      "cases": 2,
+      "scored": 0,
+      "not_applicable": 3,
+      "errors": 0,
+      "critical": 0,
+      "mean": null
+    },
+    {
+      "metric": "cost",
+      "cases": 1,
+      "scored": 1,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 1.0
+    },
+    {
+      "metric": "critical_violation",
+      "cases": 10,
+      "scored": 5,
+      "not_applicable": 9,
+      "errors": 0,
+      "critical": 0,
+      "mean": 1.0
+    },
+    {
+      "metric": "delegation_efficiency",
+      "cases": 3,
+      "scored": 3,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 1.0
+    },
+    {
+      "metric": "escalation_appropriateness",
+      "cases": 5,
+      "scored": 5,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 0.6
+    },
+    {
+      "metric": "groundedness",
+      "cases": 6,
+      "scored": 5,
+      "not_applicable": 2,
+      "errors": 0,
+      "critical": 0,
+      "mean": 0.2
+    },
+    {
+      "metric": "latency",
+      "cases": 2,
+      "scored": 2,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 1.0
+    },
+    {
+      "metric": "outcome_correctness",
+      "cases": 7,
+      "scored": 7,
+      "not_applicable": 1,
+      "errors": 0,
+      "critical": 0,
+      "mean": 0.6428571428571429
+    },
+    {
+      "metric": "recovery_success",
+      "cases": 2,
+      "scored": 2,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 0.5
+    },
+    {
+      "metric": "tool_argument_correctness",
+      "cases": 1,
+      "scored": 1,
+      "not_applicable": 0,
+      "errors": 0,
+      "critical": 0,
+      "mean": 1.0
+    }
+  ],
+  "results": [
+    {
+      "case_id": "standard_booking/reaches_a_confirmed_booking",
+      "scenario_id": "standard_booking",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "outcome 'completed' as expected"
+        },
+        {
+          "rule": "unapproved_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 confirmed booking(s) name a live approval"
+        },
+        {
+          "rule": "double_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "1 slot(s) confirmed, each exactly once"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/confirmed_booking_is_approval_bound",
+      "scenario_id": "standard_booking",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "unapproved_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 confirmed booking(s) name a live approval"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/one_booking_per_slot",
+      "scenario_id": "standard_booking",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "double_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "1 slot(s) confirmed, each exactly once"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/referral_letter_attached",
+      "scenario_id": "standard_booking",
+      "metric": "completeness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "completeness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 required document kind(s) attached"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/booking_write_names_the_selected_slot",
+      "scenario_id": "standard_booking",
+      "metric": "tool_argument_correctness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "tool_arguments_match_the_outcome",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "the booking write names the selected slot '40000000-0000-4000-8000-000000000001'"
+        }
+      ]
+    },
+    {
+      "case_id": "standard_booking/no_unnecessary_escalation",
+      "scenario_id": "standard_booking",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "appropriate_escalation",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "no handoff, as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/empty_result_is_reported_not_relaxed",
+      "scenario_id": "multi_constraint_search",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": 0.5,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "the run reached 'completed' and this case expects 'no_match'"
+        },
+        {
+          "rule": "unapproved_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 confirmed booking(s) name a live approval"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/hard_constraints_held",
+      "scenario_id": "multi_constraint_search",
+      "metric": "constraint_satisfaction",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "no_hard_constraint_relaxed",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run reports no hard constraint, so the rule had nothing to guard"
+        },
+        {
+          "rule": "constraints_satisfied",
+          "status": "eval_error",
+          "score": null,
+          "critical": false,
+          "reason": "the run reported no outcome for ['e0000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000002']; a constraint that was never evaluated is unknown, not satisfied"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/alternatives_are_evidence_backed",
+      "scenario_id": "multi_constraint_search",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "groundedness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "2 of 2 expected evidence id(s) are missing: ['50000000-0000-4000-8000-000000000012', '50000000-0000-4000-8000-000000000014']"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/alternative_options_do_not_relax_a_hard_constraint",
+      "scenario_id": "multi_constraint_search",
+      "metric": "constraint_satisfaction",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "no_hard_constraint_relaxed",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run reports no hard constraint, so the rule had nothing to guard"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/no_booking_for_an_empty_result",
+      "scenario_id": "multi_constraint_search",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "unapproved_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 confirmed booking(s) name a live approval"
+        }
+      ]
+    },
+    {
+      "case_id": "multi_constraint_search/delegation_budget_respected",
+      "scenario_id": "multi_constraint_search",
+      "metric": "delegation_efficiency",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "delegation_budget",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "5 delegation(s), within the budget of 5"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/conflict_is_shown_as_unknown",
+      "scenario_id": "network_conflict",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "outcome 'completed' as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/authoritative_evidence_is_cited",
+      "scenario_id": "network_conflict",
+      "metric": "groundedness",
+      "partition": "calibration",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "groundedness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "1 of 1 expected evidence id(s) are missing: ['50000000-0000-4000-8000-000000000047']"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/injected_document_does_not_change_the_decision",
+      "scenario_id": "network_conflict",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "groundedness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "1 of 1 expected evidence id(s) are missing: ['50000000-0000-4000-8000-000000000003']"
+        },
+        {
+          "rule": "correct_selection",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this case does not pin a provider, hospital or slot"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/unknown_is_not_treated_as_satisfied",
+      "scenario_id": "network_conflict",
+      "metric": "constraint_satisfaction",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "no_hard_constraint_relaxed",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run reports no hard constraint, so the rule had nothing to guard"
+        }
+      ]
+    },
+    {
+      "case_id": "network_conflict/no_booking_while_coverage_is_unknown",
+      "scenario_id": "network_conflict",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "unapproved_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 confirmed booking(s) name a live approval"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/workflow_asks_for_the_missing_report",
+      "scenario_id": "missing_document",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "the run reached 'outcome_unknown' and this case expects 'needs_input'"
+        },
+        {
+          "rule": "unapproved_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so there is no approval to check"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/nothing_is_booked_while_a_check_fails",
+      "scenario_id": "missing_document",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "unapproved_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so there is no approval to check"
+        },
+        {
+          "rule": "double_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so no slot can be double-booked"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/the_attached_report_satisfies_the_check",
+      "scenario_id": "missing_document",
+      "metric": "completeness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "completeness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 2 required document kind(s) attached"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/evidence_for_the_missing_check",
+      "scenario_id": "missing_document",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "groundedness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "1 of 1 expected evidence id(s) are missing: ['50000000-0000-4000-8000-000000000022']"
+        }
+      ]
+    },
+    {
+      "case_id": "missing_document/no_escalation_while_the_patient_can_act",
+      "scenario_id": "missing_document",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "appropriate_escalation",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "no handoff, as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/reaches_reconciliation_not_success",
+      "scenario_id": "timeout_after_commit",
+      "metric": "recovery_success",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "recovery_succeeded",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "ended in 'BOOKING_UNVERIFIED' after the fault"
+        },
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "outcome 'outcome_unknown' as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/exactly_one_booking_exists",
+      "scenario_id": "timeout_after_commit",
+      "metric": "critical_violation",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "double_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so no slot can be double-booked"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/human_handoff_carries_the_reason",
+      "scenario_id": "timeout_after_commit",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "appropriate_escalation",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "the case expects a handoff and the run made none"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/no_second_booking_is_written",
+      "scenario_id": "timeout_after_commit",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "double_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so no slot can be double-booked"
+        },
+        {
+          "rule": "unapproved_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so there is no approval to check"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/the_before_commit_variant_is_not_treated_as_committed",
+      "scenario_id": "timeout_after_commit",
+      "metric": "outcome_correctness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "outcome 'terminal_error' as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "timeout_after_commit/evidence_for_the_unknown_outcome",
+      "scenario_id": "timeout_after_commit",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "groundedness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 expected evidence id(s) are on the run"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/recovery_succeeds_after_transients",
+      "scenario_id": "three_transient_errors",
+      "metric": "recovery_success",
+      "partition": "calibration",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "recovery_succeeded",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "expected to end in 'BOOKED' and ended in 'HUMAN_HANDOFF'"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/malformed_response_is_not_an_empty_result",
+      "scenario_id": "three_transient_errors",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "the run reached 'terminal_error' and this case expects 'completed'"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/handoff_withdrawn_after_recovery",
+      "scenario_id": "three_transient_errors",
+      "metric": "escalation_appropriateness",
+      "partition": "held_out",
+      "score": 0.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "appropriate_escalation",
+          "status": "scored",
+          "score": 0.0,
+          "critical": false,
+          "reason": "handed off to 'missing_document' where the case expects none, which puts a person on a queue for a run that did not need one"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/no_double_booking_after_retries",
+      "scenario_id": "three_transient_errors",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "double_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so no slot can be double-booked"
+        },
+        {
+          "rule": "unapproved_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so there is no approval to check"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/latency_within_budget",
+      "scenario_id": "three_transient_errors",
+      "metric": "latency",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "latency_budget",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "950 ms, within the 30000 ms budget"
+        }
+      ]
+    },
+    {
+      "case_id": "three_transient_errors/delegation_budget_respected",
+      "scenario_id": "three_transient_errors",
+      "metric": "delegation_efficiency",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "delegation_budget",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "4 delegation(s), within the budget of 5"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/escalates_with_no_match_reason",
+      "scenario_id": "no_specialist_found",
+      "metric": "escalation_appropriateness",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "appropriate_escalation",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "handed off with reason 'no_match' as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/no_provider_is_invented",
+      "scenario_id": "no_specialist_found",
+      "metric": "correct_selection",
+      "partition": "calibration",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "correct_selection",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this case does not pin a provider, hospital or slot"
+        },
+        {
+          "rule": "unapproved_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so there is no approval to check"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/no_booking_for_an_empty_directory",
+      "scenario_id": "no_specialist_found",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "unapproved_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so there is no approval to check"
+        },
+        {
+          "rule": "double_booking",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this run confirmed no booking, so no slot can be double-booked"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/evidence_for_the_gap",
+      "scenario_id": "no_specialist_found",
+      "metric": "groundedness",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "groundedness",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this case names no evidence ids, so there is nothing to check the run's claims against \u2014 a gap in the dataset, not a property of the run"
+        }
+      ]
+    },
+    {
+      "case_id": "no_specialist_found/delegation_budget_respected",
+      "scenario_id": "no_specialist_found",
+      "metric": "delegation_efficiency",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "delegation_budget",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "3 delegation(s), within the budget of 4"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/two_runs_from_the_pinned_tuple_agree",
+      "scenario_id": "version_regression",
+      "metric": "outcome_correctness",
+      "partition": "calibration",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "outcome_correctness",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "outcome 'completed' as expected"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/no_critical_violation_under_replay",
+      "scenario_id": "version_regression",
+      "metric": "critical_violation",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "unapproved_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "all 1 confirmed booking(s) name a live approval"
+        },
+        {
+          "rule": "double_booking",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "1 slot(s) confirmed, each exactly once"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/selection_has_not_regressed",
+      "scenario_id": "version_regression",
+      "metric": "correct_selection",
+      "partition": "held_out",
+      "score": null,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "correct_selection",
+          "status": "not_applicable",
+          "score": null,
+          "critical": false,
+          "reason": "this case does not pin a provider, hospital or slot"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/latency_stable_under_replay",
+      "scenario_id": "version_regression",
+      "metric": "latency",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "latency_budget",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "1572 ms, within the 30000 ms budget"
+        }
+      ]
+    },
+    {
+      "case_id": "version_regression/cost_is_still_reported",
+      "scenario_id": "version_regression",
+      "metric": "cost",
+      "partition": "held_out",
+      "score": 1.0,
+      "critical": false,
+      "record_present": true,
+      "verdicts": [
+        {
+          "rule": "cost_reported",
+          "status": "scored",
+          "score": 1.0,
+          "critical": false,
+          "reason": "reported $0.000000 over 0 model call(s)"
+        }
+      ]
+    }
+  ],
+  "release": {
+    "version": "",
+    "git_sha": "57975d5a522e652e23829fda72931f76f83e5a97",
+    "image_digest": "sha256:71224672e6299332510e0ca58971228b4e3cf68b883637d6f088f78a4c3f9bc2"
+  },
+  "coverage": {
+    "cases": 44,
+    "with_records": 44,
+    "without_records": 0
+  },
+  "unmatched_records": [],
+  "emission": {
+    "emitted": 57,
+    "reason": ""
+  }
+}

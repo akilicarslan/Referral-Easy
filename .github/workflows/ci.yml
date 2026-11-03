@@ -340,10 +340,113 @@ jobs:
         if: failure()
         run: cat "$RUNNER_TEMP/mock-api.log" || true
 
+  images:
+    name: Build service images (pushed to GHCR from main only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # §13 records the image digest in every release manifest, and the version gate refuses to run
+    # without one rather than inventing it. This job is where the digest comes from. Pull requests
+    # build and load the images without pushing (the digest is the built image's id); `main` pushes
+    # to GHCR and the digest is the registry's. Both are digests of what was actually built.
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      agents_digest: ${{ steps.agents.outputs.digest || steps.agents.outputs.imageid }}
+    env:
+      PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Registry path (GHCR requires a lowercase owner)
+        run: echo "IMAGE_PREFIX=ghcr.io/${OWNER,,}/referraleasy" >> "$GITHUB_ENV"
+        env:
+          OWNER: ${{ github.repository_owner }}
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        if: env.PUSH == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # The agents image is the one the release manifest names (all seven roles run on it), so its
+      # step has an id and its digest is this job's output. The others are built so a Dockerfile
+      # that no longer builds fails here rather than at `make demo`.
+      - name: agents
+        id: agents
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: services/agents/Dockerfile
+          push: ${{ env.PUSH == 'true' }}
+          load: ${{ env.PUSH != 'true' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-agents:sha-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-agents:main
+          cache-from: type=gha,scope=agents
+          cache-to: type=gha,scope=agents,mode=max
+      - name: gateway
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: services/gateway/Dockerfile
+          push: ${{ env.PUSH == 'true' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-gateway:sha-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-gateway:main
+          cache-from: type=gha,scope=gateway
+          cache-to: type=gha,scope=gateway,mode=max
+      - name: workers
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: services/workers/Dockerfile
+          push: ${{ env.PUSH == 'true' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-worker:sha-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-worker:main
+          cache-from: type=gha,scope=workers
+          cache-to: type=gha,scope=workers,mode=max
+      - name: mock-api
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: services/mock-api/Dockerfile
+          push: ${{ env.PUSH == 'true' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-mock-api:sha-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-mock-api:main
+          cache-from: type=gha,scope=mock-api
+          cache-to: type=gha,scope=mock-api,mode=max
+      - name: web
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: ${{ env.PUSH == 'true' }}
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-web:sha-${{ github.sha }}
+            ${{ env.IMAGE_PREFIX }}-web:main
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+      - name: The agents digest exists
+        env:
+          DIGEST: ${{ steps.agents.outputs.digest || steps.agents.outputs.imageid }}
+        run: |
+          case "$DIGEST" in
+            sha256:*) echo "agents image: $DIGEST" ;;
+            *) echo "::error::The agents build produced no digest ('$DIGEST'). The version gate would have nothing to record."; exit 1 ;;
+          esac
+
   release-version-gate:
     name: Version gate (a changed artifact must bump its version)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: images
+    outputs:
+      evaluate: ${{ steps.gate.outputs.evaluate }}
+    env:
+      RELEASE_IMAGE_DIGEST: ${{ needs.images.outputs.agents_digest }}
+      RELEASE_GIT_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v7.0.1
         # fetch-depth: 0 for the same reason the secrets job needs it, and one more: §13 records the
@@ -363,6 +466,7 @@ jobs:
       - name: Install the workspace
         run: uv sync --all-packages --frozen
       - name: A changed agent, prompt, tool or skill must advance its version
+        id: gate
         run: |
           set -eu
           set +e
@@ -378,12 +482,68 @@ jobs:
           #     treating a broken gate as a pass is how a registry fills with manifests nothing can
           #     be compared against.
           case "$code" in
-            0) echo "OK: the version gate is satisfied." ;;
+            0) echo "OK: the version gate is satisfied."
+               # §13: "any bump triggers evaluation". The gate names what changed; the next job runs
+               # the replay and the scoring when that list is not empty.
+               if printf '%s\n' "$output" | grep -q '^evaluation required for: .'; then
+                 echo "evaluate=true" >> "$GITHUB_OUTPUT"
+               fi ;;
             1) echo "::error::An artifact changed without its version increasing. Bump the declared version in registry/versions.json and re-run. See §13 and docs/adr/ADR-0037."; exit 1 ;;
             2) echo "::error::The version gate could not run. Fix its own failure before trusting it."; exit 1 ;;
             3) echo "::error::The version gate cannot record a release — check the git sha is readable. This is a broken gate, not a clean tree."; exit 1 ;;
             *) echo "::error::scripts/check_release_versions.py exited ${code}, which is not one of the four documented codes."; exit 1 ;;
           esac
+
+  release-evaluation:
+    name: Evaluation for a changed release (§13 bump → §14 replay)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [images, release-version-gate]
+    if: needs.release-version-gate.outputs.evaluate == 'true'
+    env:
+      RELEASE_IMAGE_DIGEST: ${{ needs.images.outputs.agents_digest }}
+      RELEASE_GIT_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: pnpm/action-setup@v6.1.0
+        with:
+          run_install: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install the Python workspace and the Node workspace
+        run: |
+          uv sync --all-packages --frozen
+          pnpm install --frozen-lockfile
+      # The manifest is built in this runner only, so the evaluation is stamped with the release
+      # this commit would be. Committing it stays a human step (docs/runbooks/evaluation.md §1).
+      - name: Build this commit's release manifest
+        run: uv run --no-sync python scripts/check_release_versions.py build
+      # Exit 1 is a §14 release blocker (an unapproved or a double booking) and fails the job.
+      - name: Replay every scenario and score it
+        run: |
+          set -eu
+          uv run --no-sync python scripts/eval_replay.py --out captures/replay.json
+          uv run --no-sync python -m referraleasy_eval \
+            --release-manifest registry/releases/latest.json --runs captures/replay.json
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: evaluation-report
+          path: |
+            captures/replay.json
+            evaluations/reports/
+          if-no-files-found: warn
 
   contracts-drift:
     name: Generated bindings match the schemas

@@ -3,8 +3,10 @@
     The admin kill switch can stop booking writes; the read-only directory remains available.
 
 **What it stops, and what it deliberately does not.** §16 says *booking* writes, and the second half
-of the sentence is the constraint: the static guide stays available. So the switch is checked on the
-one route that writes a booking and nowhere else — not on the stream, not on the help card, not on the
+of the sentence is the constraint: the static guide stays available. So the switch is checked only
+where a booking *starts* (`CommandService.require_booking_writes`): the operator's booking route,
+consent capture, and `authorise_dispatch` before the coordinator asks the hospital. Not when a result
+the hospital already gave is recorded, not on the stream, not on the help card, not on the
 transitions a coordinator still needs to finish or unwind work already in flight. A switch that
 stopped everything would be an outage with a friendlier name, and it would strand the very workflows
 an operator needs to see while they decide what to do.

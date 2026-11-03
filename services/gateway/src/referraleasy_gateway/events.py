@@ -46,6 +46,7 @@ __all__ = [
     "AUTHORITATIVE_EVENT_TYPES",
     "NON_AUTHORITATIVE_EVENT_TYPES",
     "EventLog",
+    "PostgresEventLog",
     "content_event_id",
     "frames",
     "to_sse_frame",
@@ -201,10 +202,22 @@ class EventLog:
         events = self.events_for(workflow_id)
         return events[-1] if events else None
 
-    def has_terminal(self, workflow_id: UUID) -> bool:
+    def has_terminal(self, workflow_id: UUID, *, through_seq: int | None = None) -> bool:
         """Whether the workflow's stream is closed. §12: `terminal` closes the stream, and a client
-        must not infer completion from the stream merely ending."""
-        return any(event.type is StreamEventType.terminal for event in self.events_for(workflow_id))
+        must not infer completion from the stream merely ending. `through_seq` limits the question
+        to what a client at that cursor has already seen."""
+        return any(
+            event.type is StreamEventType.terminal
+            and (through_seq is None or event.seq <= through_seq)
+            for event in self.events_for(workflow_id)
+        )
+
+    def seq_of(self, workflow_id: UUID, event_id: str) -> int | None:
+        """The `seq` of one event, or `None` when the id is not in this workflow's log."""
+        return next(
+            (event.seq for event in self.events_for(workflow_id) if event.event_id == event_id),
+            None,
+        )
 
     def committed_events(self, workflow_id: UUID) -> tuple[StreamEvent, ...]:
         """The log, filtered to what is allowed to be state.
@@ -226,6 +239,149 @@ class EventLog:
             for event in self.events_for(workflow_id)
             if event.type in NON_AUTHORITATIVE_EVENT_TYPES
         )
+
+
+class PostgresEventLog(EventLog):
+    """The same log in `stream_event` (migration 018), so every gateway replica serves one stream.
+
+    `seq` is assigned inside a transaction holding a per-workflow advisory lock, so two replicas
+    appending to the same workflow serialise rather than both writing `seq = n`; the primary key on
+    `(workflow_id, seq)` is the backstop. Reads go to the table every time — the stream's live loop
+    polls `replay(after_seq=...)`, which is how an event appended by another replica reaches this
+    one's connection. One short-lived connection per call keeps the log free of a pool to manage;
+    the stream polls on a fixed interval, so the call rate is bounded by the open streams.
+    """
+
+    def __init__(self, dsn: str, *, synthetic: bool) -> None:
+        super().__init__(synthetic=synthetic)
+        self._dsn = dsn
+
+    @staticmethod
+    def _event(row: Mapping[str, Any]) -> StreamEvent:
+        return StreamEvent.model_validate(
+            {
+                "event_id": row["event_id"],
+                "workflow_id": row["workflow_id"],
+                "seq": row["seq"],
+                "type": row["type"],
+                "payload": row["payload"],
+                "progress_elapsed_ms": row["progress_elapsed_ms"],
+                "created_at": row["created_at"],
+                "synthetic": row["synthetic"],
+            }
+        )
+
+    def append(
+        self,
+        workflow_id: UUID,
+        event_type: StreamEventType,
+        payload: BaseModel | Mapping[str, Any] | None = None,
+        *,
+        created_at: datetime,
+        progress_elapsed_ms: int | None = None,
+    ) -> StreamEvent:
+        from referraleasy_domain.workflow import fetch_one
+        from referraleasy_gateway.psql import session
+
+        body = _payload_dict(payload)
+        with session(self._dsn) as connection, connection.transaction():
+            fetch_one(
+                connection,
+                "SELECT pg_advisory_xact_lock(hashtextextended(%s, 18)) AS locked",
+                (str(workflow_id),),
+            )
+            row = fetch_one(
+                connection,
+                "SELECT coalesce(max(seq), -1) + 1 AS next FROM stream_event WHERE workflow_id = %s",
+                (workflow_id,),
+            )
+            seq = int(row["next"]) if row else 0
+            event = StreamEvent(
+                event_id=content_event_id(workflow_id, seq, event_type, body),
+                workflow_id=workflow_id,
+                seq=seq,
+                type=event_type,
+                payload=body,
+                progress_elapsed_ms=progress_elapsed_ms,
+                created_at=created_at,
+                synthetic=self._synthetic,
+            )
+            fetch_one(
+                connection,
+                """
+                INSERT INTO stream_event (workflow_id, seq, event_id, type, payload,
+                                          progress_elapsed_ms, created_at, synthetic)
+                VALUES (%s, %s, %s, %s, %s::jsonb, %s, %s, %s) RETURNING seq
+                """,
+                (
+                    workflow_id,
+                    seq,
+                    event.event_id,
+                    event_type.value,
+                    json.dumps(body, default=str) if body is not None else None,
+                    progress_elapsed_ms,
+                    created_at,
+                    self._synthetic,
+                ),
+            )
+        return event
+
+    def _select(
+        self, where: str, params: tuple[Any, ...], limit: int | None
+    ) -> tuple[StreamEvent, ...]:
+        from referraleasy_domain.workflow import fetch_all
+        from referraleasy_gateway.psql import session
+
+        query = f"SELECT * FROM stream_event WHERE {where} ORDER BY seq"
+        if limit is not None:
+            query += " LIMIT %s"
+            params = (*params, limit)
+        with session(self._dsn) as connection:
+            return tuple(self._event(row) for row in fetch_all(connection, query, params))
+
+    def events_for(self, workflow_id: UUID) -> tuple[StreamEvent, ...]:
+        return self._select("workflow_id = %s", (workflow_id,), None)
+
+    def seq_of(self, workflow_id: UUID, event_id: str) -> int | None:
+        from referraleasy_domain.workflow import fetch_one
+        from referraleasy_gateway.psql import session
+
+        with session(self._dsn) as connection:
+            row = fetch_one(
+                connection,
+                "SELECT seq FROM stream_event WHERE workflow_id = %s AND event_id = %s",
+                (workflow_id, event_id),
+            )
+        return int(row["seq"]) if row else None
+
+    def replay(
+        self,
+        workflow_id: UUID,
+        *,
+        after_event_id: str | None = None,
+        after_seq: int | None = None,
+        limit: int | None = None,
+    ) -> tuple[StreamEvent, ...]:
+        """Same cursor rules as the in-memory log; an unknown id replays from the beginning."""
+        start = -1
+        if after_event_id:
+            known = self.seq_of(workflow_id, after_event_id)
+            start = known if known is not None else -1
+        elif after_seq is not None and after_seq >= 0:
+            start = after_seq
+        return self._select("workflow_id = %s AND seq > %s", (workflow_id, start), limit)
+
+    def latest(self, workflow_id: UUID) -> StreamEvent | None:
+        from referraleasy_domain.workflow import fetch_one
+        from referraleasy_gateway.psql import session
+
+        with session(self._dsn) as connection:
+            row = fetch_one(
+                connection,
+                "SELECT * FROM stream_event WHERE workflow_id = %s ORDER BY seq DESC LIMIT 1",
+                (workflow_id,),
+            )
+        return self._event(row) if row else None
 
 
 def to_sse_frame(event: StreamEvent) -> str:

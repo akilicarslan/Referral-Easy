@@ -12,6 +12,9 @@ dependencies = [
   "referraleasy-agent-runtime",
   # Read by the Agent Cards to map a card's skill entry to the instruction package it names.
   "referraleasy-skills",
+  # §9's output guardrail. The agents hold each turn's tool results, which is what its oracle has
+  # to answer from, so the check runs here before a result leaves the service.
+  "referraleasy-guardrails",
   "google-adk==2.12.0",
   "fastapi>=0.115",
   "httpx>=0.28",
@@ -35,4 +38,5 @@ packages = ["referraleasy_agents"]
 referraleasy-agent-runtime = { workspace = true }
 referraleasy-contracts = { workspace = true }
 referraleasy-domain = { workspace = true }
+referraleasy-guardrails = { workspace = true }
 referraleasy-skills = { workspace = true }

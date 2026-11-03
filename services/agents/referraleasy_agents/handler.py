@@ -86,6 +86,7 @@ from referraleasy_agents.decisions import (
 )
 from referraleasy_agents.errors import UnknownDataError
 from referraleasy_agents.offline_model import ScriptStep
+from referraleasy_agents.output_guard import guard_result
 from referraleasy_agents.prompts import build_instruction
 from referraleasy_agents.schemas import (
     output_schema_id,
@@ -96,6 +97,7 @@ from referraleasy_agents.tools.toolbox import ToolBox, ToolSet
 from referraleasy_contracts.generated.booking import BookingRequest
 from referraleasy_contracts.generated.common import ReasonCode
 from referraleasy_contracts.generated.task import DecisionOutput, TaskEnvelope
+from referraleasy_guardrails.output import OutputRejected
 
 __all__ = [
     "IDENTITY_FIELDS",
@@ -282,6 +284,12 @@ class RoleHandler:
             from referraleasy_agents.workflow import execute_workflow
 
             output = await execute_workflow(tools, self.role, inputs.value.model_dump(mode="json"))
+            try:
+                guard_result(self.role, output, tools)
+            except OutputRejected as error:
+                return _refusal(
+                    "output_guardrail", request, error, tools=tools, selection=selection
+                )
             return TurnReport(
                 result=(
                     unknown_outcome()
@@ -313,6 +321,10 @@ class RoleHandler:
         if isinstance(parsed, _Refused):
             return _refusal("output", request, parsed.error, tools=tools, selection=selection)
         output = self._guarded_output(parsed.value, tools)
+        try:
+            guard_result(self.role, output, tools)
+        except OutputRejected as error:
+            return _refusal("output_guardrail", request, error, tools=tools, selection=selection)
         return await self._report(
             request=request,
             output=output,

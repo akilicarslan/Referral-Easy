@@ -1,11 +1,36 @@
 # ReferralEasy — Implementation TODO
 
-Derived from `ReferralEasy_Architecture_v3.md` (v3.0, 2026-10-14). The architecture doc is the source of
-truth; section references like `§7` point into it. This file only orders the work and makes it checkable.
+Derived from `ReferralEasy_Architecture_v3_EN.md` (v3.0, 2026-10-14). The architecture doc is the source
+of truth; section references like `§7` point into it. This file only orders the work and makes it checkable.
 
-**Status:** greenfield — nothing implemented yet.
+**Status (reconciled 2026-10-20):** the standard referral journey runs autonomously end to end; the
+platform work around it is partial. Tick state below was re-checked against the code on this date —
+`2988 passed, 2 skipped` on the unit/contract suite (`pytest -m 'not integration and not spike and not e2e'`).
+The public summary of what is left is README → "Scope and remaining work".
 
-Legend: `[ ]` task · `[!]` invariant that must hold and be covered by a test · `→` exit criterion.
+Legend: `[ ]` task · `[~]` partial (built, not adopted or not complete) · `[!]` invariant that must hold
+and be covered by a test · `→` exit criterion.
+
+### Landed since 2026-10-16 (not previously reflected here)
+
+- **Autonomous coordination (ADR-0041, 2026-10-19).** Durable, leased continuations per accepted
+  patient command (migration 015); specialist inputs built from recorded sources; coverage ∥ matching
+  in parallel; specialist results projected into cards and transitions; inherited deadlines/budgets
+  across the A2A hop; patient-approved handoff summary (migration 016). Eight autonomous E2E journeys
+  (`tests/e2e/test_autonomous_coordination.py`) supply patient commands only.
+- **Integration repair pass (`docs/architecture/review-2026-10-18.md`).** ~20 defects at the seams:
+  consent must be an explicit boolean, the browser now obtains a session and loads the snapshot, SSE
+  cursor/reconnect ownership, removal frames, double-click coalescing, action retry reusing the command
+  id, A2A envelope shape, specialist output no longer discarded, `make e2e` isolated per iteration.
+- **Durable surface projection.** Current cards survive a gateway restart
+  (`docs/architecture/workflow-surface-projection.md`); historic SSE replay is still process-local.
+- **Already built but unticked here:** release registry + CI version gate (ADR-0037), three-layer
+  input guardrail wired into the gateway (ADR-0038), admin read API + nine admin pages (ADR-0039),
+  kill switch on the booking path, alerts package, eval package + 44-case dataset, telemetry adopted
+  in gateway/agents/workers, Cloud Run design (ADR-0040).
+- **Public release.** English architecture doc, README rewrite with screenshots and walkthrough,
+  showcase video (`videos/referraleasy-showcase/`), `scripts/check_public_release.py`, gitleaks,
+  branch ruleset.
 
 ---
 
@@ -24,7 +49,7 @@ automated test before the phase that introduces the behavior is closed.
 - [!] Documents and retrieved text are data, never instructions (§2.3, §9).
 - [!] Guardrail does not block short valid replies ("evet", dates, ZIP codes) in the right state (§9).
 - [!] Guardrail dependency down → no booking writes; static help card only (§9).
-- [!] Telemetry, LangSmith, eval and notification failures never roll back or block a booking (§7, §15, §19).
+- [!] Telemetry, Langfuse, eval and notification failures never roll back or block a booking (§7, §15, §19).
 - [!] No fabricated demo charts; every admin number comes from a real trace/event (§12).
 - [!] `<pinned-...>` values in the env contract are placeholders until a Phase 0 spike pins them (§19).
 
@@ -44,34 +69,33 @@ short ADR in `docs/adr/` and a smoke test that stays in `tests/contracts/`.
   — **no stubs remain, but `eval` cannot complete a run.** `demo` is now a real eight-step
   orchestrator (`scripts/demo.py`, Phase 8.3), and `migrate`, `index`, `seed`, `health` and `test`
   were already real; `seed` turned out not to be a loader at all, so see the note under Phase 8.
-  `eval` runs a real CLI, and it exits 3 without `registry/releases/latest.json`, which does not
-  exist because building one needs an image digest and Docker is not running. The command is honest
-  about that rather than reporting a score of nothing.
+  `eval` runs a real CLI against `registry/releases/latest.json` (built from a real image digest,
+  `rel-20261016-8e00275`) and reports `coverage 0/44` because no replay harness exists (Phase 8.1).
 - [x] `compose.yaml` skeleton with profiles `core`, `showcase`, `dashboards`
 - [x] CI skeleton: lint, type-check, unit tests, contract tests
 - [x] ADR-0001: language/tooling choices
 
 ### 0.2 Spikes (each pins a value or a version)
-- [ ] **S1 ADK + LiteLlm → OpenRouter**: choose `AGENT_MODEL_ID`; prove tool calling, structured output schema, streaming, cancellation (§8) — **NOT DONE**: the spike exists and names all four capabilities; the pin is still a `CHANGEME_` value (ADR-0002)
-- [ ] **S1b Vertex Gemini Flash** alternative: pin `VERTEX_AGENT_MODEL_ID`, `VERTEX_LOCATION`
+- [x] **S1 ADK + LiteLlm → OpenRouter**: choose `AGENT_MODEL_ID`; prove tool calling, structured output schema, streaming, cancellation (§8) — **DONE 2026-10-20**: `AGENT_MODEL_ID=anthropic/claude-haiku-5.5` in `.env.example`; the S1 spike (4) and the runtime live spike (9) pass against it, recorded in ADR-0002 "Resolution"
+- [ ] **S1b Vertex Gemini Flash** alternative: pin `VERTEX_AGENT_MODEL_ID`, `VERTEX_LOCATION` — **BLOCKED 2026-10-20**: credentials now exist, but every Vertex call returns `403 BILLING_DISABLED` for the project; enabling billing is an account action
 - [ ] **S2 ADK A2A exposure**: Agent Card, mount in FastAPI ASGI vs separate port, client call, A2A task lifecycle states, auth header verification; pin ADK + a2a-sdk versions (§5) — **PARTIAL**: `a2a-sdk==1.2.2` and `google-adk==2.12.0` are pinned and in use across all seven services, the card shape and task states are recorded (ADR-0003), and `tests/agents/test_agent_cards.py` covers the cards against the pinned SDK. What the ADR records as UNVERIFIED, and what the credential-gated spike never proved, is an ADK↔a2a-sdk round trip
 - [x] **S3 A2UI**: pin renderer/adapter version; stream a custom component over SSE; confirm a custom catalog works (§12) — pinned `@a2ui/lit 0.13.0` + `@a2ui/web_core 0.13.0`, eight custom components in one catalog, streamed over SSE. ADR-0004 still records custom-catalog authoring as UNVERIFIED; what proves it is `apps/web/test/render.test.ts` and `test/adapter-boundary.test.ts`, not a spike under `tests/contracts/`
 - [x] **S4 Guardrail decision model**: pin `GUARDRAIL_DECISION_MODEL` on OpenRouter; measure latency (§9) — `openai/gpt-5-nano`, measured 5.39–5.44 s at 476 prompt tokens (ADR-0038)
 - [ ] **S5 Local guardrail classifier**: pick CPU/ONNX encoder approach; record artifact hash and download steps; pin `GUARDRAIL_LOCAL_MODEL` (§9) — **PARTIAL**: the artifact is chosen, hashed (`data/artifacts.json`, `all-MiniLM-L6-v2` qint8, sha256 `4278337f…`) and the threshold measured on a calibration/held-out split — but the 23 MB artifact is not present in this environment, so the threshold record is for the *offline lexical rung* and `.env.example` ships that rung's name, not the encoder's. ADR-0005's status is still UNRESOLVED
-- [ ] **S6 Embeddings**: `gemini-embedding-001` at 768 dims; document vs query task types (§8) — **PARTIAL**: pinned and documented (ADR-0006), the spike covers both task types, and the live run is blocked on Vertex credentials
-- [ ] **S7 Rerank**: OpenRouter `/api/v1/rerank` with `cohere/rerank-v3.5` smoke test (§8) — **PARTIAL**: the model id is pinned and the wire shape recorded (ADR-0007); only a live 200 would prove the id resolves, and there is no key
+- [ ] **S6 Embeddings**: `gemini-embedding-001` at 768 dims; document vs query task types (§8) — **PARTIAL**: pinned and documented (ADR-0006), the spike covers both task types, and the live run is blocked: re-run 2026-10-20 fails with `403 BILLING_DISABLED` (same cause as S1b)
+- [ ] **S7 Rerank**: OpenRouter `/api/v1/rerank` with `cohere/rerank-v3.5` smoke test (§8) — **PARTIAL**: the model id is pinned and the wire shape recorded (ADR-0007); only a live 200 would prove the id resolves. Re-run 2026-10-20 with a real key: OpenRouter answers 404 because the account's zero-data-retention guardrail excludes the only endpoint — an account setting at openrouter.ai → workspace guardrails, not a code change
 - [x] **S8 OpenSearch**: pin single-node version; k-NN + BM25 hybrid query; OTel traces via Data Prepper; check whether native OTel **metrics** ingestion works → otherwise metrics as numeric log events (§15) — 3.9.0 pinned, spike CONFIRMED 5/5, and the answer was **no**: measurements travel as log events (ADR-0008)
-- [ ] **S9 LangSmith + ADK** tracing smoke (§14)
+- [x] **S9 Langfuse + ADK** tracing smoke (§14) — `tests/contracts/spikes/test_langfuse_spike.py`, ADR-0042 (2026-10-23)
 - [ ] **S10 Eval judge**: pin `EVAL_JUDGE_MODEL_ID`
 
 → No `<pinned-...>` placeholder left in `.env.example`; every pin has a dated ADR and a passing smoke test.
 
 **Not met, and the gap is five pins.** The literal `<pinned-…>` text is gone, but five functional
 `CHANGEME_*` values remain: `AGENT_MODEL_ID` (S1), `VERTEX_AGENT_MODEL_ID` and `VERTEX_LOCATION`
-(S1b), `LANGSMITH_PROJECT` (S9) and `EVAL_JUDGE_MODEL_ID` (S10). `scripts/validate_env.py` exists
+(S1b) and `EVAL_JUDGE_MODEL_ID` (S10). `scripts/validate_env.py` exists
 precisely to refuse a `live` run while any of them is unresolved, so this is a *stated* state rather
 than a silent one — but it is still open, and three of the five are blocked on credentials or access
-rather than on work: S1b and S6 need a GCP project, S9 needs a LangSmith key, S10 needs a judge model
+rather than on work: S1b and S6 need a GCP project, S10 needs a judge model
 decision (ADR-0011), and S7 needs a live rerank call. **S5's pin resolves to a different model than
 its ADR names** — `.env.example` carries the offline lexical rung while `data/artifacts.json` pins the
 ONNX encoder whose threshold is recorded as UNMEASURED in this environment — which is the one
@@ -196,18 +220,19 @@ check exists because eighteen transition edges *were* silently missing from the 
   cannot run in the postgres profile are **deselected, never skipped**, each with a docstring naming
   the guarantee the schema enforces differently, and a test that fails if one is marked without being
   documented. That boundary is itself a test — no assertion was parameterised into a weaker form.
-- **§12's event log is still not persisted, and there is no table for it.** No migration creates one
-  (`audit` is the tamper-evident chain, not the transport log) and the agent did not invent one.
-  Replay therefore survives a client disconnect but not a gateway restart. Tested behaviourally in
-  both profiles; the "no table exists" half is by inspection of `migrations/`, not by assertion.
+- [x] **§12's historic event log is persisted (2026-10-20).** Under the postgres profile the gateway's
+  log is `PostgresEventLog` over `stream_event` (migration 018): `seq` is assigned under a per-workflow
+  advisory lock with `(workflow_id, seq)` as the backstop, ids stay content-addressed, and the stream's
+  live loop polls `replay(after_seq=...)`, so an event appended by one replica reaches a stream held
+  open on another. Tests: `tests/gateway/test_stream_event_log.py` — the two-replica tests are
+  `integration` and **were not run in this pass** (Docker down). Still process-local: the dispatcher's
+  in-memory `submit` queue and the latency ledger (turn metadata).
 - **JWT is hand-rolled** on stdlib `hmac`/`hashlib` (PyJWT is not a dependency). Exercised for real by
   every route, but there is no JWKS/RS256, key rotation, or revocation beyond expiry.
-- **The gateway Dockerfile has never been built or run.**
-- **The web client could not open the authenticated stream.** `EventSource` cannot send headers, and
-  the stream route requires a patient session. The gateway accepts `?token=` in the demo profile for
-  exactly this; `apps/web` now passes a token through `SseClientOptions.token` (tested, and
-  `buildUrl` at last has tests — it had none), but **the app still never obtains a session**, so the
-  browser-to-gateway stream remains unexercised end to end.
+- ~~The gateway Dockerfile has never been built or run.~~ Every core image builds (2026-10-16).
+- ~~The web client never obtains a session.~~ **Fixed 2026-10-18:** demo session entry, one patient
+  HTTP client, authenticated stream/actions and snapshot load (`apps/web/test/patient-client.test.ts`,
+  `boot.test.ts`); the browser-to-gateway journey was exercised in a real browser.
 
 ### 2.2 Web — `apps/web` (§12)
 - [x] A2UI adapter (version pinned in S3)
@@ -220,10 +245,10 @@ check exists because eighteen transition edges *were* silently missing from the 
 **Done** — `apps/web` (Vite + Lit), 70 tests, ADR-0027. Build and container verified: the nginx
 upstream is a variable so a missing gateway costs one 502 on an API call rather than killing the UI.
 
-**Not done here:** the Playwright e2e below is *not* written. The client is verified under jsdom and
-over HTTP against the built image; jsdom has no `EventSource`, so **the SSE happy path has no test
-at all** — only its failure path. A real browser pass is still owed, and so is the end-to-end booking
-against the gateway once the gateway can serve it.
+**Update 2026-10-18:** the SSE client now has its own suite (`apps/web/test/sse-client.test.ts`:
+contiguous cursor, single reconnect owner, stale-callback generations), and both booking outcomes
+(instant confirm, pending review) were driven in a real browser via `scripts/browser_scenarios.js`.
+**Still open:** that driver runs through the Playwright MCP tool, not CI — there is no browser job.
 
 ---
 
@@ -264,15 +289,9 @@ performance guarantee, and a user's thinking time is not inside it.
 
 ### 3.2 Specialist agents (§3 table)
 
-> **Integration gap, tracked here so it is not lost:** `compose.yaml` declares `gateway`,
-> `mock-api`, `worker`, `scheduler`, `local-guardrail` and `web`, but **has no entry for the seven
-> specialist agents**. `services/agents/` therefore runs only under pytest, not in the stack, and
-> `make demo` cannot show them. §5 permits either shape — "the ADK A2A app can be mounted to the same
-> ASGI deployment or served on a separate port" — and §22's repo layout implies separate services, so
-> the resolution is agent services in compose (one image, role chosen by `AGENT_ROLE`, which 3.1
-> already supports). Also note compose's `worker` (singular) has no `services/worker` directory;
-> `services/workers` is evidently what it meant, and the two should be reconciled rather than left
-> looking like two different things.
+> ~~Integration gap: compose has no entry for the seven specialist agents.~~ **Resolved** — all seven
+> run in compose on one image, role chosen by `AGENT_ROLE`.
+
 For each agent: Agent Card, versioned input/output schemas, tools, and a test that each forbidden capability is refused.
 - [x] **Care Coordinator**: A2A clients, policy table enforcement, ≤ `MAX_DELEGATIONS_PER_TURN`; cannot write bookings or change patient choices
 - [x] **Referral Intake**: `validate_referral`, `resolve_location`, `patient_preferences`; no diagnosis, no invented specialty
@@ -302,8 +321,9 @@ Four tool parameters — `workflow_id`, `command_id`, `patient_id`, `task_envelo
 parameters until the tool-surface test showed what a model could do with them**. They are now read
 from the task instead. That is the single most valuable thing this phase produced.
 
-**Unverified, and it matters for §9:** `create_handoff` POSTs to a `/handoffs` route that **does not
-exist** on the mock API — measured against the running service, giving 404 →
+**Unverified, and it matters for §9:** (still true 2026-10-20 — the autonomous journey's handoff goes
+through the gateway's consented handoff queue instead, so this tool is not on the standard path)
+`create_handoff` POSTs to a `/handoffs` route that **does not exist** on the mock API — measured against the running service, giving 404 →
 `UpstreamRejected(status_code=404)` → `terminal_error`. The tool is real; its backend is not. Also: no
 failure envelope carries a reason (the A2A envelope has no message field, so a policy refusal reaches
 the wire as `a2a_state: "rejected"` with no text and nothing logs it — pinned by a test asserting the
@@ -339,17 +359,19 @@ authority to the runtime allowlist and the policy table.
 nothing cross-checks them. When the cards land, the IDs must match (§13, phase 3.5).
 
 ### 3.5 Registry and versioning — `registry/` (§13)
-- [ ] Immutable `release_manifest` with every field listed in §13
-
-> **Current state of the directory: empty.** `registry/` holds only `agents/` and `prompts/`, both
-> with no files, and there is no `releases/` at all — while `make eval` already references
-> `registry/releases/latest.json`, and the `release_registry` table has no rows, no fixture source
-> and no writer. A `make seed` audit surfaced this. Two consequences worth stating: the eval target
-> cannot run, and §13's per-task "effective release" has nothing to carry.
-- [ ] Hashing: any description/instruction/tool/skill change changes the agent hash; sub-agent change bumps parent
-- [ ] CI fails if an affected agent's version did not increase; any bump triggers evaluation
-- [ ] Conversations pinned to a release; kill switch can stop pinned conversations; migration needs explicit checkpoint
-- [ ] Canary cohort and rollback routing from a registry table
+- [x] Immutable `release_manifest` with every field listed in §13 — `packages/release-registry`,
+  `tests/release/test_manifest_completeness.py`; a real manifest `registry/releases/rel-20261016-8e00275.json`
+  built from an actually-built `referraleasy/agents:dev` digest, with `latest.json` / `index.json`
+- [x] Hashing: any description/instruction/tool/skill change changes the agent hash; sub-agent change bumps parent — `test_hashing_determinism.py`, `test_subagent_parent_bump.py`
+- [x] CI fails if an affected agent's version did not increase; any bump triggers evaluation — CI's
+  `images` job (2026-10-20) builds the agents, gateway, worker, mock-API and web images, pushes them to
+  GHCR from `main` only, and hands the agents image digest to `release-version-gate` as
+  `RELEASE_IMAGE_DIGEST`; when the gate lists artifacts needing evaluation, `release-evaluation` builds
+  this commit's manifest in the runner and runs the replay + scoring (exit 1 on a §14 blocker), uploading
+  the report. **Not yet observed in CI**: the workflow passes actionlint, and the gate passes locally
+  with a digest supplied, but Docker was not running here, so the image builds were not exercised
+- [~] Conversations pinned to a release; kill switch can stop pinned conversations; migration needs explicit checkpoint — **pinning is adopted (2026-10-20)**: the gateway's coordination worker pins each workflow on its first dispatch via `pinning.pin_conversation`, stores the pin in the workflow payload (durable under the Postgres control store, shared by replicas), sends it in every later task envelope, and refuses a pin whose release has left the catalog (`tests/gateway/test_release_pinning.py`). Still open: the release-level `KillSwitch` and `migrate_conversation` have no operator route — the gateway's §16 switch halts booking writes, not conversations
+- [x] Canary cohort and rollback routing from a registry table — the gateway calls `canary.route` for every new workflow over the committed registry (`registry/releases/index.json` + manifests; each manifest's `rollout` gives cohort and share, `rolled_back` takes no new workflows). The `release_registry` table is not the source yet because nothing registers releases into it
 
 → Scenario 1 passes with real agents replacing the stub; Agent Cards discoverable; every task carries the effective release.
 
@@ -358,38 +380,39 @@ nothing cross-checks them. When the cards land, the IDs must match (§13, phase 
 ## Phase 4 — Business scenarios and guardrails (§21 step 4)
 
 ### 4.1 Scenarios
-- [ ] **Multi-constraint search** (§2.1, §2.4): Turkish-speaking + Friday + 15 miles, no slot → evidence-based alternatives (wider radius, other day, other hospital); hard distance never relaxed
-- [ ] **Network conflict** (§2.2): "accepts insurance" but plan record unknown/out-of-network → shown as unknown with freshness
-- [ ] **Missing document** (§2.3): report missing → user attaches synthetic doc → only that check reruns → workflow resumes
-- [ ] Authoritative structured API wins over stale text in coverage/readiness (§10)
-- [ ] Booking lifecycle across both adapters; reschedule cancels the old booking only after the new one is verified (§2.5)
+All eight are specified in `fixtures/scenarios.json`. What the E2E suites drive end to end: standard
+booking (both adapters), timeout before/after commit, kill switch, missing document (attach → resume,
+and the no-document handoff), multi-constraint search, network conflict, three transient errors, and a
+worker restart.
+
+- [x] **Multi-constraint search** (§2.1, §2.4): no slot satisfies the hard day/time preferences → the empty result is reported with an evidence-backed `AlternativeOption` (the chosen doctor's other times, `relaxes_constraint_id: null`); only the patient's choice moves a preference, recorded as a contract `ConstraintChange` (`decided_by: patient`); the hard radius is never touched. E2E: `tests/e2e/test_scenario_journeys.py` (2026-10-20). Only the `different_day`/`different_time_of_day` kinds are generated; wider-radius and other-hospital alternatives are not
+- [x] **Network conflict** (§2.2): an unconfirmed network status (unknown, conflicting, stale or out of network) is shown on a second DoctorPicker with its freshness and evidence and a "not a payment decision" notice; the journey continues only when the patient chooses that doctor again (recorded as `coverage_acknowledged`), or re-checks another doctor. E2E: `tests/e2e/test_scenario_journeys.py`. **Fixture gap:** the scenario's own conflict record (coverage 002, provider 001 at Lakeview) is outside patient 005's hard 20-mile radius, so the journey uses Prairie Ridge, whose status for plan 004 is unknown
+- [x] **Missing document** (§2.3): a required document the patient holds is requested on a `PatientDetailsForm` card in `READINESS_CHECK` (policy row in migration 019); the patient attaches it, the package is re-checked, checks that had passed keep their first result and run id, and the journey resumes to a booking request. With nothing attachable it still hands off. E2E: `tests/e2e/test_scenario_journeys.py`, unit `tests/gateway/test_coordination_patient_decisions.py`
+- [x] Authoritative structured API wins over stale text in coverage/readiness (§10) — `make test-integration-rag` (structured-record-beats-stale-text)
+- [x] Booking lifecycle across both adapters; reschedule cancels the old booking only after the new one is verified (§2.5) — both adapters in the autonomous E2E; `tests/workers/test_reschedule.py`
 
 ### 4.2 Input guardrails (§9)
-- [ ] Layer 1, regex: Unicode normalization, length limit, word boundaries, explicit patterns; state-aware acceptance of short replies; profanity in a genuine request ≠ attack
-- [ ] Layer 2, OpenRouter decision model on a masked message → allow/block/clarify + category/reason
-- [ ] Layer 3, local classifier with recorded artifact hash and thresholds; disagreement/uncertainty → clarify/HITL
-- [ ] Emergency phrases → fixed approved safety response, never silent off-topic block
-- [ ] Profiles: `three_stage` (all visible) vs faster conditional profile
-- [ ] Measure FP/FN, added latency and cost per layer
+**Done and adopted** — `packages/guardrails`, ADR-0038; all three layers run on the gateway's write
+path (`services/gateway/src/referraleasy_gateway/guardrails.py` → `referraleasy_guardrails.build`) and
+`/healthz` reports each layer.
+
+- [x] Layer 1, regex: Unicode normalization, length limit, word boundaries, explicit patterns; state-aware acceptance of short replies; profanity in a genuine request ≠ attack
+- [x] Layer 2, OpenRouter decision model on a masked message → allow/block/clarify + category/reason
+- [~] Layer 3, local classifier with recorded artifact hash and thresholds; disagreement/uncertainty → clarify/HITL — the decision logic is wired and tested, but it runs the **offline lexical rung**: the ONNX artifact is hashed but absent (S5). The 2026-10-18 review found this rung conservative ("I need a cardiology appointment" can require clarification); more calibration data is needed, no threshold was relaxed
+- [x] Emergency phrases → fixed approved safety response, never silent off-topic block
+- [x] Profiles: `three_stage` (all visible) vs faster conditional profile
+- [x] Measure FP/FN, added latency and cost per layer — per-layer corpus measurement in ADR-0038 (`test_guardrail_measurement.py`)
 
 ### 4.3 Output guardrails (§9)
-- [ ] Schema valid; entity IDs exist; times verified; phone/address sourced; booking state real
-- [ ] No coverage/payment guarantee or clinical language
+- [x] Schema valid; entity IDs exist; times verified; phone/address sourced; booking state real — **adopted in the agents (2026-10-20)**: `referraleasy_agents.output_guard` runs `OutputGuardrail.check_props` over the patient-facing projection of every result, on both the workflow and the ADK path, with an oracle answering only from the turn's tool results (`ToolSet.results`) and the task's inputs; a violation refuses the turn (`output_guardrail` stage). The envelope `schema` check stays with whoever renders the card. Tests: `tests/agents/test_output_guard.py`; the replay showed it firing on a real result ("has not confirmed" over a REQUESTED booking), and the sentence was reworded
+- [x] No coverage/payment guarantee or clinical language — `OutputGuardrail`'s guarantee and clinical checks run on every agent result's patient-facing text (same wiring as above)
 
-**Why the first item is still open, and where it goes.** `referraleasy_guardrails.output.OutputGuardrail`
-is built and tested (all six checks, a labelled suite) and has **no production caller**. The obvious
-place looks like the gateway's `SurfaceRegistry.issue()`, which is the single choke point every card
-passes through — and that is the wrong place, for a reason that only shows up when you try it.
-`SourceOracle`'s three questions are `entity_exists`, `slot_time` and `booking_state`, and the ids they
-are asked about (`ENTITY_ID_FIELDS`: `provider_id`, `hospital_id`, `slot_id`, `plan_id`, …) live in the
-mock API and the directory, not in the gateway's database. A gateway-side oracle would therefore have
-to answer "yes" to every id it cannot resolve — which is every id the check exists for — and a vacuous
-oracle is worse than no wiring: it makes the check look present.
-
-It belongs with the **agents**, which hold the retrieval results and the directory client:
-`services/agents/referraleasy_agents/evidence.py` already gathers the per-turn evidence, and the tool
-results are the `sources` the guardrail takes. The wiring is a real piece of work in that service, not
-a line in the gateway, and it is named here rather than forced in where it would not mean anything.
+**Why it runs in the agents rather than the gateway.** `SourceOracle`'s three questions
+(`entity_exists`, `slot_time`, `booking_state`) are about ids that live in the hospital API and the
+directory. A gateway-side oracle would have to answer "yes" to every id it cannot resolve, which makes
+the check look present while checking nothing. The agents hold each turn's tool results, so their
+oracle can answer. One limit is recorded rather than hidden: the guardrail's tree walk does not read
+bare strings inside a list, so the agent projection passes labels as a mapping.
 
 → Scenarios 2, 3, 4 reproducible; guardrail test suite with labelled benign/attack/short-reply cases passes.
 
@@ -403,7 +426,7 @@ a line in the gateway, and it is named here rather than forced in where it would
 - [x] Exactly one retry owner: SDK/HTTP/A2A internal retries disabled
 - [x] Backoff from env; honor `Retry-After`; no retry on a valid empty result
 - [x] Circuit breaker; after the 3rd transient failure → one-way move to recovery
-- [x] Token/cost budgets per workflow and per day; rate limits; backpressure
+- [~] Token/cost budgets per workflow and per day; rate limits; backpressure — **mis-ticked before 2026-10-20.** `TurnBudget` caps *call counts* (model/tool/delegation) per turn; no token or USD cap exists per workflow or per day anywhere in `packages/` or `services/`. The approved ceiling is **$10/day** and today nothing enforces it — spend is only observable afterwards via §15's tokens/cost events
 - [x] Strict 3 s profile measured separately; per-agent overrides go into the manifest
 
 ### 5.2 Ownership and durability (§7)
@@ -500,9 +523,11 @@ refused as evidence for any document.
 ## Phase 7 — OTel/OpenSearch analytics, admin, alerts, Scenario Runner (§21 step 7)
 
 ### 7.1 Telemetry (§15)
-- [ ] **OTel SDK in gateway, agents, mock API, workers** — the package exists and is live-verified,
-  but **no service imports it yet**. This is the one bullet of 7.1 still open. The seam is
-  `configure_telemetry(...)` plus `outage_guard`; see `packages/telemetry/README.md`.
+- [x] **OTel SDK in gateway, agents, workers** — adopted as spans and events. One server span per
+  request, `traceparent` continued across the A2A hop; the gateway records `latency.turn.ms` and every
+  guardrail screening, the agents `latency.invocation.ms` and `agent_trigger`, the workers §15's HITL
+  measurements. Read back from `otel-traces-*` / `otel-events-*` on a live request
+- [ ] **OTel in the mock API and the web app** — the two TypeScript surfaces are not wired
 - [x] ADK GenAI spans plus app spans; no chain-of-thought capture — the package has no API for
   reasoning text, though `extra_fields` would still accept one a service chose to ship.
 - [x] W3C trace context over HTTP and A2A, proved by an integration test
@@ -513,7 +538,7 @@ refused as evidence for any document.
 - [x] Structured operation events with `event_id` dedup
 - [x] Metrics from §15: triggers, attempts/retries, outcome classes (empty ≠ error), API failures, p50/p95/p99 incl. timeouts, tokens/cost, HITL wait/resolve, guardrail decisions, eval scores, feedback
 
-**Done, except adoption** — `packages/telemetry`, 497 tests of which **36 run against the live
+**Done, adopted in the Python services** — `packages/telemetry`, 497 tests of which **36 run against the live
 collector and OpenSearch**, ADR-0032. The live tests stamp every write with a unique
 `deployment.annotation` and scope every read by it, so a zero is a finding rather than someone
 else's traffic.
@@ -526,7 +551,7 @@ protobuf `Struct`, which is *virtually* registered as a `Mapping` — `isinstanc
 annotation reads as satisfied, and the method raises. Every test had passed a plain `dict`. Both were
 found by running the live stack, and both have tests using the real types now.
 
-**Unverified, and the honest list:** adoption (above); the exporter is **hand-written** because the
+**Unverified, and the honest list:** the TypeScript surfaces (above); the exporter is **hand-written** because the
 vendor package is not in the shared venv — it is accepted by the live collector but is the piece most
 worth replacing; propagation is proved with both halves in one process, not two deployed services;
 `feedback()`'s same-millisecond tie relies on document order; an unscoped `outcome_breakdown` counts
@@ -535,15 +560,20 @@ the older indices; the template's top-level `synthetic` field is unpopulated (th
 `log.attributes.synthetic`).
 
 ### 7.2 Admin app (§12)
-- [ ] Pages: Overview, Agents & Versions, Trace Explorer, Evaluations, Guardrails, Feedback, Fault Scenarios, Human Queue, Alerts
-- [ ] Agents & Versions shows Agent Card, tools/skills/sub-agent versions, sample I/O
-- [ ] Filters: day/month/custom range, timezone, agent/version, release/model, synthetic vs live-demo; deployment annotations; sample counts on every chart
-- [ ] Feedback: last active thumbs per `response_id`; raw count, like rate and participation rate separate; optional end-of-conversation survey
+`apps/web/src/admin/` (own entry point at `/admin`) over the gateway's admin read API (ADR-0039). A
+page whose source is missing answers `{available: false, reason}` rather than zeroes
+(`tests/gateway/test_admin_reads.py`); all nine endpoints answered 200 in the 2026-10-18 browser pass.
+
+- [x] Pages: Overview, Agents & Versions, Trace Explorer, Evaluations, Guardrails, Feedback, Fault Scenarios, Human Queue, Alerts
+- [~] Agents & Versions shows Agent Card, tools/skills/sub-agent versions, sample I/O — page exists; sample I/O not verified
+- [~] Filters: day/month/custom range, timezone, agent/version, release/model, synthetic vs live-demo; deployment annotations; sample counts on every chart — range, timezone and synthetic/live-demo are in the shell UI; agent/version/release/model exist in `AdminFilters` (`api.ts`) but have no control in the shell
+- [~] Feedback: last active thumbs per `response_id`; raw count, like rate and participation rate separate; optional end-of-conversation survey — page reads real feedback; survey not built
+- [x] **Human Queue actions in the UI** (2026-10-20) — Claim / Release / Resolve on the page post to `/v1/admin/human-queue/{id}/claim|release|resolve`, which run the workers' own `HumanQueue` (one implementation; the database's compare-and-set still decides races, a lost claim shows the 409's reason). Resolve offers only the workers' `OPERATOR_RETURN_STATES`. Tests: `tests/gateway/test_admin_reads.py` (routes, profile gate, delegation), `apps/web/test/admin-pages.test.ts`. **The Postgres path was not run here** (Docker was down); the claim/resolve semantics themselves are the workers' DB-backed `test_hitl.py`
 
 ### 7.3 Alerts, mock email, kill switch (§16)
-- [ ] Scheduler rules: terminal failure > 20% with ≥ 20 invocations / 5 min; p95 attempt > 2.5 s over three windows; circuit open; quality drop with enough samples
-- [ ] Dedup/cooldown, resolved events, mock email outbox with delivery state; notification failure never loops
-- [ ] Kill switch stops booking writes; directory stays read-only available; rollback keeps reconciliation running
+- [x] Scheduler rules: terminal failure > 20% with ≥ 20 invocations / 5 min; p95 attempt > 2.5 s over three windows; circuit open; quality drop with enough samples — `referraleasy_workers.alerts` runs the package's four rules on an interval (`python -m referraleasy_workers alerts --watch`, compose `scheduler` in `core`), measuring from §15's queries; a failed query is `unmeasured` with its error. **`circuit_open` is recorded as not evaluated on every run**: no component publishes breaker state
+- [x] Dedup/cooldown, resolved events, mock email outbox with delivery state; notification failure never loops — durable in migration `017_alerts.sql` (`alert_state`, `alert_event`, `alert_message`, `alert_run`); one message per transition enforced by `UNIQUE(event_id)`; delivery is to the log and bounded (dead after 5); an advisory lock keeps one scheduler per tick; the Alerts page shows state, transitions and outbox. Unit tests `tests/workers/test_alerts_scheduler.py`; its Postgres test **was not run here** (Docker down)
+- [x] Kill switch stops booking writes; directory stays read-only available; rollback keeps reconciliation running — wired: the booking write answers `booking_halted` while the help card, stream, transitions and dashboard keep working (`tests/gateway/test_kill_switch.py`, autonomous E2E `halt` case). Process-local: it stops one replica only (ADR-0040)
 
 ### 7.4 Demo Scenario Runner (§12, §17)
 - [ ] Select scenario → reset seed → show expected behavior/fault step → link to the real trace and metrics
@@ -555,12 +585,20 @@ the older indices; the template's top-level `synthetic` field is unpopulated (th
 ## Phase 8 — Evaluation, delivery, README (§21 step 8)
 
 ### 8.1 Evaluation (§14)
-- [ ] LangSmith tracing, datasets, experiments; worker writes to LangSmith and OpenSearch idempotently under one `eval_run_id`
-- [ ] Offline replay on a separate fixture DB; never recreate live bookings
-- [ ] Offline dataset of ~40–60 cases covering all scenarios
-- [ ] Quality metrics: correctness, groundedness, completeness; deterministic rules first, judge second; N/A and `eval_error` not scored as zero
-- [ ] Outcome metrics: right patient/doctor/slot, constraints satisfied, tool/argument correctness, recovery success, appropriate escalation, unnecessary delegations, latency, cost per success; multiple valid tool paths accepted
-- [ ] Unapproved or double booking = critical violation and release blocker
+
+**Replay harness landed 2026-10-20; `make eval` scores 44/44 cases.** `scripts/eval_replay.py` drives
+every dataset scenario (and the timeout scenario's before-commit variant) through the gateway and the
+seven agents in-process, each on a fresh mock API, with the patient's commands as the only scripted
+input; `referraleasy_eval.capture` maps each journey to per-case records. The first measured run is
+recorded in `docs/runbooks/evaluation.md` §2 — most non-standard scenarios end in a handoff, and the
+report says why per case.
+
+- [~] Langfuse tracing done (ADR-0042); datasets and experiments not started — worker writes to Langfuse and OpenSearch idempotently under one `eval_run_id`
+- [x] **Offline replay on a separate fixture DB; never recreate live bookings** — `scripts/eval_replay.py` (fresh mock API + temporary SQLite per scenario run), `make eval-replay`; `make eval` replays first. Tests: `tests/eval/test_capture.py`, `tests/scripts/test_eval_replay_scripts.py`, `tests/e2e/test_eval_replay.py`
+- [x] Offline dataset of ~40–60 cases covering all scenarios — `evaluations/datasets/offline-v1.json`, 44 cases across all eight. Version `offline-v2` (2026-10-20) restates the expectations in contract vocabulary (`ResultOutcome`, `WorkflowState`, `HandoffReasonClass`); `test_every_expected_value_is_a_contract_value` keeps it there
+- [~] Quality metrics: correctness, groundedness, completeness; deterministic rules first, judge second; N/A and `eval_error` not scored as zero — 14 deterministic rules; the judge seam reports `not_applicable` while ADR-0011 / S10 is unresolved
+- [~] Outcome metrics: right patient/doctor/slot, constraints satisfied, tool/argument correctness, recovery success, appropriate escalation, unnecessary delegations, latency, cost per success; multiple valid tool paths accepted — all scored from replays except **constraints**: the matching agent returns `constraint_fit: []`, so constraint cases report `eval_error`/`n/a` rather than a pass; cost is `$0` on the offline workflow path, which makes no model call
+- [x] Unapproved or double booking = critical violation and release blocker — scored from captured bookings and their approval ids; the CLI exits 1 on either
 - [ ] Judge calibrated on a small human-labelled set
 - [ ] Synthetic patient simulator (intent, wrong/missing answers, preference change)
 - [ ] Online: 1% via `HMAC(seed, turn_id)` Bernoulli; batches at 00:00/12:00 America/Chicago; seeded shuffle; no reselection; zero samples shown as "no data"
@@ -568,19 +606,20 @@ the older indices; the template's top-level `synthetic` field is unpopulated (th
 - [ ] Every result stamped with all versions from §14 and `trace_id`; workflow scores not attributed to a single specialist
 - [ ] Charts show sample/eligible/N/A/error counts; different judges/rubrics never merged into one series
 - [ ] Comparison modes: single agent vs multi-agent, rerank on/off, guardrail layer combinations
-- [ ] Eval CLI requires release manifest + dataset/rubric version and writes resolved versions into the report
+- [x] Eval CLI requires release manifest + dataset/rubric version and writes resolved versions into the report — the CLI refuses to invent its inputs and reads `registry/releases/latest.json`
 
 ### 8.2 Version regression scenario (§20 row 8)
 - [ ] Change a description/skill → CI fails without version bump → bump → eval old vs new → chart → mock alert
 
 ### 8.3 Delivery (§18)
 - [x] `make demo`: env validation → compose up → apply index templates → migrate → seed → index/embed init → health checks → print URLs. `scripts/demo.py` is an orchestrator, not a reimplementation: it calls the five scripts that already existed and `infra/opensearch/apply-index-templates.sh`, and it prints a URL only for a service the health probe reported answering. Two defects the orchestration surfaced are fixed with it — `migrate.py` took `$DATABASE_URL` from an environment nothing populated (so `make migrate` failed from a checkout), and `seed.py` compared the mock API's `source_directory` as an absolute path across the container boundary, which failed against the shipped compose configuration.
-- [ ] Profiles `core`, `showcase`, optional `dashboards`; clearly labelled offline-fixture profile with canned model/embedding
-- [ ] Pinned images, volumes, healthchecks, resource limits; measure real RAM and document it
+- [x] Profiles `core`, `showcase`, optional `dashboards`; clearly labelled offline-fixture profile with canned model/embedding — compose profiles exist (plus `pending`); `MODEL_BACKEND=offline` stamps artefacts `synthetic: true`
+- [~] Pinned images, volumes, healthchecks, resource limits; measure real RAM and document it — every core image builds; RAM not measured or documented
+- [ ] **CI image build and publish** — needed by the 3.5 version gate (no job builds or pushes an image)
 - [x] Cloud Run design ADR: stateless handlers, shared session/task, graceful shutdown, concurrency/min/max, worker as separate service — `docs/adr/ADR-0040-cloud-run-design.md`. Design only, and it says so. Four things do not hold and are named there: the stream hold (25 s) can outlast Cloud Run's grace period, so `timeout_graceful_shutdown` or the hold has to be tuned; the §16 kill switch is process-local and stops bookings on one replica; §9's session identity is not implemented for that profile, so a deployed gateway has no way to obtain a session; and the concurrency/min/max numbers are undesigned because they are measurable only after a deployment.
-- [ ] Runbooks in `docs/runbooks/`; scenario docs in `docs/demo-scenarios/`
-- [ ] README maps each technology → scenario → code module → trace/eval evidence (not a plain list)
-- [ ] Demo recordings of all eight scenarios
+- [~] Runbooks in `docs/runbooks/`; scenario docs in `docs/demo-scenarios/` — `local-demo.md` and `evaluation.md` exist; `docs/demo-scenarios/` holds only a README
+- [x] README maps each technology → scenario → code module → trace/eval evidence (not a plain list) — README "Engineering evidence" plus the full table in `docs/implementation-notes.md`
+- [~] Demo recordings of all eight scenarios — one showcase video (`docs/media/referraleasy-showcase-enterprise.mp4`, source in `videos/referraleasy-showcase/`) and a step-by-step screenshot walkthrough of the standard booking; not one recording per scenario
 
 ---
 
@@ -605,7 +644,7 @@ the older indices; the template's top-level `synthetic` field is unpopulated (th
 
 ## Open questions to settle early
 
-- [ ] Language of the patient UI and agent responses (spec is Turkish, fixtures use miles/ZIP/America/Chicago — Turkish-speaking patients in a US setting?)
-- [ ] Web framework for `apps/web` (not named in the spec); choose it to fit the A2UI renderer pinned in S3
-- [ ] Whether Cloud Run is deployed or design-only for the portfolio
-- [ ] Budget ceiling for daily demo token spend (§8)
+- [x] Language of the patient UI and agent responses — **English only** (decided 2026-10-20). "Turkish-speaking" survives only as a provider-language *constraint* in scenario 2, not as the UI language
+- [x] Web framework for `apps/web` — Vite + Lit, fitted to `@a2ui/lit 0.13.0` (ADR-0027)
+- [x] Whether Cloud Run is deployed or design-only for the portfolio — **design-only for now** (decided 2026-10-20; ADR-0040)
+- [x] Budget ceiling for daily demo token spend (§8) — **$10/day for now** (decided 2026-10-20; previously $5/day). Not enforced in code — see 5.1

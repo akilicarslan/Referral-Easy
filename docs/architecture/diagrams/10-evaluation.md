@@ -93,12 +93,13 @@ classDiagram
 ```mermaid
 flowchart LR
     Online["online sampling<br/>HMAC(seed, turn_id) Bernoulli 1%"]:::gap --> Batch["batch at 00:00 / 12:00<br/>America/Chicago"]:::gap
-    Batch --> Smith["LangSmith experiments"]:::gap
+    Batch --> Smith["Langfuse experiments"]:::gap
     Batch --> OS[("OpenSearch evaluation index")]
     Risk["critical events:<br/>100% deterministic + risk-review queue"]:::gap
 
     classDef gap fill:#f5f5f5,stroke:#9e9e9e,color:#616161,stroke-dasharray:2 4
 ```
 
-Nothing in `services/` or `packages/` imports LangSmith today. The admin Evaluations page reads
+Langfuse receives the agents' traces (ADR-0042), but no evaluation run writes datasets or experiments
+to it yet. The admin Evaluations page reads
 whatever `eval_score` events exist in OpenSearch.

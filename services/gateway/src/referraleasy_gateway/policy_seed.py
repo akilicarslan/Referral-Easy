@@ -32,6 +32,13 @@ POLICY_SEED_SOURCE: Final = "migrations/014_align_domain_vocabulary.sql"
 COORDINATION_ROWS: Final[tuple[tuple[str, str, str, bool, str | None], ...]] = (
     (
         "system",
+        "await_patient_choice",
+        "READINESS_CHECK",
+        True,
+        "Attach a document the readiness check found missing.",
+    ),
+    (
+        "system",
         "capture_consent",
         "HUMAN_HANDOFF",
         True,

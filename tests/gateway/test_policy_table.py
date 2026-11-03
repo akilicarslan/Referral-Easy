@@ -151,6 +151,8 @@ def _migration_policy_rows() -> set[tuple[str, str, str, bool, str | None]]:
     rows += _rows(_statement(additions, POLICY_INSERT), width=6, minimum=6)
     consent = (REPO_ROOT / "migrations/016_handoff_consent.sql").read_text()
     rows += _rows(_statement(consent, POLICY_INSERT), width=6, minimum=1)
+    documents = (REPO_ROOT / "migrations/019_patient_documents.sql").read_text()
+    rows += _rows(_statement(documents, POLICY_INSERT), width=6, minimum=1)
     return {
         (role, tool, state, allowed == "true", None if note == "NULL" else note)
         for role, tool, state, allowed, _max_calls, note in rows

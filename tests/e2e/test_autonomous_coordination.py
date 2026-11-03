@@ -184,7 +184,11 @@ def test_patient_choices_complete_the_autonomous_journey(
 
             sources = demo_sources(PATIENT)
             if fault == "missing_document":
+                # No document on the referral and none the patient could attach: the readiness
+                # check cannot ask the patient, so a coordinator takes it. The attach-and-resume
+                # path is `tests/e2e/test_scenario_journeys.py`.
                 sources["referral"]["document_ids"] = []
+                sources["patient_documents"] = []
             seeded = gateway.post(
                 "/v1/demo/workflows",
                 headers=ah,

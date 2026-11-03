@@ -473,42 +473,53 @@ services:
     networks: [referraleasy]
 
   # ══════════════════════════════════════════════════════════════════════════
-  # DECLARED BUT UNBOOTABLE — profile `pending`
+  # `scheduler` (next, profile `core`) is §16's alert loop since 2026-10-20.
   #
-  # These two are what this file used to describe as if they existed: a `scheduler` on
-  # 8082 and a `local-guardrail` on 8090, both behind alarms about a missing
-  # Dockerfile. What is actually missing is the service. They keep the interface they
-  # were written against, behind a profile `make up` never activates, so the gap is
-  # stated in the topology instead of being papered over by a probe that could only
-  # ever answer "unhealthy". ADR-0036 has the measurements.
+  # DECLARED BUT UNBOOTABLE — profile `pending`: `local-guardrail` (after it) on 8090, behind an
+  # alarm about a missing Dockerfile. What is actually missing is the service. It keeps
+  # the interface it was written against, behind a profile `make up` never activates,
+  # so the gap is stated in the topology instead of being papered over by a probe that
+  # could only ever answer "unhealthy". ADR-0036 has the measurements.
   # ══════════════════════════════════════════════════════════════════════════
 
   scheduler:
-    # This image is real and builds: services/workers/Dockerfile serves both `worker`
-    # and `scheduler` by SERVICE_ROLE. This role's arm of its CMD is a refusal — reason
-    # on stderr, exit 64 — because there is no evaluation or sampling job in this
-    # repository: nothing reads EVAL_CRON or EVAL_TIMEZONE (they appear in this file,
-    # in .env.example, and nowhere in the code), `referraleasy_eval` does not exist as
-    # a package, and the one loop that does exist must not be run twice — a second
-    # owner of the same SKIP LOCKED rows is worse than a service that never starts.
+    # §16's alert loop: `python -m referraleasy_workers alerts --watch` (the image's
+    # `scheduler` arm). Each tick queries the telemetry indices, runs the four rules
+    # through the dedup engine and records state, transitions and mock emails in
+    # migration 017's tables; a transaction-scoped advisory lock keeps a second
+    # scheduler from opening the same alert twice. It sends nothing: the mock outbox
+    # delivers to this container's log (`docker compose logs scheduler`).
+    #
+    # What it still does NOT do is §14's online evaluation sampling: EVAL_CRON and
+    # EVAL_TIMEZONE are passed through for that job and read by nothing yet (the
+    # timezone is the alert windows' display zone).
     build:
       context: .
       dockerfile: services/workers/Dockerfile
     image: referraleasy/worker:dev    # the same artefact as `worker`: one image, two roles
-    profiles: [pending]
+    profiles: [core]
     restart: unless-stopped
     env_file: *app-env-file
     environment:
       <<: *app-env
       SERVICE_ROLE: scheduler
-      # Declared, and read by nothing yet. Kept so the interface this entry was
-      # written against stays visible rather than quietly disappearing.
       EVAL_CRON: ${EVAL_CRON:-0 0,12 * * *}
       EVAL_TIMEZONE: ${EVAL_TIMEZONE:-America/Chicago}
-    # No `depends_on`, and no healthcheck. A container whose command exits 64 has
-    # nothing to wait for, and an entry that depended on the `core` profile's services
-    # would make `--profile pending` on its own an invalid project ("depends on
-    # undefined service") — an error about the profile rather than about the gap.
+    depends_on:
+      # The state is in Postgres; the measurements are in OpenSearch. A tick with the
+      # cluster down records every rule as unmeasured with the error — it does not
+      # crash — but starting before either exists would only produce those rows.
+      postgres: { condition: service_healthy }
+      opensearch: { condition: service_healthy }
+    healthcheck:
+      # Same shape as `worker`'s, for the same reason: PID 1 is the loop, and the
+      # database it writes is reachable.
+      test:
+        - CMD-SHELL
+        - >-
+          tr '\0' ' ' < /proc/1/cmdline | grep -q "referraleasy_workers alerts" &&
+          python -c "import os, psycopg; psycopg.connect(os.environ['DATABASE_URL'], connect_timeout=3).close()"
+      <<: *hc-defaults
     deploy:
       resources:
         limits: { cpus: "0.5", memory: 256m }

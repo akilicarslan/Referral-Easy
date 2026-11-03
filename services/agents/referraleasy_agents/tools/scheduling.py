@@ -6,9 +6,11 @@ Three of §3's rules are enforced here, in code, and each has a test:
    approval's payload hash against the exact payload being written, its
    `state_version` against the envelope's `current_state_version`, its `expires_at`
    against the present, and its `consumed` flag. Every failure raises
-   :class:`NoApprovalRefused`. The check does not consult the model: the model
-   supplies the approval *object*, the authority for "is it live" is the hash, the
-   version and the clock.
+   :class:`NoApprovalRefused`. The check does not consult the model, and the model
+   does not supply the approval either: it is read from the turn's structured input,
+   which the gateway minted and the coordinator forwards by code. A model that could
+   pass the approval as an argument could rewrite its `expires_at` or `consumed`, and
+   a check of the object against itself would pass.
 2. **"on a timeout it cannot create a duplicate under a new key."** A transport
    failure on the write path raises :class:`BookingOutcomeUnknown`
    (`outcome_unknown`), never the retryable one; and both `create_booking` and
@@ -247,7 +249,6 @@ async def create_booking(
     *,
     idempotency_key: str,
     payload: Mapping[str, Any],
-    approval: Mapping[str, Any] | None = None,
     expected_slot_version: int | None = None,
 ) -> dict[str, Any]:
     """Write the booking request the patient approved, exactly once.
@@ -264,6 +265,10 @@ async def create_booking(
     it is sent to. ``payload`` here is this tool's own subject matter, the
     approval-bound booking body, and not the turn's input document of the same name
     on `ToolCall`.
+
+    The approval is not a tool argument for the same reason: it is the patient's
+    consent, read from the turn's input (`call.payload["approval"]`), so the model
+    can neither extend its expiry nor mark a spent one unspent.
     """
     key = enforce_idempotency_key(call, idempotency_key, tool="create_booking")
     booking_payload = BookingPayload.model_validate(dict(payload))
@@ -271,7 +276,10 @@ async def create_booking(
     # The approval guard runs first: with no envelope there is no state version to
     # bind to, and `check_approval` is where that refusal belongs. The identifiers
     # below then read the same envelope.
-    approval_id = check_approval(call, canonical, approval)
+    supplied = call.payload.get("approval")
+    approval_id = check_approval(
+        call, canonical, supplied if isinstance(supplied, Mapping) else None
+    )
     workflow_id = require_workflow_id(call)
     command_id = require_command_id(call)
 

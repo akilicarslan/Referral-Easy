@@ -27,7 +27,8 @@ What is deliberately **not** here yet, stated rather than implied:
 * the **replay harness** that produces run records — §14's capture side. Until it exists, a run has
   to be given records or every case reports as unmeasured;
 * **online sampling** (§14's 1% Bernoulli draw) and the **charts**, which need the admin app;
-* **LangSmith**, blocked on ADR-0010, and the **judge model**, blocked on ADR-0011.
+* **Langfuse datasets and experiments** (ADR-0042 covers tracing only), and the **judge model**,
+  blocked on ADR-0011.
 """
 
 from referraleasy_eval.dataset import (

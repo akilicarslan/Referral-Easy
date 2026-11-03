@@ -20,6 +20,13 @@ dependencies = [
   # guardrails are: the admin page serves the rules and their thresholds from this package rather
   # than a copy, and the image is built with `uv sync --package referraleasy-gateway`.
   "referraleasy-alerts",
+  # §13's canary router and conversation pinning: the coordination worker pins every workflow to a
+  # release through this package (`referraleasy_gateway.release`).
+  "referraleasy-release-registry",
+  # §11's operator actions. The admin Human Queue claims, releases and resolves through the workers'
+  # `HumanQueue`, so the dashboard and the CLI are one implementation over the database's own
+  # compare-and-set, not two arbiters.
+  "referraleasy-workers",
   "fastapi>=0.115",
   "uvicorn>=0.30",
   # The control-state port's PostgreSQL adapter calls the domain stores, which need the driver.
@@ -44,3 +51,5 @@ referraleasy-domain = { workspace = true }
 referraleasy-guardrails = { workspace = true }
 referraleasy-telemetry = { workspace = true }
 referraleasy-alerts = { workspace = true }
+referraleasy-release-registry = { workspace = true }
+referraleasy-workers = { workspace = true }

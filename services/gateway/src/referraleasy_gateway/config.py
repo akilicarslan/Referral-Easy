@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any, Final, Self
 from urllib.parse import urlsplit
 
-from referraleasy_gateway.release import resolve_release_manifest_id
+from referraleasy_gateway.release import RELEASE_MANIFEST_ID_ENV, resolve_release_manifest_id
 
 __all__ = [
     "CONTROL_BACKEND_ENV",
@@ -171,6 +171,9 @@ class GatewaySettings:
     #: means no pin could be named, and the dispatcher reports itself unconfigured rather than
     #: sending a task under an invented release.
     release_manifest_id: str = ""
+    #: `RELEASE_MANIFEST_ID` as given, empty when the release came from `latest.json`. Only an
+    #: explicit pin narrows the release catalog; a resolved default leaves the router to choose.
+    explicit_release_manifest_id: str = ""
 
     def __post_init__(self) -> None:
         if not self.patient_secret.strip() or not self.admin_secret.strip():
@@ -255,6 +258,7 @@ class GatewaySettings:
             a2a_base_url=source.get("A2A_BASE_URL", "").strip(),
             a2a_service_token=source.get("A2A_SERVICE_TOKEN", "").strip(),
             release_manifest_id=resolve_release_manifest_id(source),
+            explicit_release_manifest_id=source.get(RELEASE_MANIFEST_ID_ENV, "").strip(),
         )
         return replace(settings, **overrides) if overrides else settings
 

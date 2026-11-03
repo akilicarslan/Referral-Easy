@@ -524,10 +524,85 @@ def test_the_human_queue_read_and_the_workers_cli_share_one_statement() -> None:
 
 
 def test_the_human_queue_route_takes_no_write(client) -> None:
-    """§11's races are decided by the database's compare-and-set in the worker's path. A second
-    arbiter on the dashboard is exactly what the queue's design does not need."""
+    """The collection is read-only. Operator actions are per-ticket routes that delegate to the
+    workers' `HumanQueue` (see `test_queue_actions_*` below), so the dashboard is not a second
+    arbiter of §11's races."""
     admin = _admin(client)
 
     for method in (client.post, client.put, client.patch, client.delete):
         response = method("/v1/admin/human-queue", headers=admin)
         assert response.status_code in (404, 405), (method.__name__, response.status_code)
+
+
+# ---------------------------------------------------------------------------
+# 5b. Operator actions on a ticket (§11) — one implementation, the workers'
+# ---------------------------------------------------------------------------
+
+HANDOFF = "11111111-2222-4333-8444-555555555555"
+
+
+def test_queue_actions_refuse_in_the_memory_profile(client, backend: str) -> None:
+    if backend != "memory":
+        pytest.skip("the memory profile's refusal; the postgres path is covered below")
+    admin = _admin(client)
+    for action in ("claim", "release"):
+        response = client.post(f"/v1/admin/human-queue/{HANDOFF}/{action}", json={}, headers=admin)
+        assert response.status_code == 404, response.text
+        assert "in-memory control profile" in response.text
+
+
+def test_queue_actions_need_an_admin_session(client) -> None:
+    response = client.post(f"/v1/admin/human-queue/{HANDOFF}/claim", json={})
+    assert response.status_code == 401
+
+
+def test_queue_actions_run_through_the_workers_queue_as_the_session_subject() -> None:
+    """The gateway adds the operator's identity and the profile gate — and nothing else."""
+    from contextlib import contextmanager
+    from dataclasses import replace
+    from uuid import UUID
+
+    from referraleasy_gateway.api import queue_action
+    from referraleasy_gateway.config import GatewaySettings
+
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    class Queue:
+        def __init__(self, connection: object) -> None:
+            assert connection == "connection"
+
+        def claim(self, ticket: str, **kwargs: object) -> str:
+            calls.append((ticket, kwargs))
+            return "claimed"
+
+    @contextmanager
+    def opened(dsn: str):  # type: ignore[no-untyped-def]
+        assert dsn == "postgresql://db/referraleasy"
+        yield "connection"
+
+    settings = replace(
+        GatewaySettings.from_env({"JWT_PATIENT_SECRET": "p" * 40, "JWT_ADMIN_SECRET": "a" * 40}),
+        control_backend="postgres",
+        database_url="postgresql://db/referraleasy",
+    )
+    answer = queue_action(
+        settings,
+        UUID(HANDOFF),
+        lambda queue, ticket: {
+            "result": queue.claim(ticket, operator_id="ops-1", expected_generation=3)
+        },
+        open_session=opened,
+        queue_factory=Queue,
+    )
+    assert answer == {"result": "claimed"}
+    assert calls == [(HANDOFF, {"operator_id": "ops-1", "expected_generation": 3})]
+
+
+def test_queue_actions_use_the_workers_human_queue_not_a_second_copy() -> None:
+    import inspect
+
+    from referraleasy_gateway import api
+
+    source = inspect.getsource(api.queue_action)
+    assert "HumanQueue" in source
+    assert "handoff_claim" not in inspect.getsource(api), "claim SQL belongs to the domain store"

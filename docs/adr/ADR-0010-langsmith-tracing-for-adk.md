@@ -1,7 +1,8 @@
 # ADR-0010 — LangSmith tracing for ADK
 
-- **Status:** **UNRESOLVED — blocked on `LANGSMITH_API_KEY`.** The integration path is
-  identified and version-pinned; end-to-end emission is unproven.
+- **Status:** **Superseded by ADR-0042 (Langfuse tracing for the ADK agents), 2026-10-23.** It was
+  never resolved: no `LANGSMITH_API_KEY` was provisioned, and LangSmith was removed from the
+  dependencies when tracing moved to Langfuse. Kept as the record of what was checked.
 - **Date:** 2026-10-14
 - **Phase:** 0 (spike S-10)
 - **Decides:** how ADK traces reach LangSmith.

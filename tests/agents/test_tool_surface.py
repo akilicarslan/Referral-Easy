@@ -50,8 +50,11 @@ pytestmark = pytest.mark.contract
 #:   (`tools/call.py`: `require_workflow_id`, `require_command_id`, `require_patient_id`), because a
 #:   model that can name them can attribute a booking write, a document certification or a constraint
 #:   to a workflow or patient other than the one whose task it is answering.
+#: * **consent** — `approval` is the patient's, minted by the gateway and read from the turn's input
+#:   (`tools/scheduling.py:create_booking`). A model that can pass it can extend its expiry.
 SERVICE_SUPPLIED: frozenset[str] = frozenset(
     {
+        "approval",
         "approval_policy",
         "budget",
         "call",

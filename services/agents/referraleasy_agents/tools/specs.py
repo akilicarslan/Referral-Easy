@@ -293,7 +293,7 @@ _SPECS: Sequence[ToolSpec] = (
         summary=(
             "Create the booking request the patient approved. Requires a live approval bound to "
             "this exact payload, and the request's own idempotency key. Refuses without one. The "
-            "workflow and the command come from the task, not from the call."
+            "workflow, the command and the approval come from the task, not from the call."
         ),
         parameters=(
             _p("idempotency_key", str, "The key of this booking request. Never minted twice."),
@@ -301,12 +301,6 @@ _SPECS: Sequence[ToolSpec] = (
                 "payload",
                 dict,
                 "The exact approval-bound payload: patient, provider, hospital, slot, visit_type.",
-            ),
-            _p(
-                "approval",
-                _OPTIONAL_DICT,
-                "The live approval: payload_hash, state_version, expires_at, granted_by.",
-                required=False,
             ),
             _p(
                 "expected_slot_version",

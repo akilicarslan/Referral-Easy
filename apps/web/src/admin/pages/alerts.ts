@@ -2,10 +2,10 @@
  * Alerts — §16's rules, their thresholds, and the kill switch (§12).
  *
  * The page's hardest job is the one it does not look like it is doing: **not saying "nothing is
- * wrong"**. Nothing has been evaluated — the scheduler that queries the telemetry indices on an
- * interval is the remaining half of Phase 7.3 — and an alerting page that drew an empty list of
- * firing alerts would be read as a healthy system. So the page leads with what has *not* happened,
- * then shows what would have to be true for each rule to fire.
+ * wrong"**. When the scheduler (`referraleasy_workers.alerts`) has not recorded a run, the page leads
+ * with that and its reason. When it has, it shows each rule's *last state* — `firing`, `ok` or
+ * `unmeasured`, where the third is never drawn as the second — the transitions it produced, and the
+ * mock emails composed for them. A rule the scheduler could not evaluate is listed with why.
  *
  * The thresholds come from the gateway, which reads them from `referraleasy_alerts` — the same
  * package the rules themselves live in, so a page and a rule cannot disagree about what fires.
@@ -44,7 +44,13 @@ export class AdminAlerts extends AdminPage {
     const rules = (Array.isArray(payload['rules']) ? payload['rules'] : []).filter(
       (row): row is RuleRow => typeof row === 'object' && row !== null,
     );
-    const evaluation = (payload['evaluation'] ?? {}) as { ran?: unknown; reason?: unknown };
+    const evaluation = (payload['evaluation'] ?? {}) as {
+      ran?: unknown;
+      reason?: unknown;
+      last_run?: Record<string, unknown>;
+      states?: unknown;
+      events?: unknown;
+    };
     const outbox = (payload['outbox'] ?? {}) as {
       messages?: unknown;
       counts?: unknown;
@@ -55,17 +61,7 @@ export class AdminAlerts extends AdminPage {
 
     return html`
       ${this.#killSwitch(killSwitch)}
-      ${card(
-        'Nothing has been evaluated',
-        undefined,
-        html`<p>${String(evaluation.reason ?? 'No evaluation has run.')}</p>
-          <p class="figure-sample">
-            An empty alert list is not a clean bill of health. Every rule below reports
-            <em>not enough data</em> until it can measure something, and never “ok” — a service that
-            stopped emitting has no failures and no evidence, which is the moment an alert matters
-            most.
-          </p>`,
-      )}
+      ${evaluation.ran === true ? this.#evaluated(evaluation) : this.#notEvaluated(evaluation)}
       ${card(
         'Rules',
         `${number(rules.length)} starting rules from §16`,
@@ -130,6 +126,126 @@ export class AdminAlerts extends AdminPage {
             and nothing in the outbox can create a new alert to fail on again.
           </p>
         `,
+      )}
+    `;
+  }
+
+  #notEvaluated(evaluation: { reason?: unknown }): TemplateResult {
+    return card(
+      'Nothing has been evaluated',
+      undefined,
+      html`<p>${String(evaluation.reason ?? 'No evaluation has run.')}</p>
+        <p class="figure-sample">
+          An empty alert list is not a clean bill of health. Every rule below reports
+          <em>not enough data</em> until it can measure something, and never “ok” — a service that
+          stopped emitting has no failures and no evidence, which is the moment an alert matters
+          most.
+        </p>`,
+    );
+  }
+
+  #evaluated(evaluation: {
+    last_run?: Record<string, unknown>;
+    states?: unknown;
+    events?: unknown;
+  }): TemplateResult {
+    const run = evaluation.last_run ?? {};
+    const rows = (Array.isArray(evaluation.states) ? evaluation.states : []).filter(
+      (row): row is Record<string, unknown> => typeof row === 'object' && row !== null,
+    );
+    const events = (Array.isArray(evaluation.events) ? evaluation.events : []).filter(
+      (row): row is Record<string, unknown> => typeof row === 'object' && row !== null,
+    );
+    const skipped = (Array.isArray(run['skipped']) ? run['skipped'] : []).filter(
+      (row): row is Record<string, unknown> => typeof row === 'object' && row !== null,
+    );
+    const stateClass = (state: unknown): string =>
+      state === 'firing' ? 'error' : state === 'unmeasured' ? 'unknown' : '';
+    return html`
+      ${card(
+        'Last evaluation',
+        `by ${String(run['scheduler'] ?? 'the scheduler')} at ${String(run['finished_at'] ?? '')}`,
+        html`
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>Series</th>
+                  <th>State</th>
+                  <th>Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(
+                  (row) => html`
+                    <tr>
+                      <td><code>${String(row['rule'] ?? '')}</code></td>
+                      <td>${String(row['series'] ?? '') || '—'}</td>
+                      <td>
+                        <span class="chip ${stateClass(row['last_state'])}"
+                          >${String(row['last_state'] ?? '')}${row['firing'] === true &&
+                          row['last_state'] !== 'firing'
+                            ? ' · still open'
+                            : ''}</span
+                        >
+                      </td>
+                      <td>${String(row['last_detail'] ?? '')}</td>
+                    </tr>
+                  `,
+                )}
+                ${skipped.map(
+                  (row) => html`
+                    <tr>
+                      <td><code>${String(row['rule'] ?? '')}</code></td>
+                      <td>—</td>
+                      <td><span class="chip unknown">not evaluated</span></td>
+                      <td>${String(row['reason'] ?? '')}</td>
+                    </tr>
+                  `,
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p class="figure-sample">
+            <em>unmeasured</em> leaves an open alert open: a rule that cannot decide has not resolved
+            anything, so a gap in telemetry never closes an incident.
+          </p>
+        `,
+      )}
+      ${card(
+        'Transitions',
+        `${number(events.length)} most recent`,
+        events.length === 0
+          ? empty('No rule has opened or resolved an alert yet.')
+          : html`<div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>At</th>
+                    <th>Rule</th>
+                    <th>Event</th>
+                    <th>Severity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${events.map(
+                    (row) => html`
+                      <tr>
+                        <td class="row-sample">${String(row['at'] ?? '')}</td>
+                        <td><code>${String(row['rule'] ?? '')}</code></td>
+                        <td>
+                          <span class="chip ${row['kind'] === 'opened' ? 'error' : ''}"
+                            >${String(row['kind'] ?? '')}</span
+                          >
+                        </td>
+                        <td>${String(row['severity'] ?? '')}</td>
+                      </tr>
+                    `,
+                  )}
+                </tbody>
+              </table>
+            </div>`,
       )}
     `;
   }

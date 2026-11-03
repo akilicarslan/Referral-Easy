@@ -10,6 +10,7 @@ import asyncio
 from typing import Any
 
 from referraleasy_agent_runtime import AgentRole, UpstreamTransient
+from referraleasy_agent_runtime.llm_tracing import active_llm_tracing
 from referraleasy_agents.decisions import next_allowed_actions
 from referraleasy_agents.errors import UnknownDataError
 from referraleasy_agents.schemas import schema_for
@@ -18,9 +19,20 @@ from referraleasy_agents.tools.toolbox import ToolSet
 
 async def _invoke(tools: ToolSet, name: str, **arguments: Any) -> dict[str, Any]:
     attempts = 1 if name in {"create_booking", "delegate_task"} else 3
+    tracing = active_llm_tracing()
     for attempt in range(attempts):
         try:
-            return await tools.invoke(name, **arguments)
+            # One observation per attempt, so a retried call shows each try and why it failed.
+            with tracing.tool(name, arguments) as observation:
+                try:
+                    result = await tools.invoke(name, **arguments)
+                except Exception as error:
+                    observation.finish(
+                        output=None, outcome="error", error=f"{type(error).__name__}: {error}"
+                    )
+                    raise
+                observation.finish(output=result, outcome="ok", metadata={"attempt": attempt + 1})
+                return result
         except UpstreamTransient:
             if attempt + 1 == attempts:
                 raise
@@ -108,7 +120,6 @@ async def execute_workflow(tools: ToolSet, role: AgentRole, data: dict[str, Any]
                 "create_booking",
                 idempotency_key=data["idempotency_key"],
                 payload=data["booking_payload"],
-                approval=data["approval"],
                 expected_slot_version=data.get("expected_slot_version"),
             )
             result = _booking_output(answer)
@@ -161,7 +172,7 @@ def _booking_output(answer: dict[str, Any]) -> dict[str, Any]:
         "patient_message": (
             "The hospital confirmed the appointment."
             if state == "CONFIRMED"
-            else "The hospital has not confirmed the appointment."
+            else "The hospital has not verified this appointment yet."
         ),
     }
 

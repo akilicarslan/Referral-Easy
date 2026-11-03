@@ -57,6 +57,8 @@ volumes/
 # ─── runtime artefacts ──────────────────────────────────────────────────────
 logs/
 *.log
+# eval replay captures (`make eval-replay`); the scored report under evaluations/reports is the record
+captures/
 .argent/
 playwright-report/
 .playwright-mcp/

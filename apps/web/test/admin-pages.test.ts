@@ -399,11 +399,76 @@ describe('Human Queue', () => {
     expect(text).toContain('1 of those expired');
   });
 
-  it('says where the work is done rather than offering a button', async () => {
-    const page = await show(new AdminHumanQueue(), new StubClient(payload));
+  class ActingClient extends StubClient {
+    readonly actions: Array<{ path: string; body: Record<string, unknown> }> = [];
 
-    expect(page.shadowRoot!.querySelectorAll('button')).toHaveLength(0);
-    expect(page.shadowRoot!.textContent).toContain('workers service');
+    constructor(
+      answer: ReadResult<Record<string, unknown>>,
+      private readonly outcome:
+        | { kind: 'done'; data: Record<string, unknown> }
+        | { kind: 'failed'; message: string } = { kind: 'done', data: {} },
+    ) {
+      super(answer);
+    }
+
+    override act(path: string, body: Record<string, unknown>) {
+      this.actions.push({ path, body });
+      return Promise.resolve(this.outcome);
+    }
+  }
+
+  function queueWith(ticket: Record<string, unknown>): ReadResult<Record<string, unknown>> {
+    return {
+      kind: 'data',
+      data: {
+        available: true,
+        tickets: [{ handoff_id: 'h2', ticket_ref: 'T-2', claim_generation: 4, ...ticket }],
+        counts: { open: 1, claimed: 0, claimed_expired: 0 },
+        return_states: ['READINESS_CHECK', 'FAILED'],
+        truncated: false,
+        note: '',
+      },
+    };
+  }
+
+  it('offers Claim on an open ticket and sends the generation it showed', async () => {
+    const client = new ActingClient(queueWith({ state: 'open' }));
+    const page = await show(new AdminHumanQueue(), client);
+
+    const buttons = [...page.shadowRoot!.querySelectorAll('button')];
+    expect(buttons.map((b) => b.textContent?.trim())).toEqual(['Claim']);
+    buttons[0]!.click();
+    await Promise.resolve();
+    expect(client.actions).toEqual([{ path: 'human-queue/h2/claim', body: { expected_generation: 4 } }]);
+  });
+
+  it('offers Release and Resolve only to the operator holding the claim', async () => {
+    const mine = await show(
+      new AdminHumanQueue(),
+      new ActingClient(queueWith({ state: 'claimed', claimed_by: 'coordinator@demo' })),
+    );
+    const labels = [...mine.shadowRoot!.querySelectorAll('button')].map((b) => b.textContent?.trim());
+    expect(labels).toEqual(['Release', 'Resolve']);
+    const options = [...mine.shadowRoot!.querySelectorAll('option')].map((o) => o.value);
+    expect(options).toEqual(['READINESS_CHECK', 'FAILED']);
+
+    const theirs = await show(
+      new AdminHumanQueue(),
+      new ActingClient(queueWith({ state: 'claimed', claimed_by: 'operator-7' })),
+    );
+    expect(theirs.shadowRoot!.querySelectorAll('button')).toHaveLength(0);
+  });
+
+  it('shows why a claim lost instead of a generic error', async () => {
+    const client = new ActingClient(queueWith({ state: 'open' }), {
+      kind: 'failed',
+      message: 'stale_ownership: another operator claimed this ticket',
+    });
+    const page = await show(new AdminHumanQueue(), client);
+    page.shadowRoot!.querySelector('button')!.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await (page as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+    expect(page.shadowRoot!.textContent).toContain('another operator claimed this ticket');
   });
 
   it('distinguishes an empty queue from an unreadable one', async () => {
@@ -414,5 +479,39 @@ describe('Human Queue', () => {
     const page = await show(new AdminHumanQueue(), new StubClient(empty));
 
     expect(page.shadowRoot!.textContent).toContain('measured empty queue');
+  });
+});
+
+describe('Alerts, once the scheduler has run', () => {
+  const evaluated: ReadResult<Record<string, unknown>> = {
+    kind: 'data',
+    data: {
+      available: true,
+      rules: [],
+      evaluation: {
+        ran: true,
+        last_run: {
+          scheduler: 'scheduler-1',
+          finished_at: '2026-10-20T18:00:00Z',
+          skipped: [{ rule: 'circuit_open', reason: 'no component publishes circuit-breaker state' }],
+        },
+        states: [
+          { rule: 'terminal_failure_rate', series: '', firing: true, last_state: 'unmeasured', last_detail: 'too few invocations' },
+        ],
+        events: [{ at: '2026-10-20T17:55:00Z', rule: 'terminal_failure_rate', kind: 'opened', severity: 'page' }],
+      },
+      outbox: { messages: [], counts: { delivered: 1 }, sends: false, note: '' },
+      kill_switch: { engaged: false },
+    },
+  };
+
+  it('shows each rule state, keeps an unmeasured open alert open, and names the skipped rule', async () => {
+    const page = await show(new AdminAlerts(), new StubClient(evaluated));
+    const text = page.shadowRoot!.textContent ?? '';
+    expect(text).not.toContain('Nothing has been evaluated');
+    expect(text).toContain('unmeasured · still open');
+    expect(text).toContain('not evaluated');
+    expect(text).toContain('no component publishes circuit-breaker state');
+    expect(text).toContain('opened');
   });
 });

@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -108,17 +108,20 @@ AGENT_DIMENSIONS: Final[tuple[str, ...]] = (
 )
 
 
-def load_alert_rules() -> dict[str, Any]:
-    """§16's four alert rules and the thresholds they publish, for the admin page.
+def load_alert_rules(
+    evaluated: Mapping[str, Any] | None = None, *, reason: str | None = None
+) -> dict[str, Any]:
+    """§16's four alert rules and their thresholds, plus what the scheduler last concluded.
 
-    **Static, and that is the honest content of the page today.** No evaluation has run: the
-    scheduler that queries OpenSearch on an interval is the rest of Phase 7.3 (`compose.yaml`
-    declares it and its `scheduler` arm still refuses to start). So the page shows what each rule
-    watches and what it would take to fire, and says plainly that nothing has been evaluated — which
-    is a different statement from "nothing is wrong", and the one an alerting page must not blur.
+    `evaluated` is `referraleasy_workers.alerts.read_alerts` over migration 017's tables: the state
+    per rule (including `unmeasured`), recent transitions, the mock outbox and the last tick. Without
+    it — the memory profile, or a database the scheduler has not written yet — the page shows what
+    each rule watches and says plainly that nothing has been evaluated, which is a different
+    statement from "nothing is wrong".
 
-    Read from the package rather than restated here, because §16's thresholds are the package's and a
-    second copy would eventually be a second answer to what a rule fires on.
+    The rules themselves are read from the package rather than restated here, because §16's
+    thresholds are the package's and a second copy would eventually be a second answer to what a
+    rule fires on.
     """
     rules = [
         {
@@ -129,24 +132,45 @@ def load_alert_rules() -> dict[str, Any]:
         }
         for rule in ALERT_RULES
     ]
+    last_run = (evaluated or {}).get("last_run")
+    if not last_run:
+        return {
+            "available": True,
+            "rules": rules,
+            "evaluation": {
+                "ran": False,
+                "reason": reason
+                or (
+                    "No tick has been recorded. The scheduler (`python -m referraleasy_workers "
+                    "alerts --watch`, compose service `scheduler`) writes each run to the database, "
+                    "and none of these rules reports 'ok' until it has measured something."
+                ),
+            },
+            "outbox": {
+                "messages": [],
+                "counts": {str(state): 0 for state in DeliveryState},
+                "sends": False,
+                "note": "The mock outbox composes and records; it never sends.",
+            },
+        }
+    counts = {str(state): 0 for state in DeliveryState}
+    counts.update({str(k): int(v) for k, v in (evaluated or {}).get("counts", {}).items()})
     return {
         "available": True,
         "rules": rules,
         "evaluation": {
-            "ran": False,
-            "reason": (
-                "No rule has been evaluated. The scheduler that queries the telemetry indices on an "
-                "interval is the remaining work in Phase 7.3, so nothing here is a finding — and "
-                "none of these rules reports 'ok' until it can measure something."
-            ),
+            "ran": True,
+            "last_run": last_run,
+            "states": list((evaluated or {}).get("states", [])),
+            "events": list((evaluated or {}).get("events", [])),
         },
         "outbox": {
-            "messages": [],
-            "counts": {str(state): 0 for state in DeliveryState},
+            "messages": list((evaluated or {}).get("messages", [])),
+            "counts": counts,
             "sends": False,
             "note": (
-                "The mock outbox composes and records; it never sends. Nothing has been composed yet "
-                "because nothing has fired."
+                "The mock outbox composes one message per transition and delivers it to the "
+                "scheduler's log. Nothing is sent to anyone."
             ),
         },
     }

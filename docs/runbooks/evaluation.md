@@ -4,21 +4,22 @@ Symptom-first, like `local-demo.md`. Each heading is something you might see; ea
 means and what to do. The commands are the answer to "how does this work", so they come first.
 
 ```bash
-make eval                                   # needs registry/releases/latest.json (see §1)
-make eval RUNS=captures/replay.json         # with a replay's run records
+make eval                                   # replay every scenario, then score (needs §1's manifest)
+make eval-replay                            # only the replay → captures/replay.json
+make eval RUNS=captures/replay.json         # score an existing replay without re-running it
 ```
 
 `make eval` exits **1** on a §14 release blocker, **3** when it could not start, and **0** otherwise.
 
 ## 0. What a run needs, and what it can run without
 
-Three inputs, and only two of them exist today:
+Three inputs:
 
 | Input | Where it comes from | Exists? |
 | --- | --- | --- |
 | Release manifest | `scripts/check_release_versions.py build` | **after §1** |
 | Dataset + rubric | `evaluations/datasets/offline-v1.json`, committed | yes |
-| Run records | a replay's captures | **no — the replay harness is not written** |
+| Run records | `scripts/eval_replay.py` → `captures/replay.json` | yes — `make eval` runs it first |
 
 Without run records the command still runs, **exits 0**, and reports all 44 cases as *unmeasured*
 with the reason. That is deliberate and pinned by a test: a run with no replay is not a failure, it
@@ -43,21 +44,51 @@ digest. If there is no built image, **the manifest cannot be built yet** — and
 state rather than a reason to write a placeholder. `registry/releases/` is empty precisely because
 this has not been done.
 
-## 2. Every case reports as unmeasured ("0/44 case(s) have a run record")
+## 2. How the replay works, and what the first measured run said
 
-Expected until the replay harness exists. Run records are the *observations* the rules judge; the
-dataset holds only the expectations. Without them there is nothing to judge, and the harness says so
-rather than scoring the expectations against themselves.
+`scripts/eval_replay.py` runs each `(scenario_id, replay_variant)` the dataset names on **a fresh
+mock API over a temporary SQLite file**, with the gateway (memory control store) and the seven agent
+services in-process on the offline profile. The script supplies only what a patient would: the
+opening message and each choice (the option the scenario prefers, else the first), approval, and
+consent to a handoff. The scenario's fault is armed on the mock API at the point the autonomous E2E
+journeys arm it. Nothing else is scripted — no specialist result, transition or booking.
 
-A record is a JSON object per case — see `referraleasy_eval.runs.records_as_payload` for the exact
-shape, and `tests/eval/eval_fixtures.py` for what a healthy one looks like. The fields that are easy
-to get wrong:
+Three things are recorded and nothing else: the gateway's admin view at the end, every delegation
+through a recording `CoordinatorDispatch`, and every tool call at `ToolSet.invoke` (the agents' one
+path to a handler). `referraleasy_eval.capture` maps a journey to one record per case; its module
+docstring lists the three places a capture could flatter the system and what it does instead. A
+journey that does not settle produces **no record**, so its cases show up as unmeasured, not as
+low scores.
 
-* `case_id` must match a case in the dataset, or the record is reported in `unmatched_records`;
-* `live_approval_ids` is what makes a booking *approved*. A confirmed booking whose `approval_id` is
-  not in that list is a **release blocker**, not a quality miss;
-* `constraints[].kind` must be `hard` or `soft`. §4's rule turns on which, so a third value is
-  refused at load rather than scored.
+**Measured run (2026-10-20, `offline-v2`, `rel-20261016-8e00275`): 44/44 cases recorded, no critical
+violation.** Where each scenario settles:
+
+| Scenario | Settles in | Why |
+| --- | --- | --- |
+| standard_booking, version_regression | `BOOKED` | the straight path; both runs agree |
+| multi_constraint_search | `BOOKED` | no Friday slot → evidence-backed alternative → the patient's choice is a recorded `ConstraintChange` |
+| network_conflict | `BOOKED` | network status unknown → shown with freshness → the patient chose that doctor again |
+| missing_document | `BOOKING_UNVERIFIED` | the patient attached their prior report; the re-check passed; the hospital's review-required adapter leaves the request `PENDING_REVIEW` |
+| timeout_after_commit | `BOOKING_UNVERIFIED` | lost commit response, no second booking |
+| timeout_after_commit / before_commit | `HUMAN_HANDOFF` | the lookup reports no appointment, so nothing is treated as committed |
+| three_transient_errors | `HUMAN_HANDOFF` | the chosen hospital needs documents the patient does not hold |
+| no_specialist_found | `HUMAN_HANDOFF` (`no_match`) | as the case expects |
+
+Several cases still disagree with the dataset, and the disagreement is the finding rather than a defect
+to edit away. For example, `multi_constraint_search` expects `no_match` while the patient's accepted
+alternative completes the journey, and the timeout case expects a handoff that the reconciliation
+design does not make.
+
+Two measurement gaps are visible in the report rather than hidden in it. **Constraints:** the
+matching agent returns `constraint_fit: []`, so constraint cases report `eval_error`/`n/a`.
+**Cost:** the offline workflow path makes no model call, so cost is a measured `$0` over tool calls,
+not a model cost.
+
+The replay surfaced two fixture problems. **Fixed:** plan 006's network record and coverage result
+named provider 001 (a cardiologist), while scenario 5's dermatology patient can only match provider
+010, so the timeout scenario could never reach a booking. **Not fixed, worked around:** scenario 3's
+conflict record (coverage 002, Lakeview) lies outside patient 005's hard 20-mile radius, so the replay
+uses Prairie Ridge, whose network status for the plan is unknown.
 
 ## 3. "the dataset does not load: …"
 

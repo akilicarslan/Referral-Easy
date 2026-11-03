@@ -280,8 +280,10 @@ Missing data is reported as unavailable. Offline fixture output is marked synthe
 presented as measured model quality, cost or latency.
 
 The evaluation package contains **44 cases across eight scenarios and 14 deterministic rules**.
-It reports unmeasured coverage until actual replay records are supplied. There is no completed
-replay harness or published quality benchmark yet.
+`make eval` first replays every scenario through the gateway and the seven agents on an isolated
+mock API, then scores the captured journeys: all 44 cases are measured. The scores are offline,
+synthetic results from fixtures, not model-quality benchmarks; see the
+[evaluation runbook](docs/runbooks/evaluation.md) for what the first run found.
 
 ## Run locally
 
@@ -426,8 +428,10 @@ You can keep `EMBEDDING_BACKEND=offline` and `RERANK_BACKEND=offline` while test
 journey. Their live backends need their own validated provider configuration. Before enabling any
 live backend, resolve **every** `CHANGEME` value: the environment validator checks even unrelated
 declared pins. Replace the patient/admin signing secrets and A2A token with local-only values.
-If Vertex, evaluation, or LangSmith are disabled, clear their unused placeholder fields rather
-than inventing provider settings; set `LANGSMITH_ENABLED=false` when tracing is disabled.
+If Vertex or evaluation are disabled, clear their unused placeholder fields rather than inventing
+provider settings. LLM tracing to Langfuse is on only when `LANGFUSE_PUBLIC_KEY`,
+`LANGFUSE_SECRET_KEY` and `LANGFUSE_BASE_URL` are all set and `MODEL_BACKEND` is not `offline`;
+leave the keys empty to keep it off ([ADR-0042](docs/adr/ADR-0042-langfuse-tracing-for-adk.md)).
 
 ```bash
 uv run python scripts/validate_env.py
@@ -493,7 +497,7 @@ pnpm test                 # TypeScript workspace tests
 make e2e REPEAT=2         # Fresh mock API + temporary database per iteration
 make test-integration     # Requires TEST_DATABASE_URL pointing to a dedicated test database
 make test-integration-rag # Requires a reachable OpenSearch instance
-make eval                 # Reports unmeasured cases unless RUNS=<capture> is supplied
+make eval                 # Replay every scenario, then score the captured journeys
 make down
 ```
 
@@ -508,11 +512,9 @@ policy and current-card recovery are implemented and locally tested. Remaining p
 explicit:
 
 - Connect the hybrid retriever to the matching service and resolve the live rerank provider contract.
-- Integrate the standalone output guardrail with agent-held source evidence.
-- Add evaluation replay capture, scenario execution and measured model-quality reports.
-- Complete per-conversation release pinning, canary routing and CI image publishing.
-- Persist historical SSE replay and general model-task dispatch for multi-replica operation.
-- Complete scheduled alert execution and operator queue actions in the dashboard.
+- Raise the evaluation scores the replay now measures (`make eval`): most non-standard scenarios end in a handoff.
+- Give operators the release-level controls: stopping or migrating a pinned conversation.
+- Share the dispatcher's task queue and the latency ledger across gateway replicas (the SSE history already is).
 
 The deployment design targets Cloud Run; this repository does not claim a production deployment.
 See [ADR-0040](docs/adr/ADR-0040-cloud-run-design.md) and

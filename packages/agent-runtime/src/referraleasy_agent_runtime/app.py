@@ -43,12 +43,14 @@ from referraleasy_agent_runtime.auth import (
 )
 from referraleasy_agent_runtime.budget import TurnBudget
 from referraleasy_agent_runtime.errors import ConfigurationError
+from referraleasy_agent_runtime.llm_tracing import LlmTracing, configure_llm_tracing
 from referraleasy_agent_runtime.results import envelope, outcome_class, project_failure
 from referraleasy_agent_runtime.settings import AgentSettings, resolve_port
 from referraleasy_agent_runtime.suspend import Suspension
 from referraleasy_contracts import AgentTaskRequest, AgentTaskResult
 from referraleasy_telemetry import (
     LatencyKind,
+    OutcomeClass,
     Telemetry,
     TelemetryEmitter,
     configure_telemetry,
@@ -107,6 +109,7 @@ def create_app(
     *,
     handler: TaskHandler | None = None,
     telemetry: Telemetry | None = None,
+    llm_tracing: LlmTracing | None = None,
 ) -> FastAPI:
     """Build the ASGI app for ``settings.role``.
 
@@ -120,6 +123,8 @@ def create_app(
     a process concern. ``main`` is what calls ``configure_telemetry``. The server
     span it installs is how an A2A call arrives already inside the caller's trace —
     §15's whole reason for propagating rather than correlating.
+
+    ``llm_tracing`` is injected for the same reason. Without it every turn runs with tracing off.
     """
     verifier = settings.verifier()
     require_principal = service_auth_dependency(verifier)
@@ -155,7 +160,7 @@ def create_app(
         principal: ServicePrincipal = _principal_dependency(require_principal),  # noqa: B008
     ) -> dict[str, Any]:
         """Run one task under a fresh turn budget and return a shaped envelope."""
-        return await _run_task(settings, handler, request, principal, telemetry)
+        return await _run_task(settings, handler, request, principal, telemetry, llm_tracing)
 
     return app
 
@@ -184,8 +189,10 @@ async def _run_task(
     request: AgentTaskRequest,
     principal: ServicePrincipal,
     telemetry: Telemetry | None = None,
+    llm_tracing: LlmTracing | None = None,
 ) -> dict[str, Any]:
     emitter = telemetry.emitter if telemetry is not None else None
+    tracing = llm_tracing if llm_tracing is not None else LlmTracing()
     trace: dict[str, Any] = {
         "trace_id": request.trace_id,
         "role": settings.role.value,
@@ -194,7 +201,7 @@ async def _run_task(
     }
     # Identity from a payload is a claim, not evidence: it is dropped, and the drop
     # is recorded so an inconsistency is visible rather than silently ignored.
-    _, dropped = drop_untrusted_identity(request.payload)
+    trusted_payload, dropped = drop_untrusted_identity(request.payload)
     if dropped:
         trace["dropped_untrusted_identity"] = sorted(dropped)
 
@@ -227,7 +234,10 @@ async def _run_task(
             discriminator=request.idempotency_key,
         )
 
-    with _invocation(emitter, settings) as info:
+    with (
+        _invocation(emitter, settings) as info,
+        tracing.turn(settings.role.value, request, trusted_payload) as observation,
+    ):
         try:
             declared = request.payload.get("task_envelope")
             if isinstance(declared, Mapping):
@@ -237,12 +247,29 @@ async def _run_task(
         except Exception as error:
             # A typed runtime failure brings its own projection; anything else is
             # terminal_error. Neither is ever advertised as retryable by accident.
-            info["outcome"] = outcome_class(project_failure(error).outcome)
-            return _response(
-                trace, envelope(project_failure(error), trace_id=request.trace_id), budget
+            failure = project_failure(error)
+            info["outcome"] = outcome_class(failure.outcome)
+            observation.finish(
+                output=failure.model_dump(mode="json"),
+                outcome=str(failure.outcome or failure.event),
+                error=f"{type(error).__name__}: {error}",
             )
+            return _response(trace, envelope(failure, trace_id=request.trace_id), budget)
 
         info["outcome"] = outcome_class(report.result.outcome)
+        observation.finish(
+            output=(
+                dict(report.output)
+                if report.output is not None
+                else report.result.model_dump(mode="json")
+            ),
+            outcome=str(report.result.outcome or report.result.event),
+            metadata={
+                "skills": list(report.skills),
+                **({"suspension_id": report.suspension.id} if report.suspension else {}),
+            },
+            **_observed_failure(report),
+        )
         trace["skills"] = list(report.skills)
         trace.update(report.trace)
         if report.suspension is not None:
@@ -263,6 +290,24 @@ async def _run_task(
             ),
             budget,
         )
+
+
+def _observed_failure(report: TurnReport) -> dict[str, str]:
+    """The level and status a turn's observation carries, so a failed turn is filterable as one.
+
+    A handled refusal returns a report rather than raising, so without this it would look like a
+    success in Langfuse. The levels follow §15's classes: an ``error``-class outcome is ``ERROR``,
+    a protocol event (a policy refusal, a cancellation) is ``WARNING`` — neither success nor error —
+    and the successes, ``no_match`` and ``needs_input`` included, carry no level at all.
+    """
+    result = report.result
+    refused = report.trace.get("refused")
+    reason = f"{refused}: {report.trace.get('error')}" if refused else None
+    if outcome_class(result.outcome) is OutcomeClass.ERROR:
+        return {"error": reason or f"outcome {result.outcome}"}
+    if result.event is not None:
+        return {"error": reason or f"event {result.event}", "level": "WARNING"}
+    return {}
 
 
 @contextmanager
@@ -367,8 +412,11 @@ def main(
     # Inert when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset: real providers, no exporter, no attempts.
     telemetry = configure_telemetry(settings.service_name, version=service_version())
     atexit.register(telemetry.shutdown)
+    # Langfuse attaches to the provider just built, so it must come after it and before the first
+    # turn. Inert unless its keys are set and the model backend is not offline (llm_tracing.py).
+    llm_tracing = configure_llm_tracing(telemetry, release=service_version(), env=resolved)
 
-    app = create_app(settings, handler=handler, telemetry=telemetry)
+    app = create_app(settings, handler=handler, telemetry=telemetry, llm_tracing=llm_tracing)
 
     import uvicorn
 

@@ -1,7 +1,7 @@
 {
   "dataset_id": "offline-replay",
-  "version": "offline-v1",
-  "description": "\u00a714's offline dataset: every case is one checkable expectation about what a replayed run must achieve, grounded in the fixture ids `fixtures/scenarios.json` already names. It is authored as data rather than derived at load time so that a change to an expectation is a reviewable diff, and `dataset.py` validates every `scenario_id` and every reference id against that manifest at load.",
+  "version": "offline-v2",
+  "description": "§14's offline dataset: every case is one checkable expectation about what a replayed run must achieve, grounded in the fixture ids `fixtures/scenarios.json` already names. It is authored as data rather than derived at load time so that a change to an expectation is a reviewable diff, and `dataset.py` validates every `scenario_id` and every reference id against that manifest at load.",
   "rubric": "offline-rules-v1",
   "synthetic": true,
   "partition_note": "`calibration` cases are the ones a rule was tuned against; `held_out` cases are the ones it was not. The split is per case rather than per scenario because a scenario usually contains both an obvious expectation and a sharp edge, and a split that separated whole scenarios would put every sharp edge on one side.",
@@ -16,7 +16,7 @@
         "double_booking"
       ],
       "expectation": {
-        "outcome": "succeeded",
+        "outcome": "completed",
         "selected_ids": {
           "hospital_id": "20000000-0000-4000-8000-000000000001"
         },
@@ -143,7 +143,7 @@
         "unapproved_booking"
       ],
       "expectation": {
-        "outcome": "no_slots_for_constraints",
+        "outcome": "no_match",
         "escalates": false,
         "max_delegations": 5
       },
@@ -254,7 +254,7 @@
         "outcome_correctness"
       ],
       "expectation": {
-        "outcome": "succeeded",
+        "outcome": "completed",
         "required_evidence_ids": [
           "50000000-0000-4000-8000-000000000003"
         ]
@@ -438,8 +438,8 @@
         "outcome_correctness"
       ],
       "expectation": {
-        "outcome": "requires_reconciliation",
-        "recovered_state": "RECONCILIATION_REQUIRED"
+        "outcome": "outcome_unknown",
+        "recovered_state": "BOOKING_UNVERIFIED"
       },
       "references": {
         "patients": [
@@ -474,7 +474,7 @@
       ],
       "expectation": {
         "escalates": true,
-        "escalation_reason_code": "unknown_outcome"
+        "escalation_reason_code": "prolonged_unknown_booking"
       },
       "references": {
         "human_queue_tickets": [
@@ -505,7 +505,8 @@
         "outcome_correctness"
       ],
       "expectation": {
-        "outcome": "failed"
+        "outcome": "terminal_error",
+        "replay_variant": "before_commit"
       },
       "references": {
         "handoffs": [
@@ -539,7 +540,7 @@
         "recovery_succeeded"
       ],
       "expectation": {
-        "recovered_state": "BOOKING_IN_FLIGHT"
+        "recovered_state": "BOOKED"
       },
       "references": {},
       "partition": "calibration",
@@ -553,7 +554,7 @@
         "outcome_correctness"
       ],
       "expectation": {
-        "outcome": "succeeded"
+        "outcome": "completed"
       },
       "references": {},
       "partition": "calibration",
@@ -693,7 +694,7 @@
         "outcome_correctness"
       ],
       "expectation": {
-        "outcome": "succeeded"
+        "outcome": "completed"
       },
       "references": {},
       "partition": "calibration",
@@ -752,5 +753,6 @@
       "partition": "held_out",
       "rubric": "offline-rules-v1"
     }
-  ]
+  ],
+  "vocabulary_note": "offline-v2 changes no expectation's meaning; it restates offline-v1 in the contract's own vocabulary so a captured run can match it. `outcome` is §5's ResultOutcome for the journey as a whole (succeeded→completed, no_slots_for_constraints→no_match, requires_reconciliation→outcome_unknown, failed→terminal_error); `recovered_state` is a WorkflowState (RECONCILIATION_REQUIRED→BOOKING_UNVERIFIED, and BOOKING_IN_FLIGHT→BOOKED because a replay observes where a journey settles, and BOOKING_IN_FLIGHT never settles); `escalation_reason_code` is a HandoffReasonClass (unknown_outcome→prolonged_unknown_booking). `replay_variant` names a second run of the same scenario when one case needs a different fault than the rest."
 }

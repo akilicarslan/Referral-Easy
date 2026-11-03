@@ -8,6 +8,9 @@ statement for "what is in the queue", and it has two callers — this and the wo
 `queued_handoffs`, which is the same query seen by the CLI an operator would use. A second copy here
 would be a second answer to a question §11 makes one.
 
+**Actions are per-ticket routes** (`/v1/admin/human-queue/{id}/claim|release|resolve`) that run the
+workers' `HumanQueue`, so the dashboard is not a second implementation of §11's claim rules.
+
 **The queue is only readable in the postgres profile**, and that is not a limitation to work around:
 a handoff is a row, and the in-memory profile has no rows. The route says which profile it is on
 rather than answering an empty list, because "no tickets" and "no ticket store" are different facts
@@ -24,6 +27,7 @@ from datetime import UTC, datetime
 from typing import Any, Final
 
 from referraleasy_domain import HandoffStore
+from referraleasy_workers.hitl import OPERATOR_RETURN_STATES
 
 from .admin import unavailable
 from .psql import session
@@ -63,11 +67,13 @@ def open_tickets(dsn: str, *, now: datetime | None = None) -> dict[str, Any]:
         },
         "limit": QUEUE_LIMIT,
         "truncated": len(tickets) >= QUEUE_LIMIT,
+        # The states an operator may resolve a ticket into — the workers' allow-list, which the
+        # database's `handoff_resolve` enforces again. Served so the page offers only these.
+        "return_states": list(OPERATOR_RETURN_STATES),
         "note": (
-            "Claiming, releasing and resolving happen in the workers service — "
-            "`python -m referraleasy_workers handoff ...` — because that is where §11's queue lives "
-            "(ADR-0035). This page reads the same table and takes no action on it; a second "
-            "implementation of the claim rules is the last thing a race needs."
+            "Claim, release and resolve run through the workers' HumanQueue (the same code as "
+            "`python -m referraleasy_workers handoff ...`), so the database's compare-and-set "
+            "decides every race. A lost claim answers 409 with the reason."
         ),
     }
 

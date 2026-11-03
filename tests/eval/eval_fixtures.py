@@ -117,7 +117,7 @@ def record_for(
     fields: dict[str, Any] = {
         "case_id": case_id,
         "workflow_id": "wf-test",
-        "outcome": "succeeded",
+        "outcome": "completed",
         "final_state": "BOOKED",
         "selected_provider_id": STANDARD_PROVIDER,
         "selected_hospital_id": STANDARD_HOSPITAL,
@@ -191,7 +191,7 @@ def _healthy_for(entry: Any) -> RunRecord:
     )
     return record_for(
         entry.case_id,
-        outcome=str(wanted_outcome) if wanted_outcome else "succeeded",
+        outcome=str(wanted_outcome) if wanted_outcome else "completed",
         final_state=str(entry.expected("recovered_state") or "BOOKED"),
         selected_hospital_id=selected.get("hospital_id", STANDARD_HOSPITAL),
         selected_provider_id=selected.get("provider_id", STANDARD_PROVIDER),

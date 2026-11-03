@@ -19,6 +19,12 @@ dependencies = [
   # is what puts tracing in all seven at once rather than in whichever entry point remembered — and
   # the A2A hop only joins one trace if the callee extracts the caller's `traceparent`.
   "referraleasy-telemetry",
+  # LLM tracing to Langfuse (ADR-0042). 4.15.6 is the newest release that resolves beside
+  # google-adk==2.12.0: ADK caps opentelemetry at <=1.42.1 and langfuse>=4.16 needs >=1.45.0.
+  # The instrumentor is what turns ADK's turn into generation/tool/agent observations, and it
+  # disables ADK's own tracers so each model call is recorded once.
+  "langfuse==4.15.6",
+  "openinference-instrumentation-google-adk==1.0.4",
   "fastapi>=0.115",
   "uvicorn>=0.30",
   "httpx>=0.28.0",

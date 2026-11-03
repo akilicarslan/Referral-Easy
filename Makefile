@@ -141,15 +141,20 @@ spike: ## Phase 0 provider smoke tests — REQUIRES credentials. Writes docs/adr
 e2e: ## Scripted booking with an isolated mock API and temporary database (REPEAT=2 to loop)
 	$(PY) python scripts/e2e.py --repeat $(or $(REPEAT),1)
 
+.PHONY: eval-replay
+eval-replay: ## Replay every dataset scenario through the in-process stack → captures/replay.json
+	$(PY) python scripts/eval_replay.py --out captures/replay.json
+
 .PHONY: eval
-eval: ## Run the evaluation CLI against a release manifest + dataset (RUNS=<file> for a replay)
-	@# §14 names three inputs and this target supplies two: the manifest and the dataset. The third
-	@# is a replay's run records, which only a capture harness can produce — so `RUNS=` is how a
-	@# caller supplies one, and without it every case reports as *unmeasured* rather than as passing.
-	@# That is deliberate: a target that scored nothing and exited 0 would be the fabrication the
-	@# offline profile's whole design exists to avoid.
+eval: ## Replay the scenarios, then score them against the release manifest (RUNS=<file> to skip the replay)
+	@# §14 names three inputs: the manifest, the dataset, and a replay's run records. Without
+	@# `RUNS=`, the replay runs first (`scripts/eval_replay.py`: a fresh mock API per scenario, the
+	@# gateway and seven agents in-process on the offline profile) and its records are scored. A
+	@# journey the replay could not drive produces no record, so its cases report as *unmeasured*
+	@# rather than as passing.
+	$(if $(RUNS),,$(PY) python scripts/eval_replay.py --out captures/replay.json)
 	$(PY) python -m referraleasy_eval --release-manifest registry/releases/latest.json \
-		$(if $(RUNS),--runs $(RUNS),)
+		--runs $(or $(RUNS),captures/replay.json)
 
 .PHONY: lint
 lint: ## Lint Python and TypeScript

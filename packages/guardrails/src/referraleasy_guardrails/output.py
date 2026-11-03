@@ -21,8 +21,10 @@ booking's own record rather than from the card's wording, because wording can be
 
 **Where this runs.** Not here. This module is a pure function over a component and the records it
 claims to be about; :class:`SourceOracle` is the port the caller implements against whatever it can
-actually query. Wiring it in front of the SSE surface belongs to the gateway, which is where the
-components are built.
+actually query. The caller is the agents (`referraleasy_agents.output_guard`): they hold the turn's
+tool results, which is what an oracle has to answer from, and they run :meth:`check_props` over the
+patient-facing part of every result before it leaves the service. A gateway-side oracle could not
+resolve the ids this checks, which live in the hospital API and the directory.
 """
 
 from __future__ import annotations
@@ -223,6 +225,27 @@ class OutputGuardrail:
 
         props = raw.get("props") or {}
         assert isinstance(props, Mapping)  # narrowed by the schema check above
+        content = self.check_props(props, sources=sources)
+        return OutputCheckResult(
+            ok=not violations and content.ok,
+            violations=tuple(violations) + content.violations,
+            checked=tuple(checked) + content.checked,
+        )
+
+    def check_props(
+        self, props: Mapping[str, Any], *, sources: Sequence[str] = ()
+    ) -> OutputCheckResult:
+        """The content checks alone, over the patient-facing values a producer is about to hand on.
+
+        `check` is for a rendered card, whose envelope this module also validates. A producer that
+        emits *content* rather than a card — an agent whose result the gateway will render — has no
+        envelope to validate, but every claim in that content is the same claim the card will make:
+        an id that must exist, a time that must match its slot, a contact that must be sourced, a
+        booking state that must be the booking's own, no guarantee and no clinical language. So the
+        same six checks run on it, before it leaves the producer.
+        """
+        checked: list[str] = []
+        violations: list[OutputViolation] = []
 
         checked.append("entity_ids")
         violations.extend(self._entities(props))

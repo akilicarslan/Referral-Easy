@@ -162,15 +162,16 @@ def validate(env: Mapping[str, str], declared: Mapping[str, str]) -> tuple[list[
 
     offline_llm = backends.get("MODEL_BACKEND") == "offline"
     tracing_on = (
-        classify(env.get("LANGSMITH_ENABLED")) == "ok"
-        and env["LANGSMITH_ENABLED"].strip().lower() == "true"
+        classify(env.get("LANGFUSE_PUBLIC_KEY")) == "ok"
+        and classify(env.get("LANGFUSE_SECRET_KEY")) == "ok"
+        and (env.get("LANGFUSE_TRACING_ENABLED") or "true").strip().lower() != "false"
     )
     if offline_llm and tracing_on:
         warnings.append(
-            "LANGSMITH_ENABLED=true while MODEL_BACKEND=offline. The offline profile "
+            "Langfuse keys are set while MODEL_BACKEND=offline. The offline profile "
             "is defined as zero network calls, so tracing will not be exported; the "
-            "flag is reported here rather than silently honoured or silently ignored "
-            "(ADR-0010)."
+            "keys are reported here rather than silently honoured or silently ignored "
+            "(ADR-0042)."
         )
 
     return errors, warnings

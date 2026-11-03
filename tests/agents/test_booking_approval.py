@@ -283,15 +283,18 @@ def booking_response() -> dict[str, Any]:
     return {"booking": request.model_dump(mode="json"), "outcome": "requested"}
 
 
-def scheduling_tools(api: Any) -> Any:
-    """A started `ToolSet` for Scheduling, with the turn's own key in its payload."""
+def scheduling_tools(api: Any, *, approval_: Any = ...) -> Any:
+    """A started `ToolSet` for Scheduling, with the turn's own key and approval in its payload."""
     _, tools = toolset_for(
         AgentRole.SCHEDULING,
         api=api,
         policy=AllowAllPolicy(),
         workflow_state=STATE,
         envelope=envelope(workflow_state=STATE),
-        payload={"idempotency_key": TURN_KEY},
+        payload={
+            "idempotency_key": TURN_KEY,
+            "approval": approval() if approval_ is ... else approval_,
+        },
     )
     return tools
 
@@ -300,7 +303,7 @@ def scheduling_tools(api: Any) -> Any:
 async def test_a_live_approval_writes_the_envelope_s_identity_and_the_turn_s_key() -> None:
     api = StubApi({"/appointments": booking_response()})
     result = await scheduling_tools(api).invoke(
-        "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval()
+        "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
     )
 
     method, path, body = api.calls[0]
@@ -312,6 +315,50 @@ async def test_a_live_approval_writes_the_envelope_s_identity_and_the_turn_s_key
     assert result["booking"]["state"] == "REQUESTED"
 
 
+# ── the approval is the turn's, not the model's ──────────────────────────────────────────────
+#
+# The finding: `create_booking` used to take the approval as a model-filled argument and check it
+# against itself, so a model holding an expired approval could rewrite `expires_at` (or set
+# `consumed` back to false) and the check would pass. The approval now comes from the turn's input,
+# which the gateway minted, and the model has no parameter to send one through.
+
+EXPIRED = "2020-01-01T00:00:00+00:00"
+
+
+@pytest.mark.asyncio
+async def test_an_expired_approval_cannot_be_renewed_by_the_model() -> None:
+    """The gateway's approval has expired; the model sends a renewed copy. Nothing is written."""
+    api = StubApi({"/appointments": booking_response()})
+    tools = scheduling_tools(api, approval_=approval(expires_at=EXPIRED))
+    create_booking = next(tool for tool in tools.exposed() if tool.__name__ == "create_booking")
+    with pytest.raises(TypeError):
+        await create_booking(idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval())
+    assert api.calls == [], "a model-supplied approval must never reach the hospital"
+
+
+@pytest.mark.asyncio
+async def test_the_turn_s_expired_approval_is_what_the_write_is_checked_against() -> None:
+    api = StubApi({"/appointments": booking_response()})
+    with pytest.raises(NoApprovalRefused) as raised:
+        await scheduling_tools(api, approval_=approval(expires_at=EXPIRED)).invoke(
+            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
+        )
+    assert "expired" in str(raised.value)
+    assert api.calls == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("supplied", [None, "approved", ["approval"]])
+async def test_a_turn_without_an_approval_object_writes_nothing(supplied: Any) -> None:
+    api = StubApi({"/appointments": booking_response()})
+    with pytest.raises(NoApprovalRefused) as raised:
+        await scheduling_tools(api, approval_=supplied).invoke(
+            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
+        )
+    assert "no approval" in str(raised.value)
+    assert api.calls == []
+
+
 @pytest.mark.asyncio
 async def test_a_payload_the_contract_does_not_have_is_refused_before_any_write() -> None:
     api = StubApi({"/appointments": booking_response()})
@@ -320,7 +367,6 @@ async def test_a_payload_the_contract_does_not_have_is_refused_before_any_write(
             "create_booking",
             idempotency_key=TURN_KEY,
             payload={**PAYLOAD, "notes": "please hurry"},
-            approval=approval(),
         )
     assert api.calls == [], "a write must not be attempted with a payload the contract refuses"
 
@@ -347,7 +393,7 @@ async def test_a_write_whose_fate_is_unknown_is_outcome_unknown_and_not_retryabl
     api = FailingApi(UpstreamTransient("the hospital did not answer", status_code=504))
     with pytest.raises(BookingOutcomeUnknown) as raised:
         await scheduling_tools(api).invoke(
-            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval()
+            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
         )
     error = raised.value
     assert error.idempotency_key == TURN_KEY
@@ -363,7 +409,7 @@ async def test_a_dropped_connection_with_no_status_is_also_unknown() -> None:
     api = FailingApi(UpstreamTransient("the connection dropped"))
     with pytest.raises(BookingOutcomeUnknown):
         await scheduling_tools(api).invoke(
-            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval()
+            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
         )
 
 
@@ -373,7 +419,7 @@ async def test_a_rate_limited_write_keeps_its_own_classification() -> None:
     api = FailingApi(UpstreamTransient("slow down", status_code=429))
     with pytest.raises(UpstreamTransient):
         await scheduling_tools(api).invoke(
-            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval()
+            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
         )
 
 
@@ -383,6 +429,6 @@ async def test_a_rejected_write_keeps_its_status_code() -> None:
     api = FailingApi(UpstreamRejected("the hospital refused this request", status_code=409))
     with pytest.raises(UpstreamRejected) as raised:
         await scheduling_tools(api).invoke(
-            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval()
+            "create_booking", idempotency_key=TURN_KEY, payload=dict(PAYLOAD)
         )
     assert raised.value.status_code == 409

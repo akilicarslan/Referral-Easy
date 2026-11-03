@@ -29,6 +29,7 @@ from referraleasy_agent_runtime.auth import service_auth_headers
 from referraleasy_agent_runtime.budget import BudgetCaps, CallLease, TurnBudget
 from referraleasy_agent_runtime.errors import UpstreamRejected, UpstreamTransient
 from referraleasy_agent_runtime.retries import NO_RETRIES, parse_retry_after
+from referraleasy_telemetry import inject_context
 
 if TYPE_CHECKING:
     from a2a.client import ClientConfig
@@ -173,11 +174,15 @@ class JsonServiceClient:
         """
         timeout = self._resolve_timeout(budget=budget, lease=lease, timeout_ms=timeout_ms)
         now = datetime.now(UTC)
+        # The active context goes on the wire, so a delegated agent's turn continues this trace
+        # rather than starting its own. Without it the callee's server span had nothing to extract
+        # and every A2A hop began a new trace, beside the caller's instead of inside it (§15).
+        headers = dict(inject_context(service_auth_headers(self._token, trace_id=trace_id)))
         try:
             response = await self._client.post(
                 f"{self.base_url}{path.lstrip('/')}",
                 json=dict(payload),
-                headers=service_auth_headers(self._token, trace_id=trace_id),
+                headers=headers,
                 timeout=timeout,
             )
         except httpx.TransportError as error:

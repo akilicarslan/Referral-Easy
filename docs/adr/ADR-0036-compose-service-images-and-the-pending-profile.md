@@ -286,3 +286,13 @@ probe's own shell matched, so the arm could never fail (see above).
 **A `MOCK_API_HOST_PORT` parameter to work around the host process on 4010.** Rejected for now: it is a
 contract change (`.env.example` would have to document it), the collision is a property of one
 developer's machine rather than of the stack, and the honest report is the cheaper artefact.
+
+## Update 2026-10-20 — `scheduler` is implemented
+
+`scheduler` left the `pending` profile. Its arm of the workers image now runs
+`python -m referraleasy_workers alerts --watch`, which is §16's alert loop
+(`referraleasy_workers.alerts`, migration `017_alerts.sql`). It owns no outbox rows: its mock
+emails go to their own `alert_message` table and are delivered to the log. The objection recorded
+above, that a scheduler arm falling back to the outbox drain would be a second owner of the same
+rows, still applies, so the arm never runs the outbox. What remains unimplemented is §14's online
+evaluation sampling; `EVAL_CRON` is still read by nothing. `local-guardrail` stays `pending`.

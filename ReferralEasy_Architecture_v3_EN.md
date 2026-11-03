@@ -161,7 +161,7 @@ A conversation is pinned to a release; versions do not mix mid-conversation. A s
 
 ## 14. Evaluation: quality, task outcome, and collaboration
 
-LangSmith trace/dataset/experiment integration; OpenSearch is the store for in-app charts. The worker writes idempotently to both targets under a single eval_run_id. The same live booking is not re-created; offline replay happens in a separate fixture DB.
+Langfuse trace/dataset/experiment integration (ADR-0042 supersedes the original LangSmith choice); OpenSearch is the store for in-app charts. The worker writes idempotently to both targets under a single eval_run_id. The same live booking is not re-created; offline replay happens in a separate fixture DB.
 
 The main quality metrics are preserved as-is: correctness, groundedness, completeness. Deterministic rules first; model judge after. N/A and eval_error are not counted as a quality zero. For correctness, no fixture-truth claim is made in areas where online truth is unknown. Groundedness uses the tool/source snapshot; completeness uses that state's expectations.
 
@@ -186,7 +186,7 @@ flowchart TD
     Prepper --> OS["OpenSearch: trace and event indices"]
     OS --> Admin["Admin API / charts / trace waterfall"]
     Eval["Evaluation worker"] --> OS
-    Eval --> Smith["LangSmith"]
+    Eval --> Smith["Langfuse"]
 ```
 
 The common end-to-end identity is W3C trace_id; span_id identifies the sub-step. A2A task_id/context_id/message_id are added to the trace as attributes; they are not equated with each other. conversation_id, workflow_id, command_id, and booking_request_id are kept for separate purposes. Async worker/HITL creates a new trace + span link after a long wait. A2A/HTTP transport propagation is verified with an integration test. Application spans are added to ADK GenAI spans; collecting the hidden chain of thought is not a goal.
@@ -255,8 +255,9 @@ EVAL_CRON=0 0,12 * * *
 EVAL_TIMEZONE=America/Chicago
 EVAL_SAMPLE_SEED=<stable-secret-seed>
 EVAL_JUDGE_MODEL_ID=<pinned-model>
-LANGSMITH_ENABLED=true
-LANGSMITH_API_KEY=<secret>
+LANGFUSE_PUBLIC_KEY=<public-key>
+LANGFUSE_SECRET_KEY=<secret>
+LANGFUSE_BASE_URL=<region-or-self-hosted-url>
 OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 OPENSEARCH_URL=http://opensearch:9200
 DATABASE_URL=<postgres-url>
@@ -267,7 +268,7 @@ ALERT_WINDOW_SECONDS=300
 ALERT_COOLDOWN_SECONDS=900
 ```
 
-Placeholder model IDs are not real configuration; models that pass the smoke test are selected. Per-agent overrides enter the effective manifest. Secrets do not enter the repo. Local model artifact/model download requirements are documented. LangSmith, telemetry, and eval failures do not roll back the business transaction.
+Placeholder model IDs are not real configuration; models that pass the smoke test are selected. Per-agent overrides enter the effective manifest. Secrets do not enter the repo. Local model artifact/model download requirements are documented. Langfuse, telemetry, and eval failures do not roll back the business transaction.
 
 ## 20. Eight portfolio demo scenarios
 
@@ -280,7 +281,7 @@ Placeholder model IDs are not real configuration; models that pass the smoke tes
 | Commit after timeout   | A record exists but the response is lost; no duplicate record is created            | Idempotency, reconciliation, distributed state  |
 | Three transient errors | Limited attempts; hybrid directory; static directory when needed                    | Retry, circuit breaker, RAG/rerank              |
 | No specialist found    | Human queue, operator claim, safe return                                            | HITL, ownership, audit                          |
-| Version regression     | Description/skill change; CI version check; old/new eval chart and mock alert       | Registry, LangSmith, OTel/OpenSearch            |
+| Version regression     | Description/skill change; CI version check; old/new eval chart and mock alert       | Registry, Langfuse, OTel/OpenSearch             |
 
 ## 21. Development and verification order
 
@@ -291,7 +292,7 @@ Placeholder model IDs are not real configuration; models that pass the smoke tes
 5. Deadline/retry/lease, unknown booking reconciliation, and HITL.
 6. Hybrid RAG, dependency outages, and the deterministic final directory.
 7. OTel/OpenSearch admin charts, feedback, alert mail, and the Scenario Runner.
-8. LangSmith, offline/online eval, comparison reports, and demo recordings.
+8. Langfuse, offline/online eval, comparison reports, and demo recordings.
 
 Definition of done: all eight scenarios are reproducible; each shows a real task/trace/result. No unapproved/double booking; a stale worker cannot write; cross-user tool access is denied; guardrails do not wrongly block short valid messages; model/schema contracts are tested; version changes are visible in CI; eval clearly shows which version it evaluated. The demo README does not merely list technologies; it ties each technology to a working scenario, code module, and trace/eval evidence.
 
@@ -322,8 +323,8 @@ ReferralEasy/
 - ADK A2A: https://github.com/google/adk-docs/blob/main/docs/a2a/quickstart-exposing.md
 - ADK traces: https://github.com/google/adk-docs/blob/main/docs/observability/traces.md
 - A2A auth/authorization: https://github.com/a2aproject/A2A/blob/main/docs/topics/enterprise-ready.md
-- LangSmith ADK: https://docs.langchain.com/langsmith/trace-with-google-adk
-- LangSmith eval: https://docs.langchain.com/langsmith/evaluation-types
+- Langfuse Google ADK: https://langfuse.com/integrations/frameworks/google-adk
+- Langfuse trace best practices: https://langfuse.com/docs/observability/best-practices
 - OpenRouter rerank: https://openrouter.ai/docs/api/api-reference/rerank/create-rerank
 - Gemini embeddings: https://docs.cloud.google.com/gemini-enterprise-agent-platform/reference/models/text-embeddings-api
 - OpenSearch ingestion: https://docs.opensearch.org/latest/observing-your-data/apm/configuring-telemetry-ingestion/

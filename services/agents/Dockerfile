@@ -100,6 +100,8 @@ COPY packages/contracts/python/src packages/contracts/python/src
 COPY packages/domain/src packages/domain/src
 COPY packages/agent-runtime/src packages/agent-runtime/src
 COPY packages/skills/src packages/skills/src
+# §9's output guardrail runs inside the agents (`referraleasy_agents.output_guard`).
+COPY packages/guardrails/src packages/guardrails/src
 # §15's telemetry. `agent-runtime` depends on it for the server-span middleware, so this sync
 # installs it as a real wheel — an image with the manifest copied but not the sources installs an
 # *empty* wheel and dies on `No module named referraleasy_telemetry` at the first import.

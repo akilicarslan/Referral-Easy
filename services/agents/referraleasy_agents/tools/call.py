@@ -121,10 +121,12 @@ class WriteGuardSubject(Protocol):
     def payload(self) -> Mapping[str, Any]:
         """The turn's own structured input.
 
-        Read for exactly one fact — ``idempotency_key``, the key the *workflow*
-        minted for this booking request. A model that supplies a different key is
-        asking for a second appointment, and §7's rule is only enforceable because
-        the turn's own key can be read here.
+        Read for exactly two facts, both minted by the gateway and forwarded by
+        code rather than by a model: ``idempotency_key``, the key the *workflow*
+        minted for this booking request, and ``approval``, the patient's consent.
+        A model that supplies a different key is asking for a second appointment;
+        a model that could supply the approval could extend its expiry. Neither is
+        a tool argument, so both are read here.
         """
         ...
 
@@ -152,7 +154,8 @@ class ToolCall:
     delegation: DelegationPort | None = None
     #: The caller's own structured input for this turn, already schema-validated.
     #: A tool handler reads facts from here (a plan id, a visit type) that the
-    #: caller supplied; it never reads an *authority* from here.
+    #: caller supplied. The one authority read from here is the booking approval,
+    #: because the caller is the gateway that minted it, never the model.
     payload: Mapping[str, Any] = field(default_factory=dict)
 
     @property

@@ -42,8 +42,8 @@ def test_a_wrong_outcome_scores_zero_and_says_what_it_saw() -> None:
     assert verdict.status == SCORED
     assert verdict.score == 0.0
     # The reason names both sides, because "the run was wrong" is not actionable and "the run
-    # reached needs_input where succeeded was expected" is.
-    assert "needs_input" in verdict.reason and "succeeded" in verdict.reason
+    # reached needs_input where completed was expected" is.
+    assert "needs_input" in verdict.reason and "completed" in verdict.reason
 
 
 def test_an_uncaptured_run_is_an_error_not_a_zero() -> None:
@@ -192,13 +192,14 @@ def test_a_run_that_wrote_no_booking_declines_the_argument_check() -> None:
 
 def test_recovery_is_judged_by_the_end_state_not_by_the_absence_of_errors() -> None:
     case_id = "timeout_after_commit/reaches_reconciliation_not_success"
-    recovered = record_for(case_id, final_state="RECONCILIATION_REQUIRED")
+    recovered = record_for(case_id, final_state="BOOKING_UNVERIFIED")
     assert _verdict("recovery_succeeded", case_id, recovered).score == 1.0
 
-    stuck = record_for(case_id, final_state="BOOKING_UNVERIFIED")
+    # Settling as "booked" after a lost commit response is the wrong end state: nothing verified it.
+    stuck = record_for(case_id, final_state="BOOKED")
     verdict = _verdict("recovery_succeeded", case_id, stuck)
     assert verdict.score == 0.0
-    assert "RECONCILIATION_REQUIRED" in verdict.reason
+    assert "BOOKING_UNVERIFIED" in verdict.reason
 
 
 def test_escalating_when_none_is_expected_is_a_failure_not_a_rounding_error() -> None:
@@ -220,7 +221,7 @@ def test_failing_to_escalate_when_expected_is_the_failure_that_strands_a_patient
 def test_escalating_for_the_wrong_reason_routes_to_the_wrong_queue() -> None:
     case_id = "no_specialist_found/escalates_with_no_match_reason"
     record = record_for(
-        case_id, escalation=Escalation(handoff_id="h1", reason_code="unknown_outcome")
+        case_id, escalation=Escalation(handoff_id="h1", reason_code="prolonged_unknown_booking")
     )
     verdict = _verdict("appropriate_escalation", case_id, record)
     assert verdict.score == 0.0
@@ -283,7 +284,7 @@ def test_every_registered_rule_declines_or_scores_but_never_raises() -> None:
     Asserted over the registry rather than over a hand-listed subset, so a rule added later is
     covered by this test the moment it is registered.
     """
-    empty = record_for("standard_booking/reaches_a_confirmed_booking", outcome="succeeded")
+    empty = record_for("standard_booking/reaches_a_confirmed_booking", outcome="completed")
     for name, rule in RULES.items():
         verdict = rule(case("standard_booking/reaches_a_confirmed_booking"), empty)
         assert verdict.status in (SCORED, NOT_APPLICABLE, EVAL_ERROR), name

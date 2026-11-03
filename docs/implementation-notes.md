@@ -34,10 +34,10 @@ criterion in [`IMPLEMENTATION_TODO.md`](../IMPLEMENTATION_TODO.md) is met by a t
 | Phase | Scope | State |
 | --- | --- | --- |
 | 0.1 | Repo skeleton, toolchain, compose, CI | done |
-| 0.2 | Risk spikes (S1–S10) | **partial** — S1, S6, S8 verified live; S7 blocked; S2/S9/S10 pending. See below. |
+| 0.2 | Risk spikes (S1–S10) | **partial** — S1 pinned (`AGENT_MODEL_ID`, re-run live 2026-10-20), S6, S8 verified live; S7 blocked (OpenRouter account ZDR guardrail refuses the rerank endpoint); S1b/S5 blocked (GCP billing disabled); S2/S9/S10 pending. See below. |
 | 1.1 | Contracts (JSON Schema → Pydantic + Zod) | done — 9 schemas, 102 Pydantic models / 131 Zod definitions, drift-checked |
 | 1.2 | Synthetic fixtures | done — 296 records across all 8 scenarios |
-| 1.3 | PostgreSQL schema | done — 16 migrations; coordination grants and handoff consent added in 015–016 |
+| 1.3 | PostgreSQL schema | done — 18 migrations; coordination grants and handoff consent added in 015–016, alert tables in 017, the shared SSE log in 018 |
 | 1.4 | State machine, policy, approval binding | done — `packages/domain`, 176 tests, ADR-0026 |
 | 1.5 | Mock hospital API | done — `services/mock-api`, 94 tests |
 | 1.6 | Scripted end-to-end booking | done — `make e2e`, 16 tests, all 12 fault types |
@@ -47,17 +47,17 @@ criterion in [`IMPLEMENTATION_TODO.md`](../IMPLEMENTATION_TODO.md) is met by a t
 | 3.2 | Specialist agents | done — `services/agents`, 525 tests, ADR-0033. **All seven run in compose** on the same image, one per role |
 | 3.4 | Skill packages | done — 8 packages, 205 tests, ADR-0028 |
 | 3.3 | Coordination | done for the standard referral journey — durable patient-answer continuations, independent plan coverage ∥ matching, doctor-specific network checks, hospital-specific readiness, reviewed booking and consented handoff. See [completion evidence](../docs/architecture/autonomous-coordination.md) and ADR-0041 |
-| 3.5 | Registry and versioning | **partial** — the manifest, its the-hash-moves-for-the-right-reasons tests and the CI version gate exist, and a real manifest has been produced: `registry/releases/rel-20261016-8e00275.json`, built with the digest of an actually-built `referraleasy/agents:dev` image, with `latest.json` and `index.json` beside it. `make eval` reads it. What is still missing is the other half of §13: **every service image is built, and no CI job builds or publishes them**, so the gate guards a registry that nothing yet ships |
+| 3.5 | Registry and versioning | **partial** — the manifest, its the-hash-moves-for-the-right-reasons tests and the CI version gate exist, and a real manifest has been produced: `registry/releases/rel-20261016-8e00275.json`, built with the digest of an actually-built `referraleasy/agents:dev` image, with `latest.json` and `index.json` beside it. `make eval` reads it. CI now has the other half of §13: an `images` job builds every service image (pushed to GHCR from `main`) and feeds the agents digest to the gate, and a changed release triggers the eval replay. The job has not yet run in CI |
 | 4.2 | Input guardrails — three layers | done and **adopted**: `packages/guardrails`, ADR-0038. All three layers are wired into the gateway's write path, and `/healthz` reports them individually |
-| 4.3 | Output guardrails | package done, **not adopted** — `output.OutputGuardrail` checks seven things and no production path calls it. The obvious place (the gateway's `SurfaceRegistry.issue()`, the one choke point every card passes) is the wrong one: its `SourceOracle` is asked about `provider_id`/`hospital_id`/`slot_id`, which live in the mock API and the directory, not in the gateway — so a gateway oracle would answer "yes" to every id the check exists for. It belongs with the agents, which hold the retrieval results. The reasoning is in `IMPLEMENTATION_TODO.md` §4.3 |
+| 4.3 | Output guardrails | done and **adopted in the agents** — every agent result's patient-facing projection passes `OutputGuardrail.check_props` against an oracle built from that turn's own tool results, on the workflow and the ADK path; a violation refuses the turn. `tests/agents/test_output_guard.py` |
 | 5 | Workers: outbox, leases, reconciliation, HITL | done — 264 tests (69 integration), ADR-0035 |
 | 6 | Hybrid RAG | done — 171 tests (13 against a live OpenSearch), ADR-0029 |
 | 7.1 | Telemetry (§15) | **adopted in the gateway and the seven agents, as spans and now as events.** One server span per request, the caller's `traceparent` continued across the A2A hop, verified read back out of `otel-traces-*`. The gateway measures its **turns** (`latency.turn.ms`, plus the outcome class) and records every guardrail screening per layer; the agents measure their **invocations** (`latency.invocation.ms`) and their logical **triggers** — all three of §15's latency distributions, read back out of `otel-events-*` from a live request rather than asserted. The workers emit §15's two HITL measurements from `handoff resolve` and their spans; **the two TypeScript surfaces are not wired** |
-| 4.1 | Demo scenarios | definitions done, verification **stack-gated** — all eight are specified in `fixtures/scenarios.json` with their fault steps, correct outcome classes and assertions, and the admin app renders them. The behaviour-level checks are in the database-gated worker suite and `make e2e` |
-| 7.2 | Admin app | **all nine pages read real data** — `apps/web/src/admin/`, its own entry point, hash router and API client. Overview, Agents & Versions, Trace Explorer (with a per-trace waterfall), Evaluations, Guardrails, Feedback and Fault Scenarios read the telemetry indices (ADR-0039); Alerts reads §16's rules and the kill switch, and Human Queue reads §11's handoff table (read-only — the actions stay in the workers' CLI, so there is one arbiter for the claim races) |
-| 7.3 | Alerts, mock email, kill switch | **partial** — `packages/alerts` implements §16's four rules, the three-state decision (`firing`/`ok`/`unmeasured`, where the third is never a pass), dedup/cooldown with resolutions as their own event, and a mock outbox that cannot loop and never sends. The **kill switch is wired** to the booking path: it refuses the write with `booking_halted` and leaves the help card, the stream, the transitions and the dashboard working. Not done: the scheduler loop that queries the indices on an interval, and the durable tables |
+| 4.1 | Demo scenarios | all eight specified in `fixtures/scenarios.json`; scenarios 2, 3 and 4 now run as patient-driven E2E journeys (`tests/e2e/test_scenario_journeys.py`): alternatives with a recorded `ConstraintChange`, an unconfirmed network status shown and acknowledged, and attach → re-check → resume. Every scenario is also replayed by `make eval` |
+| 7.2 | Admin app | **all nine pages read real data** — `apps/web/src/admin/`, its own entry point, hash router and API client. Overview, Agents & Versions, Trace Explorer (with a per-trace waterfall), Evaluations, Guardrails, Feedback and Fault Scenarios read the telemetry indices (ADR-0039); Alerts reads §16's rules, the scheduler's last states/transitions/outbox, and the kill switch, and Human Queue reads §11's handoff table and offers Claim / Release / Resolve through the workers' own `HumanQueue`, so the database's compare-and-set stays the one arbiter |
+| 7.3 | Alerts, mock email, kill switch | **done** — `packages/alerts` decides; `referraleasy_workers.alerts` (compose `scheduler`) measures from §15's queries on an interval and records state, transitions and mock emails in migration 017's tables; delivery is to the log only. `circuit_open` is reported as not evaluated (no breaker state is published). The kill switch is wired to the booking path. Postgres-backed tests are written and were not run in this pass |
 | 7.4, 8.2 | Scenario Runner, version regression | not started — §12's runner needs the stack to reset a seed and produce a real trace link |
-| 8.1 | Evaluation (§14) | package done, **has scored nothing** — `packages/eval`: a 44-case dataset across all eight scenarios, fourteen deterministic rules, a judge seam that reports `not_applicable` while ADR-0011 is unresolved, and a CLI that refuses to invent its inputs. No replay harness exists, so every case reports as unmeasured |
+| 8.1 | Evaluation (§14) | **scores 44/44 cases from replays** — `scripts/eval_replay.py` drives every scenario through the gateway and seven agents in-process on a fresh mock API, and `referraleasy_eval.capture` maps each journey to records. Standard and version-regression journeys book; most others end in a handoff, with the reason per case (`docs/runbooks/evaluation.md` §2). The judge stays `not_applicable` until ADR-0011 is resolved |
 | 8.3 | Delivery | `make demo` orchestrates the lifecycle; the Cloud Run design is ADR-0040, which names the four things that do not hold |
 
 **Coordination verification (2026-10-19):** 2,934 Python unit tests passed, with two expected fixture
@@ -125,7 +125,7 @@ of the table, and it is more useful than one that leaves the gap to be discovere
 | Three-layer guardrails | Any write | `packages/guardrails/`, `services/gateway/src/.../guardrails.py` | `/healthz` reports `guardrails: {configured: true, regex: true, decision_model: true, local_classifier: true}`; ADR-0038's per-layer corpus measurement |
 | Versioned prompt/agent registry | — | `packages/release-registry/`, `registry/` | `registry/releases/latest.json` is built from a real image digest (`uv run python scripts/check_release_versions.py build --git-sha … --image-digest …`) and read by `make eval`. **Not reachable from a running service** — a service reports its versions, but none of them reads the registry to get them |
 | Hybrid RAG | Network conflict | `packages/rag/` | `make test-integration-rag` — 13 tests against a live OpenSearch, including the structured-record-beats-stale-text rule |
-| Evaluation | — | `packages/eval/`, `evaluations/datasets/offline-v1.json`, `docs/runbooks/evaluation.md` | **Built, and has measured nothing.** 44 cases across all eight scenarios, 14 rules, a refused-or-unmeasured judge seam, and a CLI that reports `coverage 0/44` and why. No replay harness exists, so nothing has been scored — which the runbook and the CLI's own output both say |
+| Evaluation | All eight | `packages/eval/`, `scripts/eval_replay.py`, `evaluations/datasets/offline-v1.json`, `docs/runbooks/evaluation.md` | `make eval` replays every scenario, then scores the records: `coverage 44/44`. The per-case reasons for each non-pass are in the report under `evaluations/reports/` |
 | OTel + OpenSearch observability | Standard booking | `packages/telemetry/`, gateway and agent middleware | Send `traceparent: 00-<trace-id>-<span-id>-01` to the gateway or an agent, then read the span back from `otel-traces-*`: same `traceId`, same `parentSpanId`, `serviceName` naming the role. Reproduced on this checkout, not asserted |
 | Human-in-the-loop handoff | No specialist found | `services/workers/`, `packages/agent-runtime/src/.../suspend.py` | `tests/workers/test_hitl.py`, `tests/agent_runtime/test_suspend.py` — including that a suspended turn persists state and holds no call |
 | Admin dashboard (§12) | Any | `apps/web/src/admin/` (own entry point), `services/gateway/src/.../admin.py` | Open `http://localhost:3000/admin`, or `GET /v1/admin/overview` with an admin session. Nine pages, eight reading live indices; a page whose source is missing answers `{available: false, reason}` rather than zeroes, and `tests/gateway/test_admin_reads.py` asserts exactly that |
@@ -135,32 +135,29 @@ of the table, and it is more useful than one that leaves the gap to be discovere
 
 These are load-bearing enough to state outside the table:
 
-1. **Per-conversation release pinning is incomplete.** The gateway resolves the dispatch release at
-   startup. Conversations are not pinned to a release and the canary router has no caller.
-   (The *admin* kill switch §16 asks for is wired; the
-   registry's rollout kill switch, which stops a canary rather than all writes, is a different control
-   and is not.)
-2. **The CI version gate has nothing to gate.** A baseline manifest now exists
-   (`registry/releases/latest.json`, built from a real `HEAD` and a locally built image digest) and
-   `make eval` reads it, so the gate can run — but nothing in CI *builds or publishes an image*, so
-   `RELEASE_IMAGE_DIGEST` is still set nowhere and the job reports a broken gate rather than gating.
-   The remaining work is a build-and-push step, not a manifest.
-3. **Evaluation has run nothing.** The package, the dataset, the rules and the CLI exist and are
-   tested; no replay harness does, so `make eval` reports all 44 cases as unmeasured. That is the
-   honest state rather than a stub, and it is the largest remaining piece of work.
-4. **Historic SSE replay remains process-local.** Standard coordination now projects specialist
-   results into durable workflow cards and resumes accepted answers. Historic events and general
-   model-task dispatch still need shared persistence before multiple gateway replicas can serve
-   the same stream. See [ADR-0041](../docs/adr/ADR-0041-autonomous-coordination.md).
+1. **Release pinning is adopted; the conversation-level kill switch is not.** Since 2026-10-20 the
+   gateway pins each workflow on its first dispatch through the registry's canary router and sends
+   the pin in every task (`referraleasy_gateway.release`). The registry's own `KillSwitch` and
+   `migrate_conversation`, which stop or move a *pinned conversation*, still have no operator route;
+   the §16 switch that is wired halts booking writes.
+2. **The CI image build has not run yet.** The `images` job builds every service image, pushes them
+   from `main`, and gives the version gate its digest; a changed release triggers the eval replay.
+   The workflow passes actionlint, but the job is unobserved until the next push.
+3. **Evaluation measures, and mostly reports handoffs.** `make eval` replays all eight scenarios and
+   scores 44/44 cases. Outside the standard path most journeys end in a handoff, and the report
+   says why for each case (`docs/runbooks/evaluation.md` §2).
+4. **SSE history is shared; two other things are not.** Under the postgres profile the stream's log
+   is the `stream_event` table (migration 018), so replicas serve one sequence. The dispatcher's
+   in-process `submit` queue and the gateway's latency ledger are still per process. See
+   [ADR-0041](../docs/adr/ADR-0041-autonomous-coordination.md).
 5. **Most turns state no outcome class.** §15's class is recorded from the `terminal` event, which
    the gateway emits on the endings that produce a consequential result (a booking, an emergency).
    A plain recorded message ends without one, and no class is invented for it — the turn is still
    counted and still contributes its latency, and `tests/gateway/test_turn_telemetry.py` pins that
    distinction rather than leaving it to be discovered from a chart.
-6. **The operator's actions have no dashboard.** The Human Queue page reads the queue; claiming,
-   releasing and resolving are `python -m referraleasy_workers handoff ...` on a terminal. That is
-   deliberate — one implementation of §11's claim rules, where the database's compare-and-set is the
-   arbiter — but it is not a UI an operator would choose.
+6. **The new Postgres paths were written without a database.** Migrations 017–018, the alert
+   scheduler's storage, the shared SSE log and the Human Queue actions' database path have tests marked `integration`. They were
+   not run in the 2026-10-20 pass because Docker was not running; CI's integration job runs them.
 
 ## Running it
 
@@ -170,7 +167,7 @@ make demo              # validate env → compose up → migrate → seed → in
 make test              # unit + contract tests (Phase 0 spikes excluded)
 make test-integration   # database-backed tests — needs the compose postgres, see below
 make e2e               # booking faults and autonomous journeys against a fresh mock API
-make eval              # §14's evaluation — reports what it could not measure, and why
+make eval              # §14's evaluation — replays every scenario, then scores it
 make down
 ```
 

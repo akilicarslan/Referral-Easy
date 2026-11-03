@@ -19,14 +19,13 @@
 #              delivers them over HTTP, and sleeps between passes. This is a real,
 #              long-running process; it is what `services/workers` was written for.
 #
-#   scheduler  NOT IMPLEMENTED, and this image refuses it rather than running
-#              something that looks like it. There is no evaluation-sampling or
-#              retention job in this repository: nothing reads EVAL_CRON,
-#              EVAL_TIMEZONE or EVAL_SAMPLE_RATE (grep finds them only in
-#              compose.yaml and .env.example), `referraleasy_eval` does not exist as
-#              a package, and the one loop that does exist — the outbox drain — must
-#              NOT be run twice: `referraleasy_workers/__main__.py` is explicit that a
-#              second loop would be a second owner for the same rows. See ADR-0036.
+#   scheduler  `python -m referraleasy_workers alerts --watch` — §16's alert loop
+#              (`referraleasy_workers.alerts`, migration 017). Each tick queries the
+#              telemetry indices, runs the four rules through the dedup engine and
+#              records transitions and mock emails; a transaction-scoped advisory lock
+#              keeps a second scheduler from opening the same alert twice. It does NOT
+#              run §14's online evaluation sampling (EVAL_CRON/EVAL_TIMEZONE are still
+#              read by nothing) and it never touches the outbox rows the worker owns.
 #
 # NO MODEL CALL AT STARTUP: this image has no model dependency at all. It carries
 # contracts, domain and the agent runtime's budget/HTTP pieces, and `referraleasy_
@@ -95,6 +94,8 @@ COPY packages/agent-runtime/src packages/agent-runtime/src
 # `Distribution not found at: file:///repo/packages/telemetry`. Found by
 # `tests/test_docker_member_lists.py`, which is why that guard exists.
 COPY packages/telemetry/src packages/telemetry/src
+# §16's rules and dedup engine, which the scheduler role runs.
+COPY packages/alerts/src packages/alerts/src
 COPY services/workers/src services/workers/src
 
 RUN uv sync --frozen --package referraleasy-workers --no-dev --no-editable
@@ -132,24 +133,21 @@ USER app
 # matched even in a container with no worker in it at all. PID 1's command line cannot
 # contain the probe's own text.
 HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=5 \
-  CMD tr '\0' ' ' < /proc/1/cmdline | grep -q "referraleasy_workers outbox" || exit 1
+  CMD tr '\0' ' ' < /proc/1/cmdline | grep -qE "referraleasy_workers (outbox|alerts)" || exit 1
 
 # SERVICE_ROLE picks the command, exactly as AGENT_ROLE picks the agents' entry point
 # in services/agents/Dockerfile. `exec` keeps the worker as PID 1's own process, so
 # SIGTERM reaches it directly and a stop is a stop rather than a kill after the grace
 # period.
 #
-# The scheduler arm refuses on purpose, with the reason on stderr and exit 64. The
-# alternative — falling through to the outbox loop — would run a second owner of the
-# same queue rows while claiming to be a scheduler, which is worse than not starting:
-# a fabricated service is exactly what this repository's health and evaluation rules
-# exist to prevent.
+# The scheduler arm runs the alert loop, never the outbox drain: falling through to the
+# outbox would run a second owner of the same queue rows while claiming to be a scheduler.
 #
 # One-shot commands (the package's other verb) are run as:
 #   docker compose run --rm worker python -m referraleasy_workers reconcile <key>
 # which replaces this CMD rather than competing with it.
 CMD ["sh", "-c", "case \"$SERVICE_ROLE\" in \
 worker) exec python -m referraleasy_workers outbox --watch ;; \
-scheduler) echo 'SERVICE_ROLE=scheduler has no implementation in this repository: nothing reads EVAL_CRON/EVAL_TIMEZONE, and the outbox loop must not be run twice. See docs/adr/ADR-0036-*.md' >&2; exit 64 ;; \
+scheduler) exec python -m referraleasy_workers alerts --watch ;; \
 *) echo \"SERVICE_ROLE is '$SERVICE_ROLE'; it must be 'worker' or 'scheduler'.\" >&2; exit 64 ;; \
 esac"]

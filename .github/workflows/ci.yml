@@ -245,6 +245,13 @@ jobs:
       # database-backed integration test anywhere else is still covered by the guard below without
       # anyone remembering to add it.
       #
+      # The same holds for four more modules, which need what `docker compose` starts and this job
+      # does not: the telemetry live tests read OpenSearch through the OTel collector, and
+      # `test_mock_api_tools.py` calls a running mock API. All 39 of their integration tests skipped
+      # here on every run, so the guard below always failed (masked on main by an earlier failure).
+      # They are excluded by file, like tests/rag, so a new database test elsewhere is still guarded.
+      # The one test among them that needs no service also runs in the unit-tests job.
+      #
       # That guard did not cover `migrations/tests` until recently, and the reason was collection
       # rather than policy: the directory was outside `testpaths`, so `pytest -m integration` never
       # saw its 124 schema-level tests. They also could not have run — their helpers were in a
@@ -254,7 +261,11 @@ jobs:
       - name: Integration tests must run, not skip
         run: |
           set -eu
-          out="$(uv run pytest -m integration -q -rs --ignore=tests/rag 2>&1)" \
+          out="$(uv run pytest -m integration -q -rs --ignore=tests/rag \
+            --ignore=tests/telemetry/test_query_live.py \
+            --ignore=tests/telemetry/test_pipeline_live.py \
+            --ignore=tests/telemetry/test_propagation_integration.py \
+            --ignore=tests/agents/test_mock_api_tools.py 2>&1)" \
             || { printf '%s\n' "$out"; exit 1; }
           printf '%s\n' "$out"
           passed="$(printf '%s' "$out" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true)"
@@ -336,6 +347,8 @@ jobs:
       # wrong, or the marker were lost, every test would error or be deselected and a bare exit code
       # of 0 would hide it. Assert the count.
       - name: Run the e2e suite
+        env:
+          MOCK_API_URL: http://localhost:4010
         run: |
           set -eu
           # `-m e2e` is required: pyproject's addopts deselects the marker for the default run, and
@@ -546,6 +559,10 @@ jobs:
         run: |
           uv sync --all-packages --frozen
           pnpm install --frozen-lockfile
+      # eval_replay.py starts an isolated mock API, which imports `@referraleasy/contracts` from its
+      # gitignored `dist/`; without this the replay died with ERR_MODULE_NOT_FOUND (as e2e did).
+      - name: Build the contracts package
+        run: pnpm --filter @referraleasy/contracts build
       # The manifest records the resolved provider, model, budgets and guardrail settings, read
       # from `.env` and the process environment. A runner has no `.env`, so the gate exited 3
       # ("the environment does not define AGENT_MODEL_ID") on every run. The shipped offline

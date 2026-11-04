@@ -16,7 +16,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from referraleasy_agent_runtime import AgentRole, AgentSettings, BudgetCaps
-from referraleasy_agents.service import HttpDelegation, build_app, build_policy
+from referraleasy_agents.service import (
+    DEFAULT_MOCK_API_URL,
+    MOCK_API_URL_ENV,
+    HttpDelegation,
+    build_app,
+    build_policy,
+)
 from referraleasy_agents.tools.client import DirectoryApi
 from referraleasy_contracts.generated.common import (
     GuardrailCategory,
@@ -35,6 +41,10 @@ from referraleasy_gateway.guardrails import (
 )
 from referraleasy_gateway.policy import TablePolicy
 from referraleasy_gateway.timing import SystemClock
+
+#: Same default as `test_scripted_booking.py` and the agents service. A bare `os.environ[...]`
+#: raised KeyError in CI, which starts the mock API on the default port and sets no variable.
+MOCK_API_URL = os.environ.get(MOCK_API_URL_ENV, DEFAULT_MOCK_API_URL)
 
 pytestmark = pytest.mark.e2e
 PATIENT = "b0000000-0000-4000-8000-000000000001"
@@ -106,7 +116,7 @@ def test_patient_choices_complete_the_autonomous_journey(
     monkeypatch.setattr(runtime_module, "project_failure", record_failure)
 
     apps: dict[str, Any] = {}
-    hospital_api = httpx.Client(base_url=os.environ["MOCK_API_URL"], timeout=3)
+    hospital_api = httpx.Client(base_url=MOCK_API_URL, timeout=3)
     hospital_api.post("/_faults/arm", json={"mode": "off"}).raise_for_status()
     hospital_api.post("/_faults/reset", json={}).raise_for_status()
 
@@ -137,9 +147,7 @@ def test_patient_choices_complete_the_autonomous_journey(
                 else SourcePolicy()
             ),
             delegation=delegation if role is AgentRole.CARE_COORDINATOR else None,
-            api=DirectoryApi(
-                os.environ["MOCK_API_URL"], token="test-service-token", caps=BudgetCaps()
-            ),
+            api=DirectoryApi(MOCK_API_URL, token="test-service-token", caps=BudgetCaps()),
         )
     with TestClient(apps[AgentRole.CARE_COORDINATOR.value]) as coordinator_client:
 

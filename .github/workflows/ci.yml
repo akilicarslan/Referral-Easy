@@ -53,6 +53,11 @@ jobs:
     name: No secrets in the tree or the history
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # gitleaks-action reads a pull request's commit range through the API, so this job needs to
+    # read pull requests. Push runs on main never asked, which is why only PRs failed.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       # fetch-depth: 0 - gitleaks scans the whole history, not just the tip. A secret deleted in a
       # later commit is still readable by anyone who clones, so a shallow clone would report a
@@ -73,6 +78,9 @@ jobs:
           # if this is ever moved under an org; the action fails loudly without it, which is the
           # right failure — a silent skip would read as a passing scan.
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          # Required by gitleaks-action for `pull_request` events: without it the action refuses to
+          # scan ("GITHUB_TOKEN is now required to scan pull requests") and the job fails.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: No private files or machine paths
         run: python3 scripts/check_public_release.py --tracked-only
 
@@ -298,6 +306,12 @@ jobs:
           pnpm install --frozen-lockfile
       # `start` runs dist/server.js, so the build has to exist first. Building rather than using
       # the `dev` script keeps CI on a real compiled artefact with no file watcher running.
+      # `@referraleasy/contracts` resolves to `dist/` (its `exports`), which is gitignored, so on a
+      # clean checkout every importer fails with "Cannot find module '@referraleasy/contracts'".
+      # A local run passes only because a developer's tree already has a `dist/`. The images build
+      # it the same way (services/mock-api/Dockerfile).
+      - name: Build the contracts package
+        run: pnpm --filter @referraleasy/contracts build
       - name: Build the mock API
         run: pnpm --filter @referraleasy/mock-api build
       - name: Start the mock API on a clean database
@@ -465,6 +479,13 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the workspace
         run: uv sync --all-packages --frozen
+      # The manifest records the resolved provider, model, budgets and guardrail settings, read
+      # from `.env` and the process environment. A runner has no `.env`, so the gate exited 3
+      # ("the environment does not define AGENT_MODEL_ID") on every run. The shipped offline
+      # profile is the environment CI actually runs, and it is public: the manifest reads a
+      # whitelist with no credential in it, and the env-guard job keeps this file valid.
+      - name: Use the shipped offline profile as the build environment
+        run: cp .env.example .env
       - name: A changed agent, prompt, tool or skill must advance its version
         id: gate
         run: |
@@ -525,6 +546,13 @@ jobs:
         run: |
           uv sync --all-packages --frozen
           pnpm install --frozen-lockfile
+      # The manifest records the resolved provider, model, budgets and guardrail settings, read
+      # from `.env` and the process environment. A runner has no `.env`, so the gate exited 3
+      # ("the environment does not define AGENT_MODEL_ID") on every run. The shipped offline
+      # profile is the environment CI actually runs, and it is public: the manifest reads a
+      # whitelist with no credential in it, and the env-guard job keeps this file valid.
+      - name: Use the shipped offline profile as the build environment
+        run: cp .env.example .env
       # The manifest is built in this runner only, so the evaluation is stamped with the release
       # this commit would be. Committing it stays a human step (docs/runbooks/evaluation.md §1).
       - name: Build this commit's release manifest
@@ -560,13 +588,18 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install the workspace
         run: uv sync --all-packages --frozen
-      # TODO(contracts): root package.json exposes `gen:contracts`, which filters on
-      # `@referraleasy/contracts` - but packages/contracts/package.json does not exist
-      # yet, so that npm wrapper cannot run. This job therefore calls generate.sh
-      # directly, which is the source of truth for both branches. When the contracts
-      # package's package.json lands, either keep using generate.sh --check here (it
-      # already covers the TS branch once packages/contracts/ts is scaffolded) or add a
-      # `pnpm gen:contracts` step and pin pnpm in this job.
+      # generate.sh is the source of truth for both branches, and its TypeScript branch runs
+      # `pnpm --filter @referraleasy/contracts gen` (json-schema-to-zod from the Node workspace).
+      # Without pnpm here the job died with "pnpm: command not found" before checking anything.
+      - uses: pnpm/action-setup@v6.1.0
+        with:
+          run_install: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install the Node workspace
+        run: pnpm install --frozen-lockfile
       - name: Regenerate and diff
         run: |
           set -eu
@@ -781,6 +814,11 @@ jobs:
       - if: steps.workspace.outputs.present == 'true'
         name: Install
         run: pnpm install --frozen-lockfile
+      - if: steps.workspace.outputs.present == 'true'
+        name: Build the contracts package
+        # `@referraleasy/contracts` resolves to its gitignored `dist/`, so a clean checkout has to
+        # build it before anything that imports it can typecheck (same step as the e2e job).
+        run: pnpm --filter @referraleasy/contracts build
       - if: steps.workspace.outputs.present == 'true'
         name: pnpm lint
         run: pnpm lint

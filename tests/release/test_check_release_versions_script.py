@@ -168,6 +168,25 @@ def test_an_environment_the_manifest_needs_but_does_not_have_cannot_run(tmp_path
     assert supplied.returncode == EXIT_OK, supplied.stderr
 
 
+def test_with_no_env_file_the_process_environment_is_read(tmp_path: Path) -> None:
+    """CI has no ``.env``: the job's environment is the only source, and it must be enough.
+
+    Every other test here writes an ``.env`` into its scratch tree, which is how the gate ignored
+    the process environment whenever the file was absent and was green everywhere except in CI,
+    where it exited 3 with "the environment does not define AGENT_MODEL_ID" on every run.
+    """
+    scratch = scratch_repo(tmp_path)
+    (scratch.root / ".env").unlink()
+
+    without = run_script(scratch.root, "build", "--built-at", BUILT_AT_FLAG)
+    assert without.returncode == EXIT_UNAVAILABLE, "with neither a file nor an environment"
+
+    result = run_script(scratch.root, "build", "--built-at", BUILT_AT_FLAG, env=dict(TEST_ENV))
+    assert result.returncode == EXIT_OK, result.stderr
+    check = run_script(scratch.root, "check", env=dict(TEST_ENV))
+    assert check.returncode == EXIT_OK, check.stderr
+
+
 # ── build ──────────────────────────────────────────────────────────────────────────
 
 

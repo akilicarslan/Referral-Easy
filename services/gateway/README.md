@@ -127,10 +127,9 @@ would otherwise assume the opposite:
    * **Two clocks.** §9's expiry is the database's `now()`; the gateway's clock is its own. They agree
      because `PostgresApprovalLedger` returns the row the database stamped, which means a test cannot
      expire a consent by moving a `ManualClock`.
-   * **§12's event log does not survive a restart, in either profile.** There is no table for it —
-     `audit` is the tamper-evident chain, not the transport log — so a reconnecting client is served
-     from a store that knows where the workflow is and a log that knows nothing about how it got
-     there. Tested rather than described.
+   * **§12's event log survives a restart only in the postgres profile.** `PostgresEventLog` writes it
+     to `stream_event` (migration 018), so every replica serves one stream; the memory profile keeps
+     it in process and a restart loses it. Tested rather than described.
    Two boundaries were gaps here and are not any more; they are described because a reader who knew
    the earlier version would otherwise still assume them:
    * **A booking and its transition are one transaction.** `record_booking` takes the outcome the

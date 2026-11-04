@@ -148,9 +148,10 @@ def _parse_env_file(path: Path) -> dict[str, str]:
     reads a whitelist, and the whitelist contains no credential.
     """
     values: dict[str, str] = {}
-    if not path.is_file():
-        return values
-    for raw in path.read_text(encoding="utf-8").splitlines():
+    # No early return when the file is absent: CI has no `.env`, and returning here skipped the
+    # merge below, so the job's environment was ignored and every CI run exited 3.
+    lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+    for raw in lines:
         line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

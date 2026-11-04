@@ -51,9 +51,8 @@ from referraleasy_agent_runtime import (
     BudgetCaps,
     BudgetExhausted,
     TurnBudget,
-    UnknownRoleError,
 )
-from referraleasy_agents.errors import UnknownDataError
+from referraleasy_agents.errors import ArgumentRejected, UnknownDataError
 from referraleasy_agents.tools.call import (
     ToolCall,
     require_command_id,
@@ -304,12 +303,14 @@ async def test_delegation_refuses_what_it_cannot_do() -> None:
         await delegate(port=None)
     assert "no delegation transport" in str(raised.value)
 
-    with pytest.raises(UnknownRoleError):
+    # The declared vocabulary (WS2 S1) is the six specialists: an unknown role and the
+    # coordinator itself are refused by the contract, before the handler's own checks.
+    with pytest.raises(ArgumentRejected):
         await delegate(port=RecordingPort(), target_role="not_a_role")
 
-    with pytest.raises(UnknownDataError) as raised:
+    with pytest.raises(ArgumentRejected) as rejected:
         await delegate(port=RecordingPort(), target_role=AgentRole.CARE_COORDINATOR.value)
-    assert "cannot delegate to itself" in str(raised.value)
+    assert "target_role" in str(rejected.value)
 
     with pytest.raises(UnknownDataError):
         await delegate(port=RecordingPort(), goal="   ")

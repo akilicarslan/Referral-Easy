@@ -39,9 +39,11 @@ from dataclasses import dataclass
 from typing import Any, Final
 
 from google.adk.agents import Agent
+from google.adk.apps import App
 from google.adk.models.base_llm import BaseLlm
 from google.adk.models.llm_request import LlmRequest
 from google.adk.models.llm_response import LlmResponse
+from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.runners import Runner
 from google.adk.sessions import BaseSessionService
 from google.adk.tools.base_tool import BaseTool
@@ -69,6 +71,7 @@ __all__ = [
     "adk_node_name",
     "budgeted_model",
     "build_agent",
+    "build_app",
     "build_runner",
     "resolve_llm",
     "session_key",
@@ -259,10 +262,21 @@ def build_agent(
     )
 
 
+def build_app(role: AgentRole, *, agent: Agent, plugins: Sequence[BasePlugin] = ()) -> App:
+    """The ADK `App` for one turn: the agent tree plus the turn's plugin stack (WS3 S1).
+
+    `plugins` must come from `plugins.build_plugin_stack`, which has already fixed their order. They
+    are registered on the App rather than on the Runner because ADK's `AgentTool` hands the parent's
+    plugin *instances* to its inner runner: the sub-agents of Provider Matching run under the same
+    guards, charged to the same turn, without a second stack to keep in step.
+    """
+    return App(name=service_name(role), root_agent=agent, plugins=list(plugins))
+
+
 def build_runner(
     role: AgentRole,
     *,
-    agent: Agent,
+    app: App,
     sessions: BaseSessionService,
 ) -> Runner:
     """A `Runner` for one turn, over the service's session service.
@@ -277,11 +291,9 @@ def build_runner(
     and a Runner that silently created one would hide a workflow whose state was
     never restored.
     """
-    return Runner(
-        app_name=service_name(role),
-        agent=agent,
-        session_service=sessions,
-    )
+    if app.name != service_name(role):
+        raise ValueError(f"app {app.name!r} is not {service_name(role)!r}'s")
+    return Runner(app=app, session_service=sessions)
 
 
 #: The instruction-state keys ADK substitutes into an instruction, recorded here so a

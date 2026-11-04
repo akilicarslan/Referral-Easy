@@ -122,6 +122,18 @@ class NoApprovalRefused(ToolRefused):
         super().__init__(message, role=role, tool=tool, workflow_state=workflow_state)
 
 
+class ArgumentRejected(ToolRefused):
+    """WS2 S1: an argument does not fit the tool's declared contract.
+
+    The declaration is the schema the model was shown (`ToolSpec.args_model`): a wrong type, a
+    string outside its pattern, a list over its cap, or an argument the tool does not declare.
+    Refused before the handler runs, so a malformed id never becomes a URL path segment.
+    """
+
+    def __init__(self, message: str, *, role: str, tool: str, workflow_state: str | None) -> None:
+        super().__init__(message, role=role, tool=tool, workflow_state=workflow_state)
+
+
 class DuplicateBookingKeyRefused(ToolRefused):
     """§3/§7, Scheduling: *"may not create a duplicate with a new key after a timeout"*.
 

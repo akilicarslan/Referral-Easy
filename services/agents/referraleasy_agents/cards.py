@@ -229,7 +229,10 @@ def _build_card(role: AgentRole) -> AgentCard:
         version=CARD_VERSION,
         agent_hash=agent_hash(role, skills=skills, sub_agents=sub_agents),
         capabilities=Capabilities(
-            streaming=True,
+            # WS3 S9: the service answers `POST /tasks` with one JSON result and serves no
+            # event stream, so the card must not advertise one. A peer that trusted `true` would
+            # open a stream nobody serves and hang until its own timeout.
+            streaming=False,
             pushNotifications=False,
             stateTransitionHistory=True,
         ),

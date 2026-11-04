@@ -541,14 +541,23 @@ def test_the_human_queue_route_takes_no_write(client) -> None:
 HANDOFF = "11111111-2222-4333-8444-555555555555"
 
 
-def test_queue_actions_refuse_in_the_memory_profile(client, backend: str) -> None:
-    if backend != "memory":
-        pytest.skip("the memory profile's refusal; the postgres path is covered below")
-    admin = _admin(client)
-    for action in ("claim", "release"):
-        response = client.post(f"/v1/admin/human-queue/{HANDOFF}/{action}", json={}, headers=admin)
-        assert response.status_code == 404, response.text
-        assert "in-memory control profile" in response.text
+def test_queue_actions_refuse_in_the_memory_profile() -> None:
+    """Built on the memory profile directly rather than parameterised over `backend`.
+
+    This used to take the `backend` fixture and `pytest.skip` its postgres half, which CI's database
+    job counts as a database-backed test that did not run (and fails on). The test is *about* the
+    memory profile, so it has no postgres half; the postgres path is the test below.
+    """
+    settings = demo_settings()
+    assert settings.control_backend == "memory"
+    with TestClient(create_app(settings=settings)) as client:
+        admin = _admin(client)
+        for action in ("claim", "release"):
+            response = client.post(
+                f"/v1/admin/human-queue/{HANDOFF}/{action}", json={}, headers=admin
+            )
+            assert response.status_code == 404, response.text
+            assert "in-memory control profile" in response.text
 
 
 def test_queue_actions_need_an_admin_session(client) -> None:
@@ -581,7 +590,9 @@ def test_queue_actions_run_through_the_workers_queue_as_the_session_subject() ->
         yield "connection"
 
     settings = replace(
-        GatewaySettings.from_env({"JWT_PATIENT_SECRET": "p" * 40, "JWT_ADMIN_SECRET": "a" * 40}),
+        GatewaySettings.from_env(
+            {"APP_ENV": "test", "JWT_PATIENT_SECRET": "p" * 40, "JWT_ADMIN_SECRET": "a" * 40}
+        ),
         control_backend="postgres",
         database_url="postgresql://db/referraleasy",
     )

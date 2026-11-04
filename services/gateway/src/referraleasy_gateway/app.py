@@ -21,7 +21,9 @@ running?" by reading one file:
 Three conveniences are demo-only and named as such: CORS (the browser client is served from another
 origin in development), the fixture token routes, and `POST /v1/demo/workflows`, which exists because
 the demo has no referral-creation flow to seed a workflow with (§18: a fixture, labelled as one).
-None of them is registered when `APP_ENV` is not `demo`/`test`/`ci`.
+None of them is registered when `APP_ENV` is not a fixture profile (`demo`/`test`), and `APP_ENV` has
+no default (WS1 S1): every response carries `X-ReferralEasy-Profile`, so which profile answered is a
+fact a client can read rather than infer.
 """
 
 from __future__ import annotations
@@ -202,6 +204,7 @@ def create_app(
     # minted by the middleware added next.
     install_server_spans(app, telemetry)
     _install_request_ids(app)
+    _install_profile_header(app, resolved)
     if resolved.is_demo:
         _install_demo_cors(app)
     app.include_router(build_router(wiring.deps))
@@ -209,6 +212,14 @@ def create_app(
         _install_demo_routes(app, wiring)
 
     _log.info("gateway configured: %s", resolved.describe())
+    if resolved.is_demo:
+        # Loud on purpose: the fixture profile mints sessions without a credential, and the one place
+        # an operator is guaranteed to look when a deployment misbehaves is the startup log.
+        _log.warning(
+            "APP_ENV=%s: FIXTURE PROFILE — session-minting routes are registered and every answer is "
+            "synthetic. This profile refuses to start on Cloud Run or behind a public https URL.",
+            resolved.app_env,
+        )
     return app
 
 
@@ -423,6 +434,21 @@ def _install_request_ids(app: FastAPI) -> None:
         )
         response = await call_next(request)
         response.headers["X-Request-Id"] = request.state.request_id
+        return response
+
+
+def _install_profile_header(app: FastAPI, settings: GatewaySettings) -> None:
+    """Stamp every response with the profile that produced it (WS1 S1).
+
+    A header rather than a body field so it is on errors, streams and the OpenAPI document alike, and
+    a client — or `make demo-attacks` — can assert on it without parsing anything.
+    """
+    profile = settings.app_env
+
+    @app.middleware("http")
+    async def _profile(request: Any, call_next: Any) -> Any:
+        response = await call_next(request)
+        response.headers["X-ReferralEasy-Profile"] = profile
         return response
 
 

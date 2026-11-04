@@ -38,6 +38,8 @@ TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 #: of the schema, and a test that deleted them would be testing a different
 #: database than the one that ships.
 RESET_TABLES = (
+    "control_switch",
+    "control_switch_event",
     "audit",
     "release_event",
     "release_registry",
@@ -55,7 +57,13 @@ RESET_TABLES = (
 #: Tables whose purpose is to refuse deletion. Truncating them in a test fixture
 #: is a deliberate act, which is why it is spelled out here instead of hidden
 #: inside a generic "reset" helper. The guards themselves are tested directly.
-GUARDED_TABLES = ("audit", "evidence", "release_registry", "release_event")
+GUARDED_TABLES = (
+    "audit",
+    "evidence",
+    "release_registry",
+    "release_event",
+    "control_switch_event",
+)
 
 
 def _load_runner():

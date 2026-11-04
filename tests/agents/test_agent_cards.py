@@ -217,9 +217,31 @@ def test_a_card_declares_the_transport_auth_and_capabilities(role: AgentRole) ->
     assert card.auth.scheme == "bearer"
     assert card.auth.verified_at_transport is True
     assert card.auth.required_scopes == ["referraleasy.a2a.invoke"]
-    assert card.capabilities.streaming is True
     assert card.capabilities.pushNotifications is False
     assert card.capabilities.stateTransitionHistory is True
+
+
+@pytest.mark.parametrize("role", ROLES, ids=[role.value for role in ROLES])
+def test_card_streaming_matches_served_routes(role: AgentRole) -> None:
+    """WS3 S9: a card advertises streaming only if the service serves a stream.
+
+    The runtime's routes are read off the real app, so adding an SSE route without flipping the
+    card (or the reverse) fails here rather than at a peer.
+    """
+    from referraleasy_agent_runtime import AgentSettings, create_app
+
+    env = {
+        "APP_ENV": "test",
+        "AGENT_MODEL_PROVIDER": "openrouter",
+        "AGENT_MODEL_ID": "synthetic/model-not-called",
+        "OPENROUTER_API_KEY": "test-key-not-a-real-credential",
+        "A2A_SERVICE_TOKEN": "test-service-token",
+        "MODEL_BACKEND": "offline",
+    }
+    app = create_app(AgentSettings.from_env(env, role=role))
+    paths = {getattr(route, "path", "") for route in app.routes}
+    streams = any("stream" in path or "subscribe" in path for path in paths)
+    assert card_for(role).capabilities.streaming is streams
 
 
 @pytest.mark.parametrize("role", ROLES, ids=[role.value for role in ROLES])

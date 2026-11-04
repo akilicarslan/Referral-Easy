@@ -66,6 +66,7 @@ from referraleasy_agent_runtime import (
 )
 from referraleasy_agents.canonical import canonical_json, payload_hash
 from referraleasy_agents.errors import (
+    ArgumentRejected,
     BookingOutcomeUnknown,
     DuplicateBookingKeyRefused,
     NoApprovalRefused,
@@ -331,7 +332,8 @@ async def test_an_expired_approval_cannot_be_renewed_by_the_model() -> None:
     api = StubApi({"/appointments": booking_response()})
     tools = scheduling_tools(api, approval_=approval(expires_at=EXPIRED))
     create_booking = next(tool for tool in tools.exposed() if tool.__name__ == "create_booking")
-    with pytest.raises(TypeError):
+    # Refused by the declared contract (WS2 S1, `extra="forbid"`) before any handler runs.
+    with pytest.raises(ArgumentRejected):
         await create_booking(idempotency_key=TURN_KEY, payload=dict(PAYLOAD), approval=approval())
     assert api.calls == [], "a model-supplied approval must never reach the hospital"
 

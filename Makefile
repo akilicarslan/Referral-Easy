@@ -22,6 +22,7 @@ PYTHON_SOURCE_ROOTS := \
 	packages/release-registry/src \
 	packages/eval/src \
 	packages/alerts/src \
+	packages/secret-provider/src \
 	services/gateway/src \
 	services/workers/src \
 	services/agents/referraleasy_agents

@@ -59,7 +59,7 @@ x-logging: &default-logging
 # .env.example is written for processes running on the host (localhost:5432,
 # localhost:4010), containers address each other by service name.
 x-app-env: &app-env
-  APP_ENV: ${APP_ENV:-demo}
+  APP_ENV: ${APP_ENV:?APP_ENV must name a profile (production|demo|test)}
   DATABASE_URL: postgresql://referraleasy:referraleasy@postgres:5432/referraleasy
   OPENSEARCH_URL: http://opensearch:9200
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318

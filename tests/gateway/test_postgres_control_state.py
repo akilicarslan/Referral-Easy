@@ -12,8 +12,8 @@ Three kinds of test live here.
    documented set acquires the marker, and the moment one of the documented tests stops needing it.
    The gap cannot grow quietly and it cannot stay stale.
 2. **Claims both profiles make.** The profile that serves is the profile the settings named, and the
-   store underneath survives a restart while §12's event log does not — true in both profiles, and a
-   finding rather than a property: nothing stores the log.
+   store underneath survives a restart, and so does §12's event log in the postgres profile (018's
+   `stream_event`); the memory profile keeps the log in process and loses it.
 3. **Claims only the database can make** (`@pytest.mark.integration`, skipped without a DSN). The
    point of the PostgreSQL profile is §7's sentence that the schema is the store of record, so these
    tests walk *underneath the adapter* — `WorkflowStore`, `CommandLedger`, raw SQL — and ask the
@@ -161,22 +161,20 @@ def test_the_profile_the_settings_name_is_the_profile_that_serves(
         assert settings.database_url == ""
 
 
-def test_the_event_log_does_not_survive_a_restart(
+def test_the_event_log_survives_a_restart_only_in_the_postgres_profile(
     settings: GatewaySettings,
     clock: ManualClock,
     control: SeedableControlState,
 ) -> None:
-    """§12's stream is in memory in *both* profiles, and a second app replays nothing.
+    """§12's stream after a restart: replayed from `stream_event` in postgres, gone in memory.
 
-    This is the finding, asserted rather than described. `EventLog` is a per-process object that no
-    migration has a table for — `audit` is the tamper-evident chain, not the transport log — so a
-    restart loses the stream's history while the workflow itself is still there, at the state it
-    reached. A reconnecting patient is therefore served from a store that knows where they are and a
-    log that knows nothing about how they got there.
+    This used to assert that *neither* profile kept the log. Migration 018 and `PostgresEventLog` gave
+    the postgres profile a table for it, so every replica serves one stream, and the old assertion
+    kept failing in the integration job after that fix. Each profile's answer is now asserted for
+    what it is. The memory profile still keeps the log in process, like the rest of its state.
 
-    Both halves are asserted, because either alone would be misleading: "no events" would also be
-    true of an app that failed to start, and "the workflow moved" would also be true of a log that
-    persisted.
+    Both halves are checked either way: "no events" would also be true of an app that failed to
+    start, and "the same events" would also be true of an app that never restarted.
     """
     first = Demo(TestClient(create_app(settings=settings, clock=clock, control=control)))
     workflow_id = first.seed()
@@ -193,18 +191,22 @@ def test_the_event_log_does_not_survive_a_restart(
     restarted = Demo(TestClient(create_app(settings=settings, clock=clock, control=control)))
     after = restarted.events(workflow_id)
     assert after.status_code == 200, after.text
-    assert "id: " not in after.text, (
-        "the restarted app replayed the previous process's events, so something is persisting a log "
-        "the EventLog does not know about"
-    )
+    if settings.control_backend == "postgres":
+        assert _event_ids(after.text) == _event_ids(before.text), (
+            "the restarted replica did not replay the stream the first one wrote to stream_event"
+        )
+    else:
+        assert "id: " not in after.text, (
+            "the memory profile replayed a previous process's events, so something is persisting a "
+            "log this profile is documented not to keep"
+        )
     assert restarted.snapshot(workflow_id).json()["state"] == "PROVIDER_MATCHING", (
-        "the workflow is gone as well as the log, which is a different finding from this one"
+        "the workflow is gone after the restart, which is a different finding from this one"
     )
-    # Why there is no third assertion: `EventLog` is per-process state and no migration creates a
-    # table it could load from, so "nothing is persisted" is the *absence* of a loader rather than a
-    # behaviour a test can observe. It is checked here as the two facts above — a restarted app
-    # replays nothing, and the workflow it does not replay is still at its state — and stated in
-    # `services/gateway/README.md` so a reader is not left to infer it.
+
+
+def _event_ids(stream: str) -> list[str]:
+    return [line[len("id: ") :] for line in stream.splitlines() if line.startswith("id: ")]
 
 
 def test_a_stale_version_is_refused_by_each_profile_s_own_authority(

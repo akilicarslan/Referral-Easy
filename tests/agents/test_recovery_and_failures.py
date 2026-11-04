@@ -59,6 +59,7 @@ from referraleasy_agent_runtime import (
 )
 from referraleasy_agents.decisions import assert_no_payment_guarantee, next_allowed_actions
 from referraleasy_agents.errors import (
+    ArgumentRejected,
     ConsentNotRecorded,
     OneWayDoorRefused,
     UnknownDataError,
@@ -452,7 +453,8 @@ async def test_a_handoff_without_consent_is_refused() -> None:
 
 @pytest.mark.asyncio
 async def test_a_handoff_reason_outside_the_classes_is_refused() -> None:
-    with pytest.raises(UnknownDataError) as raised:
+    # A closed vocabulary in the declaration (WS2 S1): refused before the handler, naming the classes.
+    with pytest.raises(ArgumentRejected) as raised:
         await recovery_tools().invoke(
             "create_handoff",
             reason_class="we felt like it",

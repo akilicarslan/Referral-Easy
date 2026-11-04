@@ -166,6 +166,24 @@ def test_a_declaration_carries_no_runtime_context(tool: str) -> None:
     assert "call" not in declared
 
 
+#: WS2 S4 moves these out of the model's reach: the booking is the workflow's own, the slot is the
+#: patient's recorded choice, and the key and the approved body are the turn's. Each is listed
+#: `xfail(strict=True)` until the slice that removes it, so the removal flips this to a pass and the
+#: marker has to go with it.
+PENDING_SERVICE_SUPPLIED = ("booking_request_id", "idempotency_key", "new_slot_id", "payload")
+
+
+@pytest.mark.xfail(strict=True, reason="WS2 S4 removes these from the declarations (B5)")
+@pytest.mark.parametrize("name", PENDING_SERVICE_SUPPLIED)
+def test_no_declaration_names_a_value_the_service_will_supply(name: str) -> None:
+    declaring = sorted(
+        tool
+        for tool, spec in TOOL_SPECS.items()
+        if name in {parameter.name for parameter in spec.parameters}
+    )
+    assert declaring == []
+
+
 def test_no_declaration_anywhere_names_the_workflow_the_patient_or_the_state() -> None:
     """The identity rule over the whole surface, in one assertion a reader can check.
 

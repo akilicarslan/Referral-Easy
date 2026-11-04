@@ -386,8 +386,10 @@ def test_a_placeholder_secret_is_refused_outside_the_demo_profile() -> None:
 
 def test_blank_secrets_refuse_to_start() -> None:
     """A blank signing key would authenticate every token, so it is a startup failure."""
-    with pytest.raises(ConfigurationError):
-        GatewaySettings.from_env({"JWT_PATIENT_SECRET": "", "JWT_ADMIN_SECRET": ""})
+    with pytest.raises(ConfigurationError, match="must both be set"):
+        GatewaySettings.from_env(
+            {"APP_ENV": "demo", "JWT_PATIENT_SECRET": "", "JWT_ADMIN_SECRET": ""}
+        )
 
 
 def test_equal_audiences_refuse_to_start() -> None:

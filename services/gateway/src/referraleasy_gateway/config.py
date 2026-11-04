@@ -13,6 +13,12 @@ Two profiles come out of this:
   `make demo` can start with nothing but Python.
 * **postgres** — `GATEWAY_CONTROL_BACKEND=postgres`, `DATABASE_URL` set. The port is served by the
   `packages/domain` stores, so the rules stay in SQL where §7 puts them.
+
+Separately, `APP_ENV` names the *deployment profile* (WS1 S1, ADR-0043), and it has no default. A
+missing or unknown value is a startup failure: the profile decides whether the fixture token routes
+exist, so a deployment that forgot to set it must not fall into the one profile that mints admin
+sessions for anyone who asks. The fixture profiles (`demo`, and `test` for the suites) also refuse to
+start anywhere that looks like a real deployment — see `_refuse_fixture_profile_outside_a_laptop`.
 """
 
 from __future__ import annotations
@@ -28,11 +34,14 @@ from urllib.parse import urlsplit
 from referraleasy_gateway.release import RELEASE_MANIFEST_ID_ENV, resolve_release_manifest_id
 
 __all__ = [
+    "APP_ENV_VAR",
     "CONTROL_BACKEND_ENV",
     "DEFAULT_ADMIN_AUDIENCE",
     "DEFAULT_ISSUER",
     "DEFAULT_PATIENT_AUDIENCE",
+    "FIXTURE_PROFILES",
     "OFFLINE_PROFILE_LABEL",
+    "PROFILES",
     "WORKER_ID_ENV",
     "ConfigurationError",
     "GatewaySettings",
@@ -61,6 +70,29 @@ WORKER_ID_ENV: Final = "GATEWAY_WORKER_ID"
 #: still carries one, and the gateway applies the same rule to its own two secrets: a signing key
 #: that is still the template value is a signing key every reader of the public repository knows.
 PLACEHOLDER_PREFIX: Final = "CHANGEME"
+
+
+#: The variable that names the deployment profile. Required: see the module docstring.
+APP_ENV_VAR: Final = "APP_ENV"
+
+#: Every profile the gateway knows. `production` has no fixture routes and refuses published secrets;
+#: `demo` is the local fixture profile `make demo` runs; `test` is the same fixture profile under the
+#: suites' name, kept distinct so a log line says which one answered.
+PROFILES: Final = frozenset({"production", "demo", "test"})
+
+#: Older spellings, accepted and normalised so an existing CI environment keeps working. `ci` was
+#: always the fixture profile; it is now said so.
+PROFILE_ALIASES: Final = {"ci": "demo"}
+
+#: The profiles in which the fixture conveniences (token minting routes, `?token=`, seeding, CORS)
+#: are registered.
+FIXTURE_PROFILES: Final = frozenset({"demo", "test"})
+
+#: Environment markers that mean "this process is a managed deployment". A fixture profile that sees
+#: any of them refuses to start, because the fixture routes would be reachable from the internet.
+_DEPLOYMENT_MARKERS: Final = ("K_SERVICE", "CLOUD_RUN_JOB")
+
+_LOCAL_HOSTS: Final = frozenset({"localhost", "127.0.0.1", "::1", "0.0.0.0"})
 
 
 class ConfigurationError(RuntimeError):
@@ -102,12 +134,67 @@ def _url_host(url: str) -> str | None:
     return f"{parts.hostname}:{parts.port}" if parts.port else parts.hostname
 
 
+def _resolve_profile(env: Mapping[str, str]) -> str:
+    """The profile `APP_ENV` names, or a `ConfigurationError`. Never a default."""
+    raw = env.get(APP_ENV_VAR, "").strip().lower()
+    if not raw:
+        raise ConfigurationError(
+            f"{APP_ENV_VAR} is not set. It must name a profile ({', '.join(sorted(PROFILES))}). "
+            "The gateway has no default profile, because the old default (demo) registered routes "
+            "that mint admin sessions without a credential (WS1 S1, ADR-0043)."
+        )
+    profile = PROFILE_ALIASES.get(raw, raw)
+    if profile not in PROFILES:
+        raise ConfigurationError(
+            f"{APP_ENV_VAR}={raw!r} is not a known profile ({', '.join(sorted(PROFILES))})."
+        )
+    return profile
+
+
+def _is_local_url(url: str) -> bool:
+    """Whether `url` points at this machine (or has no host at all, which is the same thing here)."""
+    try:
+        host = (urlsplit(url).hostname or "").lower()
+    except ValueError:  # pragma: no cover - urlsplit raises for a malformed IPv6 literal
+        return False
+    return not host or host in _LOCAL_HOSTS or host.endswith(".localhost")
+
+
+def _refuse_fixture_profile_outside_a_laptop(profile: str, env: Mapping[str, str]) -> None:
+    """A fixture profile that looks deployed is a startup failure, with the reason named.
+
+    Each check is a fact the environment states about where the process runs, not a guess: Cloud Run
+    sets `K_SERVICE`/`CLOUD_RUN_JOB`, the managed secret store is only configured in a deployment,
+    a public `https` gateway URL is an address someone else can reach, and the fixture profile is
+    only allowed to hold synthetic data.
+    """
+    if profile not in FIXTURE_PROFILES:
+        return
+    reasons: list[str] = []
+    reasons += [f"{name} is set" for name in _DEPLOYMENT_MARKERS if env.get(name, "").strip()]
+    if env.get("SECRET_PROVIDER", "").strip().lower() == "gcp":
+        reasons.append("SECRET_PROVIDER=gcp")
+    public_url = env.get("GATEWAY_URL", "").strip()
+    if public_url.lower().startswith("https://") and not _is_local_url(public_url):
+        reasons.append(f"GATEWAY_URL is a public https address ({_url_host(public_url)})")
+    synthetic = env.get("SYNTHETIC", "").strip().lower()
+    if synthetic and synthetic not in {"1", "true", "yes", "on"}:
+        reasons.append("SYNTHETIC is not true")
+    if reasons:
+        raise ConfigurationError(
+            f"APP_ENV={profile} is a fixture profile (it mints sessions without a credential), and "
+            f"this environment looks like a deployment: {'; '.join(reasons)}. Use APP_ENV=production."
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class GatewaySettings:
     """Everything the app needs to be built. Immutable, so a test can share one safely."""
 
     # -- environment -------------------------------------------------------------------------
-    app_env: str = "demo"
+    #: The deployment profile. The dataclass default is the *safe* one, so a settings object built
+    #: field by field never acquires fixture routes by omission; `from_env` has no default at all.
+    app_env: str = "production"
     host: str = "127.0.0.1"
     port: int = 8080
     public_url: str = ""
@@ -176,6 +263,10 @@ class GatewaySettings:
     explicit_release_manifest_id: str = ""
 
     def __post_init__(self) -> None:
+        if self.app_env not in PROFILES:
+            raise ConfigurationError(
+                f"app_env={self.app_env!r} is not a known profile ({', '.join(sorted(PROFILES))})."
+            )
         if not self.patient_secret.strip() or not self.admin_secret.strip():
             raise ConfigurationError(
                 "JWT_PATIENT_SECRET and JWT_ADMIN_SECRET must both be set. A blank signing key "
@@ -231,9 +322,11 @@ class GatewaySettings:
         the real environment.
         """
         source = os.environ if env is None else env
+        profile = _resolve_profile(source)
+        _refuse_fixture_profile_outside_a_laptop(profile, source)
         port = _int(source, "PORT", 8080)
         settings = cls(
-            app_env=source.get("APP_ENV", "demo").strip() or "demo",
+            app_env=profile,
             host=source.get("HOST", "127.0.0.1"),
             port=port,
             public_url=source.get("GATEWAY_URL", f"http://localhost:{port}"),
@@ -288,7 +381,15 @@ class GatewaySettings:
         """Whether the local-fixture conveniences (a token issuer route, a query-param token) are
         reachable. In the Cloud Run profile §9 describes they are not, because there the session
         identity comes from an audience-checked service identity instead."""
-        return self.app_env in {"demo", "test", "ci"}
+        return self.app_env in FIXTURE_PROFILES
+
+    def profile(self) -> dict[str, Any]:
+        """What `/healthz` and the startup banner say about the profile. No secret, by construction."""
+        return {
+            "name": self.app_env,
+            "fixture_auth": self.is_demo,
+            "synthetic": self.synthetic,
+        }
 
     def describe(self) -> dict[str, Any]:
         """A loggable summary. No secret is included, by construction rather than by review."""
